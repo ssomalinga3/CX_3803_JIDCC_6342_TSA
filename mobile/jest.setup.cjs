@@ -1,7 +1,10 @@
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
+jest.mock('expo-router', () => ({ useIsFocused: jest.fn(() => true) }));
+
 jest.mock('expo-location', () => ({
+  Accuracy: { High: 4 },
   getForegroundPermissionsAsync: jest.fn().mockResolvedValue({
     status: 'undetermined',
     granted: false,
@@ -12,7 +15,7 @@ jest.mock('expo-location', () => ({
   hasServicesEnabledAsync: jest.fn().mockResolvedValue(true),
   getCurrentPositionAsync: jest.fn(),
   getLastKnownPositionAsync: jest.fn(),
-  watchPositionAsync: jest.fn(),
+  watchPositionAsync: jest.fn().mockResolvedValue({ remove: jest.fn() }),
   requestBackgroundPermissionsAsync: jest.fn(),
 }));
 

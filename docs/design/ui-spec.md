@@ -73,3 +73,28 @@ are available. Opening/resuming the app checks access without prompting. Access
 permission is distinguished from GPS positioning, which remains J6-14. See the
 [mobile guide](../../mobile/README.md#location-permissions-and-privacy-j6-15) for
 native rebuild requirements, screenshots and verified/unverified paths.
+
+## Live visitor position (J6-14)
+
+The active Map tab uses the existing foreground permission foundation and one
+Expo Location watch; MapLibre only renders its in-memory point. The Figma
+[active navigation screen](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-26)
+provides the floating header, blue visitor dot and map controls. The header says
+“Live device position” only with a fresh fix; it does not claim Trail Mode or
+safe trail alignment. GIS landmarks are green to distinguish them from the
+visitor. Synthetic geometry remains explicitly unsuitable for navigation.
+
+“Recenter to current location” is visibly labeled and enabled only with a fresh
+fix and rendered map. It centers the usable area above the panel, without
+turning on camera following. Pan/zoom and Return to preserve remain independent.
+Initial GIS fitting runs once, so panel size changes cannot undo browsing or
+recenter. GPS acquisition, unavailable and stale messages are independent of
+basemap/API failures. Missing/stale positions have no visitor marker or usable
+recenter; no placeholder coordinate stands in for the visitor.
+
+Reduced/coarse permission is accepted without requesting an upgrade. Show
+“Approximate location” when the OS reports it, otherwise device/unknown precision,
+and reported horizontal uncertainty (or accuracy unavailable). No accuracy value
+establishes trail safety. See the proposed UX timing decision in
+[D-08](../decisions.md#j6-14-gps-ux-timings-proposed) and
+[native verification notes](../../mobile/README.md#live-gps-j6-14).

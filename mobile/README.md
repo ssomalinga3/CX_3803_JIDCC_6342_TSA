@@ -212,3 +212,81 @@ Backend privacy tests exercise coordinate-bearing malformed JSON, oversized
 bodies, request URLs and dependency errors. `pnpm verify` includes these tests;
 its default backend suite skips real PostGIS integration tests. Native permission
 behavior and compilation are separate evidence from JavaScript exports.
+
+## Live GPS (J6-14)
+
+This slice supersedes the earlier permission-only/preview limitations above.
+The focused Map tab now acquires live foreground positions with the installed
+`expo-location` SDK 57 module. It renders a blue visitor dot, distinct green GIS
+landmarks, a visibly labeled Recenter to current location action and separate GPS
+feedback. Fix updates never automatically move the camera. Return to preserve
+still uses the browsing center. Reduced/coarse access is accepted and labeled;
+reported uncertainty is informational, never a trail-safety assessment.
+
+No native dependency or configuration changed: reuse the successfully compiled
+[iOS simulator build b9c53bb5](https://expo.dev/accounts/cx3803jidcc6342tsa/projects/cascade-springs/builds/b9c53bb5-20be-4bb0-94a6-1da3d638bb0b)
+from PR #7. It contains ExpoLocation; the older starter build does not. That
+archive is native-compilation evidence for the unchanged native inputs, not a
+new compilation of this JavaScript feature. No new cloud build was run.
+Implementation was checked against the installed package types/source and
+[SDK 57 Location documentation](https://docs.expo.dev/versions/v57.0.0/sdk/location/),
+including foreground-only watch behavior, permission accuracy and the explicit
+Android `mayShowUserSettingsDialog: false` safeguard against extra dialogs.
+
+From a terminal in this checkout, select the pinned Node version once and leave
+Metro running for simulator checks:
+
+```sh
+nvm use
+pnpm mobile --port 8083
+```
+
+In another terminal, connect the simulator and deliver **synthetic test locations**:
+
+```sh
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+xcrun simctl openurl booted 'cascade-springs://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8083'
+xcrun simctl location booted set 33.7178,-84.4794
+xcrun simctl location booted set 33.7195,-84.4760
+xcrun simctl location booted clear
+```
+
+These are simulator inputs, not visitor records or survey points. With foreground
+permission granted, verify the marker appears and Recenter brings it into the
+usable map area. Deliver a second fix: the dot moves without following it. Zoom
+and Return to preserve remain usable. Clear simulated locations and wait for stale
+feedback: no dot, disabled recenter, Retry GPS and independent map browsing.
+Deliver a new fix to recover. Background the app, then resume and deliver a fresh
+fix: access is checked again and a new tracking session acquires a position.
+Repeat after revoking access in Settings; browsing must remain usable. Check
+approximate access, services disabled, denial and initial no-fix acquisition too.
+The numeric UX windows remain [proposed pending confirmation](../docs/decisions.md#j6-14-gps-ux-timings-proposed).
+
+On November 2, 2026, iPhone 16 / iOS 18.6 with build b9c53bb5 and Metro on 8083
+verified native position rendering, visibly distinct landmarks, recenter, moving
+simulated fixes without camera following, Zoom in, Return to preserve, stale
+marker removal/recenter disabling, recovery with a new fix, and background/resume
+reacquisition. See the [live map](../docs/images/ios-simulator-live-gps.png) and
+[stale GPS](../docs/images/ios-simulator-gps-stale.png) screenshots. Screenshots were
+visually reviewed against the existing Figma header/control layout. Unrelated
+prototype report/layers/emergency UI remains outside this slice.
+
+`pnpm verify` with Node 24.21.0 passes formatting, lint, type checks, 48 mobile
+Jest tests, 27 backend tests and iOS/Android JavaScript exports. Backend HTTP tests
+need permission to bind localhost in restricted environments. Nine real-PostGIS
+tests remain skipped in the default suite; no backend/schema change is present.
+Jest separately covers blur/unmount/background cleanup, late subscription results
+and callbacks, permission/service loss, acquisition timeout, stale/invalid/future/
+out-of-order fixes, reduced precision, watch failure/retry, prompt interruption,
+and recenter/privacy behavior. Passing JS exports does not establish native
+Android compilation or device behavior.
+
+Android native checks are unverified: no Android SDK/emulator target is available
+on this host. Physical-device accuracy, native approximate/services-off/revocation
+paths, large text sizes and pan/pinch gestures remain unverified. Simulator
+coordinate gestures failed with `noWindowsAvailable`; native accessible buttons
+worked. No offline cache or report retry/deduplication workflow is introduced.
+Visitor coordinates remain in memory on the device and never enter GIS requests,
+logs, analytics, error messages or persistent storage. Online basemap tile requests
+follow the viewed viewport; provider/infrastructure approval remains D-05/D-10.
+Synthetic GIS cannot establish safe navigation or trail alignment.

@@ -71,3 +71,21 @@ logged nor echoed. Existing GIS/readiness handlers continue redacting dependency
 failures. Regression tests cover coordinate-bearing bodies, URLs and errors.
 Production hosting/access-log/analytics configuration remains unverified under
 D-10; future infrastructure must preserve the same coordinate exclusion.
+
+### Live map position lifecycle (J6-14)
+
+Visitor fixes remain in volatile mobile hook state and a MapLibre GeoJSON source.
+They are never added to GIS API URLs, filters, bodies, application logs, analytics,
+error text or persistent storage. No reporting/share action is implemented here.
+GIS requests still fetch the public collections independently of GPS. Online
+basemap tiles follow the viewed viewport, including after recenter; provider and
+infrastructure privacy approval remain D-05/D-10 and this is not an offline map.
+
+Only the focused map in an active app may watch location. Blur, inactive/background,
+permission loss and unmount remove the subscription and invalidate callbacks;
+a subscription resolving after cleanup is removed immediately. Resume/focus
+rechecks foreground permission and services before starting a new watch. Silent
+permission/service changes are checked every five seconds while watching, without
+prompts. Native watch errors clear the position and use generic GPS feedback;
+raw errors never reach logs or UI. No background task, second location provider,
+precision-upgrade dialog or automatic permission prompt is added.

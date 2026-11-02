@@ -47,3 +47,23 @@ test('a silent first-load connection failure stops the spinner', async () => {
     jest.useRealTimers();
   }
 });
+
+test('denied GPS permission leaves native browsing controls usable without starting a watch', async () => {
+  const location = jest.requireMock('expo-location');
+  location.getForegroundPermissionsAsync.mockResolvedValueOnce({
+    granted: false,
+    status: 'denied',
+    canAskAgain: false,
+  });
+  await render(<PreserveMap />);
+  expect(
+    await screen.findByText('Location access is off. Allow it in Settings, or keep browsing.'),
+  ).toBeOnTheScreen();
+  await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+  expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'Return to preserve' })).toBeEnabled();
+  expect(
+    screen.queryByRole('button', { name: 'Recenter to current location' }),
+  ).not.toBeOnTheScreen();
+  expect(location.watchPositionAsync).not.toHaveBeenCalled();
+});

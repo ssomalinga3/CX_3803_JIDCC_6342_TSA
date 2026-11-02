@@ -1,7 +1,13 @@
 import { act, fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { AppState, Linking, type AppStateStatus } from 'react-native';
 
-import PreserveMap from '@/components/preserve-map';
+import LocationPermissionNotice from '@/components/location-permission-notice';
+import { useLocationPermission } from '@/hooks/use-location-permission';
+
+function PermissionOnly() {
+  const access = useLocationPermission();
+  return <LocationPermissionNotice access={access} />;
+}
 
 const location = jest.requireMock('expo-location');
 const undetermined = {
@@ -31,7 +37,7 @@ afterEach(() => jest.restoreAllMocks());
 test('only a tap requests foreground permission; granting access does not capture or transmit a fix', async () => {
   const user = userEvent.setup();
   const fetch = jest.spyOn(globalThis, 'fetch');
-  await render(<PreserveMap />);
+  await render(<PermissionOnly />);
   const allow = await screen.findByRole('button', { name: 'Allow location access' });
   expect(location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
   const requestCount = fetch.mock.calls.length;
@@ -45,20 +51,17 @@ test('only a tap requests foreground permission; granting access does not captur
   expect(fetch.mock.calls).toHaveLength(requestCount);
 });
 
-test('denial preserves map controls and offers an explicit retry', async () => {
+test('denial offers an explicit permission retry', async () => {
   location.requestForegroundPermissionsAsync.mockResolvedValue({
     ...undetermined,
     status: 'denied',
   });
   const user = userEvent.setup();
-  await render(<PreserveMap />);
+  await render(<PermissionOnly />);
   await user.press(await screen.findByRole('button', { name: 'Allow location access' }));
   expect(
     await screen.findByText('Location access denied. You can still browse the map.'),
   ).toBeOnTheScreen();
-  await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
-  await user.press(screen.getByRole('button', { name: 'Zoom in' }));
-  expect(screen.getByRole('button', { name: 'Return to preserve' })).toBeEnabled();
   location.requestForegroundPermissionsAsync.mockResolvedValue(granted);
   await user.press(screen.getByRole('button', { name: 'Allow location access' }));
   expect(await screen.findByText('Location access allowed while using the app.')).toBeOnTheScreen();
@@ -71,7 +74,7 @@ test('blocked access opens Settings and detects permission changes and revocatio
     canAskAgain: false,
   });
   const user = userEvent.setup();
-  const { unmount } = await render(<PreserveMap />);
+  const { unmount } = await render(<PermissionOnly />);
   await user.press(await screen.findByRole('button', { name: 'Open Settings' }));
   expect(Linking.openSettings).toHaveBeenCalledTimes(1);
   expect(location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
@@ -89,7 +92,7 @@ test('disabled device services are distinct from permission denial and network f
   location.getForegroundPermissionsAsync.mockResolvedValue(granted);
   location.hasServicesEnabledAsync.mockResolvedValue(false);
   const user = userEvent.setup();
-  await render(<PreserveMap />);
+  await render(<PermissionOnly />);
   expect(
     await screen.findByText('Device location services are off. You can still browse the map.'),
   ).toBeOnTheScreen();
@@ -103,7 +106,7 @@ test('native and Settings failures have generic feedback and a usable retry', as
   const log = jest.spyOn(console, 'error').mockImplementation(() => {});
   location.getForegroundPermissionsAsync.mockRejectedValueOnce(new Error('private GPS context'));
   const user = userEvent.setup();
-  await render(<PreserveMap />);
+  await render(<PermissionOnly />);
   await user.press(await screen.findByRole('button', { name: 'Check location access' }));
   expect(await screen.findByRole('button', { name: 'Allow location access' })).toBeOnTheScreen();
   location.requestForegroundPermissionsAsync.mockResolvedValue({
@@ -127,7 +130,7 @@ test('a pending prompt is not duplicated by repeated taps or app-state events', 
         resolve = done;
       }),
   );
-  const { unmount } = await render(<PreserveMap />);
+  const { unmount } = await render(<PermissionOnly />);
   const allow = await screen.findByRole('button', { name: 'Allow location access' });
   await fireEvent.press(allow);
   await fireEvent.press(allow);
@@ -146,7 +149,7 @@ test('an old permission check cannot overwrite a newer grant', async () => {
         resolve = done;
       }),
   );
-  await render(<PreserveMap />);
+  await render(<PermissionOnly />);
   location.getForegroundPermissionsAsync.mockResolvedValue(granted);
   await act(async () => onAppState('active'));
   expect(await screen.findByText('Location access allowed while using the app.')).toBeOnTheScreen();
@@ -154,4 +157,22 @@ test('an old permission check cannot overwrite a newer grant', async () => {
   await waitFor(() =>
     expect(screen.queryByRole('button', { name: 'Allow location access' })).not.toBeOnTheScreen(),
   );
+});
+
+test('a native prompt interrupted by inactive state rechecks after return without prompting twice', async () => {
+  let resolve!: (value: typeof granted) => void;
+  location.requestForegroundPermissionsAsync.mockImplementationOnce(
+    () =>
+      new Promise((done) => {
+        resolve = done;
+      }),
+  );
+  await render(<PermissionOnly />);
+  await fireEvent.press(await screen.findByRole('button', { name: 'Allow location access' }));
+  await act(async () => onAppState('inactive'));
+  await act(async () => onAppState('active'));
+  location.getForegroundPermissionsAsync.mockResolvedValue(granted);
+  await act(async () => resolve(granted));
+  expect(await screen.findByText('Location access allowed while using the app.')).toBeOnTheScreen();
+  expect(location.requestForegroundPermissionsAsync).toHaveBeenCalledTimes(1);
 });

@@ -12,8 +12,11 @@ const messages: Record<LocationAccess, string> = {
   unavailable: 'Location access could not be checked. You can still browse the map.',
 };
 
-export default function LocationPermissionNotice() {
-  const access = useLocationPermission();
+export default function LocationPermissionNotice({
+  access,
+}: {
+  access: ReturnType<typeof useLocationPermission>;
+}) {
   const canRequest = access.status === 'undetermined' || access.status === 'denied';
   const needsSettings = access.status === 'blocked' || access.status === 'services-disabled';
   const canRefresh = access.status === 'unavailable' || access.status === 'services-disabled';

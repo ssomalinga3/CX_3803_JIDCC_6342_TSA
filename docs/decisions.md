@@ -54,3 +54,14 @@ The sources settle the main stack and feature direction, but do not settle the c
 When resolving an item, add the chosen behavior, decision date, supporting client/team reference, and affected specification links. Update contracts and migrations together so future developers do not need to reconstruct the decision from discussion history.
 
 Use the [existing Figma](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=0-1) for UI decisions and the [Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog) for implementation tracking. These documents supplement those artifacts; they do not establish a competing design or task board.
+
+## J6-14 GPS UX timings (Proposed)
+
+D-08 remains open for numeric location UX timings. The review implementation uses
+named constants of 30 seconds for fix freshness and 20 seconds for initial
+acquisition feedback; active permission/service readiness is polled every five
+seconds. These are **provisional engineering UX choices, not approved product
+requirements or safety thresholds**. Confirmation was requested from the project
+owner on November 2, 2026; no confirmation has been recorded. Review/confirm these
+values before merging the stacked J6-14 PR. D-05 trail buffers, safety alignment
+and production datasets remain outside this change.

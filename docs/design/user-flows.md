@@ -24,3 +24,26 @@ and displays a notice; blocked permission offers Settings. Returning from Settin
 or reopening the app rechecks the OS state without prompting. Disabled location
 services have a distinct notice. A grant is labeled as access permission, not as
 an acquired GPS position. Blue-dot navigation and GPS recenter remain J6-14.
+
+### Live map GPS acceptance (J6-14)
+
+1. With no consent, browse and zoom without a position marker. Only Allow location
+   access prompts. Denial retains browsing; Settings recovery rechecks access.
+2. Grant foreground access: see acquisition feedback, then a blue dot only for a
+   valid fresh device fix. Approximate permission is labeled and accepted.
+3. Pan/zoom while fixes change: the dot updates and the camera stays where the
+   visitor left it. Recenter moves to the fresh fix; Return to preserve uses the
+   browsing center, which never becomes a visitor fix.
+4. Stop fixes: show stale feedback, remove the dot and disable recenter. No initial
+   fix shows GPS unavailable after the acquisition window. Retry GPS starts a new
+   session; a later fresh fix can also recover the existing watch.
+5. Leave Map, background, revoke permission, or unmount: stop tracking and reject
+   late callbacks. Return with permission: recheck before acquiring anew. Revoked
+   permission and services-off feedback remain distinct from network/API errors.
+6. Verify GIS requests do not change when fixes arrive/recenter; no visitor
+   coordinates enter logging, persistent storage or error messages. Online tiles
+   still follow the viewed viewport. This does not establish offline navigation,
+   report retry/deduplication, safe trail alignment or physical-device accuracy.
+
+See [timing proposal](../decisions.md#j6-14-gps-ux-timings-proposed) and the
+[verification record](../../mobile/README.md#live-gps-j6-14).

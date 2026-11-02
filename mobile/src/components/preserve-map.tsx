@@ -7,6 +7,9 @@ import {
   type MapRef,
 } from '@maplibre/maplibre-react-native';
 import { useEffect, useRef, useState } from 'react';
+import { useIsFocused } from 'expo-router';
+import { useLocationPermission } from '@/hooks/use-location-permission';
+import { currentCenter, useLiveLocation } from '@/hooks/use-live-location';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,7 +26,11 @@ const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 type LoadState = 'loading' | 'ready' | 'unavailable';
 
 export default function PreserveMap() {
+  const focused = useIsFocused();
+  const access = useLocationPermission(focused);
+  const gps = useLiveLocation(focused, access);
   const insets = useSafeAreaInsets();
+  const fitted = useRef(false);
   const dockBottom = insets.bottom + BottomTabInset + 8;
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
@@ -45,7 +52,8 @@ export default function PreserveMap() {
   const snapshot = gis.snapshot;
   const bounds = snapshot?.bounds;
   useEffect(() => {
-    if (ready && bounds) {
+    if (ready && bounds && !fitted.current) {
+      fitted.current = true;
       const [west, south, east, north] = bounds;
       if (west === east || south === north) {
         camera.current?.easeTo({
@@ -67,6 +75,7 @@ export default function PreserveMap() {
     }
   }, [ready, bounds, dockBottom, dockHeight, insets.top]);
   async function zoomBy(delta: number) {
+    fitted.current = true;
     try {
       const zoom = await map.current?.getZoom();
       if (zoom !== undefined) {
@@ -90,6 +99,9 @@ export default function PreserveMap() {
         attribution
         attributionPosition={{ bottom: dockBottom + dockHeight + 8, left: 12 }}
         compassPosition={{ top: insets.top + 108, right: 24 }}
+        onRegionWillChange={(event) => {
+          if (event.nativeEvent.userInteraction) fitted.current = true;
+        }}
         onDidFinishRenderingMapFully={() => setLoadState('ready')}
         onDidFailLoadingMap={() => setLoadState('unavailable')}
       >
@@ -136,10 +148,31 @@ export default function PreserveMap() {
               afterId="gis-trails"
               filter={['==', ['geometry-type'], 'Point']}
               paint={{
-                'circle-color': '#007aff',
+                'circle-color': '#286653',
                 'circle-radius': 7,
                 'circle-stroke-color': '#fff',
                 'circle-stroke-width': 2,
+              }}
+            />
+          </GeoJSONSource>
+        )}
+        {gps.fix && (
+          <GeoJSONSource
+            id="visitor-position"
+            data={{
+              type: 'Feature',
+              properties: {},
+              geometry: { type: 'Point', coordinates: gps.fix.center },
+            }}
+          >
+            <Layer
+              id="visitor-position-dot"
+              type="circle"
+              paint={{
+                'circle-color': '#007aff',
+                'circle-radius': 9,
+                'circle-stroke-color': '#fff',
+                'circle-stroke-width': 4,
               }}
             />
           </GeoJSONSource>
@@ -149,7 +182,9 @@ export default function PreserveMap() {
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Cascade Springs Preserve</Text>
-          <Text style={styles.subtitle}>Browse the map</Text>
+          <Text style={styles.subtitle}>
+            {gps.status === 'live' ? 'Live device position · Blue dot' : 'Browse the map'}
+          </Text>
         </View>
       </View>
 
@@ -158,6 +193,7 @@ export default function PreserveMap() {
           label="Return to preserve"
           disabled={!ready}
           onPress={() => {
+            fitted.current = true;
             camera.current?.easeTo({
               center: PRESERVE_CENTER,
               zoom: INITIAL_ZOOM,
@@ -231,16 +267,60 @@ export default function PreserveMap() {
                 {snapshot.isDemo ? 'Demo GIS' : 'Public GIS'} · {snapshot.layers.length} layers ·{' '}
                 {snapshot.collection.features.length} features
               </Text>
-              <Text style={styles.note}>Orange trails · Purple boundary · Blue landmarks</Text>
+              <Text style={styles.note}>Orange trails · Purple boundary · Green landmarks</Text>
               {snapshot.isDemo && (
                 <Text style={styles.warning}>Synthetic shapes — not for navigation.</Text>
               )}
             </>
           )}
         </View>
-        <LocationPermissionNotice />
+        <LocationPermissionNotice access={access} />
+        {access.status === 'granted' && (
+          <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
+            <Text style={styles.note}>
+              {gps.status === 'live'
+                ? `${access.approximate === true ? 'Approximate location' : access.approximate === false ? 'Device location' : 'Location precision unknown'} · ${gps.fix?.accuracy == null ? 'Accuracy unavailable' : `Reported accuracy ±${Math.ceil(gps.fix.accuracy)} m`}. Not a trail-safety indicator.`
+                : gps.status === 'stale'
+                  ? 'GPS fix is stale. Waiting for a fresh position.'
+                  : gps.status === 'unavailable'
+                    ? 'GPS position unavailable. You can still browse the map.'
+                    : 'Acquiring device position…'}
+            </Text>
+            <View style={styles.status}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !ready || !gps.fix }}
+                disabled={!ready || !gps.fix}
+                style={[styles.retry, (!ready || !gps.fix) && styles.dimmed]}
+                onPress={() => {
+                  const center = currentCenter(gps.fix);
+                  if (!center) return;
+                  fitted.current = true;
+                  camera.current?.easeTo({
+                    center,
+                    zoom: INITIAL_ZOOM,
+                    duration: 300,
+                    padding: {
+                      top: insets.top + 110,
+                      bottom: dockBottom + dockHeight + 20,
+                      left: 24,
+                      right: 84,
+                    },
+                  });
+                }}
+              >
+                <Text style={styles.retryText}>Recenter to current location</Text>
+              </Pressable>
+              {(gps.status === 'stale' || gps.status === 'unavailable') && (
+                <Pressable accessibilityRole="button" style={styles.retry} onPress={gps.retry}>
+                  <Text style={styles.retryText}>Retry GPS</Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        )}
         <Text style={styles.note}>
-          Online preview. Live position and offline downloads are not available yet.
+          Online map preview. Offline downloads are not available yet.
         </Text>
       </View>
     </View>
