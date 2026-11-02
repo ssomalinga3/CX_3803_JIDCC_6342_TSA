@@ -63,3 +63,13 @@ GPS, report, safety, and offline flows remain future work. The
 [integration guide](../development/integration-branch.md) records setup,
 verification and limitations; this is an online development slice using synthetic
 fixtures, not approved navigation or a completed J6-14/J6-19 flow.
+
+## Location permission progress — November 2, 2026
+
+J6-15 adds a foreground-only native OS prompt based on frame 17:4, invoked by
+Allow location access in the map's existing information panel. Denied/blocked
+access preserves browsing; Settings recovery and separate service/error notices
+are available. Opening/resuming the app checks access without prompting. Access
+permission is distinguished from GPS positioning, which remains J6-14. See the
+[mobile guide](../../mobile/README.md#location-permissions-and-privacy-j6-15) for
+native rebuild requirements, screenshots and verified/unverified paths.

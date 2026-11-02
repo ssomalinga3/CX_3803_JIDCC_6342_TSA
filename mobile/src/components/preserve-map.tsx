@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabInset } from '@/constants/theme';
 import { usePublicGis } from '@/hooks/use-public-gis';
+import LocationPermissionNotice from '@/components/location-permission-notice';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -148,7 +149,7 @@ export default function PreserveMap() {
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Cascade Springs Preserve</Text>
-          <Text style={styles.subtitle}>Browse the map · Location off</Text>
+          <Text style={styles.subtitle}>Browse the map</Text>
         </View>
       </View>
 
@@ -237,8 +238,9 @@ export default function PreserveMap() {
             </>
           )}
         </View>
+        <LocationPermissionNotice />
         <Text style={styles.note}>
-          Online preview. GPS and offline downloads are not available yet.
+          Online preview. Live position and offline downloads are not available yet.
         </Text>
       </View>
     </View>

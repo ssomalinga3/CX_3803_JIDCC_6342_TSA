@@ -157,3 +157,58 @@ Metro/device addressing, verification, and later PR merge instructions. Earlier
 basemap-preview sections record the PR #4 baseline; this branch additionally
 renders server-provided geometry and its demo warning. No new native dependency
 or app configuration is introduced.
+
+## Location permissions and privacy (J6-15)
+
+This branch adds SDK-compatible `expo-location` and its foreground-only config
+plugin. **Install a new development build before opening this branch in Metro**;
+the earlier client fails with `Cannot find native module 'ExpoLocation'`.
+
+```sh
+nvm use
+pnpm install --frozen-lockfile
+pnpm ios:build
+pnpm ios:install
+pnpm mobile --port 8082
+```
+
+Prefer the exact build ID when several builds exist, using the installation
+command in the iOS setup section. EAS simulator build
+[b9c53bb5](https://expo.dev/accounts/cx3803jidcc6342tsa/projects/cascade-springs/builds/b9c53bb5-20be-4bb0-94a6-1da3d638bb0b)
+compiled with this native module/configuration. JavaScript changes after that
+archive use local Metro. Android also requires a new native development build;
+the repository's `development` EAS profile is specifically an iOS Simulator
+profile, not evidence of Android build/device support.
+
+On November 2, 2026, that build was installed on iPhone 16 / iOS 18.6. The native
+prompt appeared only after a tap; denial preserved map rendering and Zoom in;
+Open Settings opened the Apps list (select Cascade Springs → Location); granting
+While Using the App there updated the notice on returning to the app. See the
+[native prompt](../docs/images/ios-simulator-location-permission.png) and
+[granted map state](../docs/images/ios-simulator-location-granted.png).
+Native services-off, approximate access, permission revocation/restart, Android,
+physical devices and large text sizes remain unverified. Automated Jest checks
+cover the corresponding permission states separately.
+
+The permission UI uses the native OS dialog referenced by
+[Figma 17:4](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-4),
+plus notices in the existing map panel. Verify:
+
+1. Open Map with undetermined access: no prompt appears until Allow location access
+   is tapped. Pan/zoom/return controls remain usable without permission.
+2. Deny: keep browsing and read the denial notice. If the OS allows another prompt,
+   retry explicitly; otherwise Open Settings offers recovery.
+3. Return from Settings after granting/revoking access: the notice reflects the OS
+   state. Reopen the app to confirm the state is rechecked without another prompt.
+4. Disable device location services: see the separate services-off notice; restore
+   services and use Check location access or resume the app.
+5. Grant approximate/reduced permission: it is accepted without a precision upgrade.
+   No GPS fix, blue dot or location transmission occurs in this slice. Live
+   position and missing/stale-fix handling are separate J6-14 work.
+
+Jest covers explicit consent, denial/retry, Settings errors/recovery, permission
+revocation, services off, stale async results, pending prompts and cleanup.
+Backend privacy tests exercise coordinate-bearing malformed JSON, oversized
+bodies, request URLs and dependency errors. `pnpm verify` includes these tests;
+its default backend suite skips real PostGIS integration tests. Native permission
+behavior and compilation are separate evidence from JavaScript exports.

@@ -1,6 +1,21 @@
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
+jest.mock('expo-location', () => ({
+  getForegroundPermissionsAsync: jest.fn().mockResolvedValue({
+    status: 'undetermined',
+    granted: false,
+    canAskAgain: true,
+    expires: 'never',
+  }),
+  requestForegroundPermissionsAsync: jest.fn(),
+  hasServicesEnabledAsync: jest.fn().mockResolvedValue(true),
+  getCurrentPositionAsync: jest.fn(),
+  getLastKnownPositionAsync: jest.fn(),
+  watchPositionAsync: jest.fn(),
+  requestBackgroundPermissionsAsync: jest.fn(),
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 59, bottom: 34, left: 0, right: 0 }),
 }));

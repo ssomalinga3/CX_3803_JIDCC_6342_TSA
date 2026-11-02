@@ -1,6 +1,11 @@
 import { layersRouter } from './modules/gis/layers.router.js';
 import type { LayersRepository } from './modules/gis/types.js';
-import express, { type Express, type Request, type Response } from 'express';
+import express, {
+  type ErrorRequestHandler,
+  type Express,
+  type Request,
+  type Response,
+} from 'express';
 
 export interface AppDependencies {
   layers?: LayersRepository;
@@ -51,6 +56,39 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       },
     });
   });
+
+  // Express's default handler logs parser errors, which can include raw request
+  // bodies/coordinates. Never delegate request errors to it or echo error details.
+  const handleError: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
+    void _next; // Express identifies error middleware by its four-argument signature.
+    if (res.headersSent) {
+      res.end();
+      return;
+    }
+    const type = error && typeof error === 'object' && 'type' in error ? error.type : undefined;
+    const status = type === 'entity.parse.failed' ? 400 : type === 'entity.too.large' ? 413 : 500;
+    res
+      .status(status)
+      .set('Cache-Control', 'no-store')
+      .json({
+        error: {
+          code:
+            status === 400
+              ? 'INVALID_JSON'
+              : status === 413
+                ? 'PAYLOAD_TOO_LARGE'
+                : 'INTERNAL_ERROR',
+          message:
+            status === 400
+              ? 'Invalid JSON body'
+              : status === 413
+                ? 'Request body is too large'
+                : 'Request could not be completed',
+          fields: {},
+        },
+      });
+  };
+  app.use(handleError);
 
   return app;
 }

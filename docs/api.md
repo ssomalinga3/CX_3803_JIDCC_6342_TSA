@@ -14,6 +14,12 @@ never returns database error details. Public GIS endpoints are documented below;
 
 ## Required interface behavior
 
+Malformed JSON request bodies receive a generic `400 INVALID_JSON`; bodies over
+the existing Express JSON limit receive `413 PAYLOAD_TOO_LARGE`. Unhandled request
+errors receive `500 INTERNAL_ERROR`. These use the structured envelope and
+`Cache-Control: no-store`, without logging/returning the raw error, URL or body.
+This does not implement or authorize the proposed reporting endpoints.
+
 | Boundary | Baseline contract |
 | --- | --- |
 | Mobile → GIS API | HTTPS GET; layer/trail data as GeoJSON or vector tiles; public read-only layers use caching headers |

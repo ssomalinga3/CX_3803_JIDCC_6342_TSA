@@ -12,7 +12,7 @@ test('browsing becomes available only after native rendering; zoom follows the c
   expect(screen.getByLabelText('Loading map')).toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
-  expect(screen.getByText('Browse the map · Location off')).toBeOnTheScreen();
+  expect(screen.getByText('Browse the map')).toBeOnTheScreen();
   expect(screen.getByText('Pan or pinch to explore')).toBeOnTheScreen();
   await user.press(screen.getByRole('button', { name: 'Zoom in' }));
   expect(mockGetZoom).toHaveBeenCalledTimes(1);
