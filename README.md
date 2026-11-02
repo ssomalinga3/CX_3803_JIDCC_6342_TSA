@@ -8,6 +8,9 @@ To run the React Native starter in a local iOS Simulator using an EAS cloud buil
 For the local Cloudflare Workers API, Docker PostGIS, and Drizzle setup, follow
 the [backend setup guide](backend/README.md).
 
+For the complete local database → API → iOS Simulator workflow, use the
+[local startup command runbook](docs/development/local-startup.md).
+
 For the combined mobile + GIS development branch and PR merge order, follow the
 [integration branch guide](docs/development/integration-branch.md).
 

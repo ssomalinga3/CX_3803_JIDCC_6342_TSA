@@ -103,7 +103,8 @@ new local environment file, restart only your worktree's Metro process. Existing
 MapLibre native dependencies suffice; no rebuild is needed for this JavaScript
 integration. First-time build/install instructions are in the
 [mobile README](../../mobile/README.md). Avoid `pnpm ios` with the older local
-Xcode; use EAS `pnpm ios:build`, then `pnpm ios:install`, for native changes.
+Xcode; use EAS `pnpm --dir mobile exec eas build --platform ios --profile development`,
+then `pnpm --dir mobile exec eas build:run --platform ios --profile development --latest`, for native changes.
 Android Emulator normally uses `http://10.0.2.2:8787/api/v1`; physical devices need
 the laptop LAN address and an explicitly LAN-bound Worker. Android/device HTTP
 transport and native behavior are not verified by this iOS check.

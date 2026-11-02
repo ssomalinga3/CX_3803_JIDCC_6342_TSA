@@ -22,7 +22,7 @@ nvm use
 pnpm install --frozen-lockfile
 pnpm --dir mobile exec eas login
 pnpm --dir mobile exec eas whoami
-pnpm ios:build
+pnpm --dir mobile exec eas build --platform ios --profile development
 ```
 
 Your Expo account needs access to the `cx3803jidcc6342tsa` organization. The app is already linked to `@cx3803jidcc6342tsa/cascade-springs`; do not create another EAS project or change its application identifiers. The existing `development` profile builds an iOS Simulator development client, without physical-device signing or an Apple Developer Program membership. EAS cloud usage is subject to the organization's plan and available build quota. Never commit access tokens or credentials.
@@ -30,7 +30,7 @@ Your Expo account needs access to the `cx3803jidcc6342tsa` organization. The app
 Wait for EAS to report a successful build, then install it:
 
 ```sh
-pnpm ios:install
+pnpm --dir mobile exec eas build:run --platform ios --profile development --latest
 pnpm mobile
 ```
 
@@ -50,7 +50,7 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 pnpm mobile
 ```
 
-Press `i` to open the app. JavaScript and TypeScript edits use Fast Refresh; restarting Metro does not require another cloud build. Run `pnpm ios:build` and `pnpm ios:install` again after adding/updating native dependencies or changing native app configuration/plugins. Ensure the installed build matches your checkout's native dependencies.
+Press `i` to open the app. JavaScript and TypeScript edits use Fast Refresh; restarting Metro does not require another cloud build. Run `pnpm --dir mobile exec eas build --platform ios --profile development` and `pnpm --dir mobile exec eas build:run --platform ios --profile development --latest` again after adding/updating native dependencies or changing native app configuration/plugins. Ensure the installed build matches your checkout's native dependencies.
 
 `pnpm ios` compiles locally and is reserved for a compatible local toolchain. Expo SDK 57 requires Xcode 26.4 or newer for compilation; older Xcode can still provide the local simulator if the cloud-built app supports its runtime. Revisit host upgrades if cloud native rebuilds become a workflow bottleneck. Android native setup remains separate.
 
@@ -78,7 +78,7 @@ The cloud build used the existing starter native dependencies; this PR adds work
 ## Troubleshooting
 
 - **`simctl` unavailable:** select full Xcode tools or set `DEVELOPER_DIR` as above; standalone Command Line Tools do not contain the simulator.
-- **No development build installed:** wait for the cloud build to finish and run `pnpm ios:install`. `pnpm mobile` only starts Metro.
+- **No development build installed:** wait for the cloud build to finish and run `pnpm --dir mobile exec eas build:run --platform ios --profile development --latest`. `pnpm mobile` only starts Metro.
 - **Wrong/stale build:** install by the exact EAS build ID. Rebuild after native dependency/configuration changes.
 - **Cannot connect to Metro:** keep Metro running in this checkout; use the server address it prints in the development client. Restart with `pnpm mobile --clear` if its cache is stale.
 - **EAS login/project access failure:** check `eas whoami` using the command above and ask an organization owner to grant access. Do not relink the project.
@@ -130,7 +130,7 @@ Remaining dependencies for the complete
   from this basemap.
 - Foreground GPS consent, denied/unavailable/stale-fix states, and blue-dot/recenter
   behavior (J6-15). Native permission configuration will require an EAS rebuild
-  with `pnpm ios:build`, then `pnpm ios:install`.
+  with `pnpm --dir mobile exec eas build --platform ios --profile development`, then `pnpm --dir mobile exec eas build:run --platform ios --profile development --latest`.
 - Production basemap/provider approval and offline region/zoom/storage policy
   (D-05/D-06). OpenFreeMap here is a development preview choice.
 - Approved trail tolerance before off-trail warnings (J6-24), and later layer,
