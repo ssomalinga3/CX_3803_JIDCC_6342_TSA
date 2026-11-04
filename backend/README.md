@@ -18,6 +18,7 @@ nvm use
 corepack enable
 pnpm install --frozen-lockfile
 pnpm backend:setup
+pnpm --dir backend db:seed
 pnpm backend:dev
 ```
 
@@ -104,11 +105,14 @@ limited to development; simulator/emulator addressing depends on the target.
 
 ## Drizzle migrations and database tools
 
-The first committed migration enables PostGIS. No GIS, user, or report tables
-are introduced here: D-12 and the reporting decisions still govern those schemas.
-There is therefore no seed data or destructive reset command in this foundation.
+The first migration enables PostGIS; the second creates generic `gis_layer` /
+`gis_feature` tables following the resolved D-12 decision. Run
+`pnpm --dir backend db:seed` for repeatable, clearly labeled synthetic trails,
+boundaries and landmarks. See the [mobile GIS handoff](GIS-HANDOFF.md) for
+layer IDs, map extent, requests/responses and laptop LAN addressing. There is no
+destructive development reset command.
 
-After agreeing on a domain schema:
+For subsequent schema changes:
 
 1. Add tables to [`src/db/schema.ts`](src/db/schema.ts).
 2. Run `pnpm --dir backend db:generate --name=describe-change`.
@@ -143,6 +147,8 @@ After `backend:setup`, run:
 pnpm --dir backend lint
 pnpm --dir backend typecheck
 pnpm --dir backend test:ci
+pnpm --dir backend test:integration
+pnpm --dir backend test:fresh
 pnpm backend:build
 pnpm backend:check
 ```
@@ -150,8 +156,8 @@ pnpm backend:check
 Jest verifies application behavior, including readiness failure redaction.
 `backend:check` verifies database connectivity, creates a Workers bundle without
 deploying, and starts real local Workers on ports **18787/18788** to check liveness,
-readiness through the Hyperdrive local binding/Drizzle/PostGIS, and structured
-404 responses, then verifies a generic `503` with an unreachable database while
+readiness through the Hyperdrive local binding/Drizzle/PostGIS, public GIS
+catalog/features, bbox, private/unknown layer 404s and structured 404 responses, then verifies a generic `503` with an unreachable database while
 liveness stays available. Leave those test ports free. The test stops the Worker afterward;
 it preserves the database. CI performs setup against a fresh Docker volume,
 replays migrations, and runs the same integration check without cloud credentials.
@@ -181,8 +187,9 @@ must first be configured explicitly.
 The [implementation plan](../docs/tasks/first-task-implementation-plan.md)
 records the broader hosting direction. [Architecture](../docs/architecture.md),
 [API](../docs/api.md), [data model](../docs/data-model.md), and
-[security](../docs/security.md) remain the domain references. GIS endpoints,
-reporting/auth, R2/Queues/email, and production hosting are subsequent work.
+[security](../docs/security.md) remain the domain references. Reporting/auth,
+R2/Queues/email, and production hosting are subsequent work. Public GIS reads
+are implemented as described in the [handoff](GIS-HANDOFF.md).
 
 References: [Express on Workers](https://developers.cloudflare.com/workers/tutorials/deploy-an-express-app/),
 [Hyperdrive local development](https://developers.cloudflare.com/hyperdrive/configuration/local-development/),

@@ -1,8 +1,8 @@
 # Data model
 
-Baseline: S1 pp. 10–12, including Figure 2. Names/types below transcribe that ER diagram; physical migrations have not been created. `PK` means primary key and `FK` means foreign key.
+Baseline: S1 pp. 10–12, including Figure 2. The entity table below transcribes that ER diagram; the implemented GIS schema is described separately. `PK` means primary key and `FK` means foreign key.
 
-Implementation references: [J6-12 spatial tables/indexes](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-12), [J6-17 layer schema](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-17), and [J6-22 trail geometry](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-22). J6-12 names separate spatial tables, a `surface_type` field, and GiST indexes. This differs from S1's generic feature model; D-12 must reconcile the physical schema before migrations.
+Implementation references: [J6-12 spatial tables/indexes](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-12), [J6-17 layer schema](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-17), and [J6-22 trail geometry](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-22). J6-12 names separate spatial tables, a `surface_type` field, and GiST indexes. D-12 now resolves this in favor of generic tables; feature types are logical classifications.
 
 ## Entities
 
@@ -24,7 +24,7 @@ Implementation references: [J6-12 spatial tables/indexes](https://gatech-team-f1
 - Signed-in users and guests submit observations. S8 requires a nullable user reference or equivalent guest-submitter representation; no account is required. Category/status relationships remain, but destination relationships must distinguish park routing from private custom recipients.
 - A category references its default recipient; many categories may share a recipient. The observation's assigned recipient records where that report was routed, separately from the category default.
 - An observation has attached image records; S1 describes one or more photos. The maximum count and whether a text-only report is allowed are open (D-04).
-- Each GIS feature belongs to one layer in S1. Trails, preserve boundaries, and landmarks are feature geometries in that ER diagram; Jira's separate-table design remains to be reconciled in D-12.
+- Each GIS feature belongs to one layer in S1. Trails, preserve boundaries, and landmarks are feature geometries in that ER diagram; D-12 confirms generic physical tables.
 
 The four pillar values are **Human**, **Social**, **Environmental**, and **Economic**, used consistently by layers and categories. The exact catalog and assignment of base layers to pillars are unresolved. Status examples are **Submitted**, **In Review**, and **Resolved**; the complete transition/reopening policy is not specified.
 
@@ -54,3 +54,27 @@ These are confirmed behavior/schema requirements, while column names, recipient 
 The diagram does not define all nullability, lengths, deletion rules, timestamp timezone semantics, or indexes. Proposed constraints are foreign-key integrity, controlled pillar/status values, valid spatial geometries, and spatial indexes for viewport queries. Record the final constraints in migrations and shared contracts.
 
 S3 introduces requirements not fully modeled in S1: duplicate-safe submission identity, durable notification delivery, history/safety content, and report exports. S4 additionally requests report follow-ups and multiple/custom recipients. Do not imply that the nine-table diagram already supports these. D-03, D-05, and D-07 track the needed schema decisions; no additional entity is approved by this document alone.
+
+## Implemented GIS schema (November 1, 2026)
+
+D-12 is resolved by project-owner instruction in favor of flexibility. Drizzle
+migration `0001_public-gis-layers` creates only `gis_layer` and `gis_feature`.
+Unlike S1’s illustrative integer IDs, stable text primary keys support explicit
+seed identifiers and future dataset identifiers without depending on insertion order.
+
+`gis_layer` has `layer_id`, `name`, `description`, `layer_type`, nullable `pillar`,
+`is_public` (default false), `source`, and `is_demo` (default false). A non-null
+pillar must be Human, Social, Environmental, or Economic. Demo fixtures leave
+pillar unset; production assignments remain D-05.
+
+`gis_feature` has `feature_id`, required `layer_id` FK (no cascading deletion),
+required `geometry(Geometry,4326)`, and required JSON object `properties` (default
+`{}`). Geometry must be valid and nonempty. A GiST index covers geometry and a
+B-tree index covers the layer FK. Feature types and JSON attributes are flexible;
+production ingestion must define and validate dataset-specific properties under
+D-05. Demo trails carry illustrative `surface_type` values in properties rather
+than introducing trail-specific columns. This does not implement trail safety.
+
+See the [handoff](../backend/GIS-HANDOFF.md) for fixture IDs, geometry types,
+extent, and the exact public contract. Reports and private recipient information
+must never be imported as public GIS features.

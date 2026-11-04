@@ -15,9 +15,20 @@ The sources settle the main stack and feature direction, but do not settle the c
 | D-09 | Report/media/location retention and deletion, local queue protection/sign-out policy, log redaction, abuse limits | S1 establishes privacy principles without durations, device-storage policy, or operational limits. | Client + team |
 | D-10 | Hosting/deployment ownership, exact versions, supported devices, build distribution, backup/recovery and performance budgets | S1 selects technologies; S3 requires reproducible setup, checks, and an iOS build, but does not specify the operating environment or numeric budgets. | Team + client |
 | D-11 | Final safety scope and approved emergency content | S2 says emergency vision is unclear. S3 plans offline references and explicit sharing; S4's live authority reporting is stretch. Do not assume an emergency-dispatch service. | Client + UX |
-| D-12 | Physical GIS table structure | [J6-12](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-12) calls for `trails`, `trail_boundaries`, `preserve_boundary`, and `landmarks` tables with `surface_type` and GiST indexes; S1 uses `gis_layer`/`gis_feature`. Decide whether these are physical tables, views, or logical feature types and update the ticket/schema together before migrations. | Backend + team |
+| D-12 (resolved November 1, 2026) | Generic `gis_layer` / `gis_feature` tables | [J6-12](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-12) calls for `trails`, `trail_boundaries`, `preserve_boundary`, and `landmarks` tables with `surface_type` and GiST indexes; S1 uses `gis_layer`/`gis_feature`. Project owner chose the generic model to prioritize flexibility. Trails, boundaries and landmarks are logical feature types; no separate physical tables or views are required. J6-12’s original wording remains historical scope and is reconciled by this decision. | Backend + team |
 
 ## Resolved direction and documentation cautions
+
+- **November 1, 2026 — D-12 generic GIS schema:** Project owner confirmed
+  “lets do generic, we want to prioritize flexibility.” Use `gis_layer` and
+  `gis_feature`, with text stable identifiers, SRID 4326 geometry, a layer FK,
+  GiST geometry index and flexible JSON object properties. The implemented
+  schema extends S1 with descriptions and provenance/demo metadata; pillar is
+  nullable pending D-05. Separate tables in J6-12 are superseded by this decision;
+  the ticket is not marked complete. See [data model](data-model.md) and
+  [mobile handoff](../backend/GIS-HANDOFF.md). Synthetic development fixtures
+  are authorized by this task; approved production datasets and pillar mappings
+  remain open under D-05.
 
 - **November 1, 2026 — D-10 local backend tooling:** Project-owner instruction
   authorizes the local Workers server, Docker PostgreSQL/PostGIS, and Drizzle
@@ -26,7 +37,7 @@ The sources settle the main stack and feature direction, but do not settle the c
   commands. This resolves the local development workflow only. Production
   Workers/Hyperdrive hosting remains proposed; database provider, staging,
   remote credentials, backups, budget, and deployment ownership remain open.
-  Domain schema decisions (including D-12) are not resolved by this setup.
+  This foundation did not resolve domain schemas; D-12 is resolved separately above.
 
 
 - **October 11, 2026 — D-10 tooling only:** During the authorized development-environment setup, the project owner installed Node 24 through nvm. The repository pins the verified Node 24.21.0 and existing pnpm 10.26.2; see the [Expo setup guide](old-plans/expo-setup.md#3-establish-reproducible-tools). Expo SDK compatibility will be checked during scaffolding. Hosting, native device tooling, distribution, and deployment ownership remain open.

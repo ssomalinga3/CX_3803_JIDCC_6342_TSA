@@ -58,6 +58,10 @@ jobs:
         run: pnpm backend:setup
       - name: Verify migration replay
         run: pnpm --dir backend db:migrate
+      - name: Seed synthetic demo GIS (twice to verify repeatability)
+        run: pnpm --dir backend db:seed && pnpm --dir backend db:seed
+      - name: Jest integration against PostGIS
+        run: pnpm --dir backend test:integration
       - name: Build and test the Worker against PostGIS
         run: pnpm backend:check
       - name: Database diagnostics

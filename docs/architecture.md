@@ -41,7 +41,7 @@ an Express adapter, Drizzle, and Docker PostgreSQL 16/PostGIS. The
 [backend setup guide](../backend/README.md) documents reproducible setup,
 migrations, generated Worker types, and local HTTP/database checks. `/health`
 checks liveness; `/ready` exercises PostGIS through Drizzle. The initial migration
-only enables PostGIS; domain tables and endpoints remain subsequent work.
+enables PostGIS; the subsequent GIS migration adds generic layers/features and public read endpoints (see the [handoff](../backend/GIS-HANDOFF.md)).
 
 Local Workers connect directly to the database through a Hyperdrive local
 connection override; this does not exercise deployed Hyperdrive pooling/caching.
@@ -54,6 +54,6 @@ under D-10. S3/SES remain baseline; R2/Queues/HTTPS email are later proposals.
 
 S3 p. 4 requires documented local startup, reproducible database setup/migrations, backend Jest tests, mobile verification, lint/type checks, PR build checks, and an iOS build. See the backend guide for currently implemented commands; GIS/reporting functionality and native/device verification remain separate deliverables. Hosting, runtime versions, build/distribution details, and deployment ownership remain open in D-10.
 
-Track implementation in the existing [J6 Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog); see the [ticket-to-specification map](README.md#jira-implementation-references). Use the existing [Figma prototype](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=0-1) for mobile screen design. Jira's spatial-table task differs from the PDF model and is recorded as D-12; neither source should be silently overwritten.
+Track implementation in the existing [J6 Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog); see the [ticket-to-specification map](README.md#jira-implementation-references). Use the existing [Figma prototype](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=0-1) for mobile screen design. D-12 records the project-owner decision to use generic GIS tables rather than the separate tables originally named by Jira.
 
 For how the pnpm workspace scripts are structured and how a new package joins them, see [workspace commands](workspace.md).
