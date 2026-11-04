@@ -4,6 +4,6 @@
     "rootDir": "src",
     "noEmit": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "worker-configuration.d.ts"],
   "exclude": ["node_modules", "dist", "coverage", "test"]
 }

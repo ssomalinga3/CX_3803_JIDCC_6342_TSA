@@ -34,9 +34,25 @@ Share TypeScript data contracts between client and server, while validating netw
 
 S3 story 7 includes a staff table/map view for report filtering and management, but does not select a separate web application or hosting stack. See [D-02](decisions.md) before choosing that surface. The historical/safety content storage contract also needs completion; do not introduce a CMS or sensor service as an assumed dependency.
 
+## Local backend foundation (November 1, 2026)
+
+The local development implementation uses Cloudflare Workers via Wrangler with
+an Express adapter, Drizzle, and Docker PostgreSQL 16/PostGIS. The
+[backend setup guide](../backend/README.md) documents reproducible setup,
+migrations, generated Worker types, and local HTTP/database checks. `/health`
+checks liveness; `/ready` exercises PostGIS through Drizzle. The initial migration
+only enables PostGIS; domain tables and endpoints remain subsequent work.
+
+Local Workers connect directly to the database through a Hyperdrive local
+connection override; this does not exercise deployed Hyperdrive pooling/caching.
+The [proposed hosting plan](tasks/first-task-implementation-plan.md#8-proposed-hosting-and-hyperdrive-behavior)
+retains managed PostgreSQL/PostGIS behind Hyperdrive. Production provider,
+staging/production bindings, deployment ownership, and cache policy remain open
+under D-10. S3/SES remain baseline; R2/Queues/HTTPS email are later proposals.
+
 ## Delivery expectations
 
-S3 p. 4 requires documented local startup, reproducible database setup/migrations, backend Jest tests, mobile verification, lint/type checks, PR build checks, and an iOS build. These are implementation deliverables, not commands available in this documentation-only repository. Hosting, runtime versions, build/distribution details, and deployment ownership remain open in D-10.
+S3 p. 4 requires documented local startup, reproducible database setup/migrations, backend Jest tests, mobile verification, lint/type checks, PR build checks, and an iOS build. See the backend guide for currently implemented commands; GIS/reporting functionality and native/device verification remain separate deliverables. Hosting, runtime versions, build/distribution details, and deployment ownership remain open in D-10.
 
 Track implementation in the existing [J6 Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog); see the [ticket-to-specification map](README.md#jira-implementation-references). Use the existing [Figma prototype](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=0-1) for mobile screen design. Jira's spatial-table task differs from the PDF model and is recorded as D-12; neither source should be silently overwritten.
 

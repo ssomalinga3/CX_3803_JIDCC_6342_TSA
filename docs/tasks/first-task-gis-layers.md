@@ -1,6 +1,14 @@
 # First Implementation Task — Database Foundation + Public GIS Layer Read API
 
-Status: Proposed for the Go/No-Go Review. Not yet implemented.
+Status: GIS schema/endpoints remain proposed for the Go/No-Go Review.
+The local Workers/PostGIS/Drizzle foundation is implemented in this change;
+see the [backend setup guide](../../backend/README.md).
+
+November 1, 2026 planning update: propose Cloudflare Workers + Hyperdrive while
+retaining managed PostgreSQL/PostGIS and Drizzle. See the
+[implementation plan](first-task-implementation-plan.md#8-proposed-hosting-and-hyperdrive-behavior)
+for runtime, local development, and staging details. Hosting remains subject to
+D-10/team review; this is not an implemented or approved baseline change.
 
 Jira: [J6-13](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-13) (trail/boundary/landmark GeoJSON endpoints),
 [J6-17](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-17) (layer schema),
@@ -17,7 +25,9 @@ spec that are **already decided**:
 - The map read path is baseline (S1 pp. 9, 12; [architecture.md](../architecture.md) interaction 1).
 - Public GIS layers are read-only and public (S1; [security.md](../security.md) access table).
 - The stack (PostgreSQL + PostGIS + Drizzle, Node + TypeScript) is a resolved
-  decision ([decisions.md](../decisions.md) resolved direction).
+  decision ([decisions.md](../decisions.md) resolved direction). Workers hosting
+  would adapt the runtime while preserving the PostgreSQL/PostGIS data model;
+  Node remains the development/migration toolchain.
 
 It deliberately avoids the reporting/auth surface, which is blocked by open
 decisions D-01 (auth/guest ownership), D-03 (recipients), and D-07 (offline
@@ -30,6 +40,10 @@ against and gives the backend a migration/test pattern to reuse.
    - Add PostgreSQL 16 + PostGIS to local development via Docker Compose.
    - Add Drizzle ORM + drizzle-kit with migration generate/apply scripts.
    - Document database setup, migration, and reset commands in `backend/README.md`.
+   - Add Wrangler, an Express-compatible Worker entry point, pinned runtime
+     compatibility settings, and a Hyperdrive binding. Use local PostGIS for
+     daily development and separate staging resources for actual Hyperdrive
+     checks. Retain the required Jest suite and add Worker runtime coverage.
 2. **Schema (first migration)**
    - Implement the `gis_layer` and `gis_feature` tables from
      [data-model.md](../data-model.md), using PostGIS `geometry` with **SRID 4326**.
@@ -66,7 +80,9 @@ against and gives the backend a migration/test pattern to reuse.
 ## Scope (out — explicitly deferred)
 
 - Vector tile endpoint `/tiles/{z}/{x}/{y}` (can follow once the base read path lands).
-- Any observation/reporting endpoints, image upload, S3, SES.
+- Any observation/reporting endpoints, image upload, S3, SES, or proposed
+  R2/Queues/email alternatives. D1 substitution is also out of scope; it would
+  require redesigning the PostGIS queries, schema, and acceptance criteria.
 - Authentication, staff roles, non-public layer access policy — **open in D-01/D-02**.
 - Physical GIS table reconciliation (`trails`/`landmarks`/etc.) — **open in D-12**.
   This task uses the S1 `gis_layer`/`gis_feature` model and must not silently
@@ -76,6 +92,9 @@ against and gives the backend a migration/test pattern to reuse.
 
 ## Dependencies and decisions to confirm before/within the task
 
+- **D-10** (hosting): confirm Workers/Hyperdrive, a managed PostGIS provider,
+  staging/production ownership, region, budget, backups, and deployment setup.
+  Update the architecture and decision record when approved.
 - **D-12** (physical GIS schema): the team must confirm that building against
   `gis_layer`/`gis_feature` now — with migrations as the reconciliation point
   later — is acceptable. This task assumes yes and documents it.
@@ -91,6 +110,13 @@ against and gives the backend a migration/test pattern to reuse.
       and `gis_feature` tables with SRID 4326 geometry and a GiST index on
       `gis_feature.geometry`.
 - [ ] A documented seed command populates sample public layers and features.
+- [ ] Wrangler runs the API locally against Docker PostGIS using the Hyperdrive
+      local connection override; document that pooling/caching are bypassed.
+- [ ] Worker entry-point HTTP tests and a Wrangler bundle check pass separately
+      from Jest tests and Node compilation.
+- [ ] Staging verification uses an isolated database/Hyperdrive binding and
+      records actual connectivity, pooling/cache behavior, and latency. Keep
+      query caching disabled initially; public GIS caching requires a policy.
 - [ ] `GET /api/v1/layers` returns only `is_public = true` layers as JSON.
 - [ ] `GET /api/v1/layers/{layerId}/features` returns a valid GeoJSON
       `FeatureCollection` with `[lng, lat]` coordinates.
@@ -109,7 +135,10 @@ against and gives the backend a migration/test pattern to reuse.
 
 ## Verification (maps to AGENTS.md "Testing & Verification")
 
-- Run lint, typecheck, tests, and build.
+- Run lint, typecheck, tests, and build. Add local Worker HTTP checks and a
+  Wrangler bundle check; verify actual Hyperdrive behavior separately in staging.
+- Follow the [local development and test workflow](first-task-implementation-plan.md#9-local-development-workflow-after-implementation);
+  the backend guide distinguishes implemented setup from future GIS seed/endpoints.
 - Confirm the public-only access rule from [security.md](../security.md): a
   non-public layer must not appear in list or feature responses.
 - Confirm GPS/location values and credentials never appear in server logs.

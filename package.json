@@ -20,7 +20,9 @@
     "bundle:check": "pnpm --dir mobile bundle:check",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm bundle:check"
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm bundle:check",
+    "backend:setup": "pnpm --dir backend local:setup",
+    "backend:check": "pnpm --dir backend db:check && pnpm --dir backend build:worker && pnpm --dir backend test:worker"
   },
   "devDependencies": {
     "prettier": "^3.9.10"

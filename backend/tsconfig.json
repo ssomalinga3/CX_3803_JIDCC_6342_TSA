@@ -15,8 +15,16 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "allowJs": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "scripts/**/*.ts",
+    "scripts/**/*.mjs",
+    "drizzle.config.ts",
+    "worker-configuration.d.ts"
+  ],
   "exclude": ["node_modules", "dist", "coverage"]
 }

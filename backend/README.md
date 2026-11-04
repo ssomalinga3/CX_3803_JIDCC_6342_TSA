@@ -1,103 +1,189 @@
-# Backend
+# Backend: local Workers + PostGIS
 
-Node.js + TypeScript REST API server for Cascade Springs. This package is the
-server application described in [docs/architecture.md](../docs/architecture.md):
-a single server with separate GIS, reporting, and data-access responsibilities
-(not a microservice deployment). The API contract is in
-[docs/api.md](../docs/api.md); the schema is in
-[docs/data-model.md](../docs/data-model.md); privacy and access rules are in
-[docs/security.md](../docs/security.md).
+The API runs locally in Cloudflare Workers through Wrangler, using Express 5,
+TypeScript, Drizzle, and PostgreSQL 16/PostGIS. No Cloudflare account, cloud
+resources, or real credentials are needed for local development.
 
-> **Scaffold scope.** This package currently exposes only an operational
-> `/health` endpoint plus app/server separation and the test, lint, and type
-> toolchain. The domain surface (layers, observations) and the Drizzle/PostGIS
-> data layer are deferred to the first implementation task so that open
-> decisions (see [docs/decisions.md](../docs/decisions.md), notably D-01, D-03,
-> and D-12) are not pre-empted in code.
+## First run from a fresh clone
 
-## Stack
+Install [nvm](https://github.com/nvm-sh/nvm) and Docker Desktop (Mac) or Docker
+Engine with Compose v2 (Linux). Start Docker before setup. On Windows, use WSL2
+with Docker integration and run these commands inside WSL2.
 
-- Node.js 24 (pinned in root [`.nvmrc`](../.nvmrc) and root `package.json` engines)
-- TypeScript (strict), ESM modules
-- Express 5 for HTTP
-- Jest + ts-jest + supertest for tests
-- ESLint 9 (flat config) + typescript-eslint; Prettier is run from the repo root
-
-Planned additions (not yet installed): Drizzle ORM + PostgreSQL/PostGIS data
-access, S3 image storage, and an SES email adapter.
-
-## Prerequisites
-
-Use pnpm (via Corepack) from the repository root. Do not create an npm or Yarn
-lockfile; the workspace maintains a single root `pnpm-lock.yaml`.
+From the **workspace root**:
 
 ```bash
+nvm install
+nvm use
 corepack enable
+pnpm install --frozen-lockfile
+pnpm backend:setup
+pnpm backend:dev
 ```
 
-## Install
+`nvm install` installs the version in [`.nvmrc`](../.nvmrc); on later sessions,
+`nvm use` selects it. Corepack uses the pnpm version pinned in root
+[`package.json`](../package.json). Install dependencies at the workspace root;
+keep the single root lockfile.
 
-Install from the workspace root so the shared lockfile stays authoritative:
+`backend:setup` generates Worker types, starts a healthy PostGIS container,
+applies committed Drizzle migrations, and checks a PostGIS query through Drizzle.
+It is safe to rerun and preserves existing database contents. `backend:dev`
+starts Wrangler with automatic reload, normally at `http://localhost:8787`.
+
+In another terminal:
 
 ```bash
-pnpm install
+curl http://localhost:8787/health
+curl http://localhost:8787/ready
 ```
 
-## Run
+`/health` checks process liveness. `/ready` returns
+`{"status":"ok","database":"ok"}` only after a successful Drizzle/PostGIS query.
+It returns a generic `503` if the database is unavailable and never includes
+connection strings, SQL errors, or coordinates. Readiness responses are not cached.
+
+## Everyday workflow
 
 ```bash
-# From the repo root:
-pnpm backend:dev     # watch mode (tsx)
-pnpm backend:start   # run compiled output (after backend:build)
-
-# Or from this directory:
-pnpm dev
-pnpm build && pnpm start
+nvm use
+pnpm backend:setup    # start database, apply new migrations, regenerate types
+pnpm backend:dev      # Ctrl+C stops the Worker; database remains available
 ```
 
-Then check the health endpoint:
+The database persists in the Compose volume `cascade-springs-backend_postgres_data`.
+Stop it without deleting data using:
 
 ```bash
-curl http://localhost:3000/health
-# { "status": "ok", "uptime": ..., "timestamp": "..." }
+pnpm --dir backend db:down
 ```
 
-## Verify
+The upstream `postgis/postgis:16-3.5` image is amd64. Compose explicitly selects
+that platform, so Apple Silicon uses Docker Desktop's amd64 emulation. First
+startup pulls the image and can take longer. Linux ARM needs compatible amd64
+emulation. The database binds only to loopback, on port **55432** to reduce
+conflicts with an existing PostgreSQL installation.
 
-The root aggregates these script names across workspace packages. From the repo
-root:
+## Configuration and port conflicts
+
+The default local URL is:
+
+```text
+postgres://cascade:cascade_local_only@127.0.0.1:55432/cascade_springs
+```
+
+These are disposable development credentials for the loopback-only Compose
+service, not production secrets. Defaults are confined to Node tooling in
+[`scripts/local-config.mjs`](scripts/local-config.mjs), not the Worker bundle.
+
+No `.env` is required. For overrides, copy [`.env.example`](.env.example) to
+`backend/.env`. Node tooling and Compose read it. For example, set
+`CASCADE_DB_PORT=55433` to change both the published database port and the default
+connection URL, then rerun setup. This preserves the volume. `DATABASE_URL`
+overrides the complete URL for migration/check/Studio commands and the default
+local Worker connection. Keep overrides pointed at a development database.
+Shell environment values take precedence over `.env`.
+
+The dev launcher supplies
+`CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` automatically.
+An explicitly set value overrides the Worker's local connection only; migrations
+still use `DATABASE_URL`/the local default. Normally leave this unset so both
+use the same database. Local secret files and Wrangler state are gitignored.
+
+Pass Wrangler options through the root dev command:
 
 ```bash
-pnpm -r lint        # ESLint, zero warnings allowed
-pnpm -r typecheck   # tsc --noEmit
-pnpm -r test:ci     # Jest with coverage
-pnpm format:check   # Prettier (root-wide)
+pnpm backend:dev --port 8788
+pnpm backend:dev --ip 0.0.0.0
 ```
 
-Or run them directly in this package:
+For a physical Expo device on a trusted development network, bind to `0.0.0.0`
+and configure its API URL with your laptop's LAN address and Wrangler port.
+`localhost` on the phone refers to the phone. Keep native transport exceptions
+limited to development; simulator/emulator addressing depends on the target.
+
+## Drizzle migrations and database tools
+
+The first committed migration enables PostGIS. No GIS, user, or report tables
+are introduced here: D-12 and the reporting decisions still govern those schemas.
+There is therefore no seed data or destructive reset command in this foundation.
+
+After agreeing on a domain schema:
+
+1. Add tables to [`src/db/schema.ts`](src/db/schema.ts).
+2. Run `pnpm --dir backend db:generate --name=describe-change`.
+3. Review the generated SQL and commit the migration plus its `meta` files.
+4. Run `pnpm --dir backend db:migrate` and `pnpm backend:check`.
+
+For SQL that Drizzle cannot generate (such as extensions), use
+`pnpm --dir backend db:generate --custom --name=describe-change` and fill in the
+migration. Never modify a migration already applied by another developer.
+
+Useful commands from the workspace root:
+
+| Command                         | Purpose                                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm --dir backend db:up`      | Start/wait for Docker PostGIS                                                                   |
+| `pnpm --dir backend db:migrate` | Apply pending committed migrations                                                              |
+| `pnpm --dir backend db:check`   | Verify Drizzle connection and PostGIS                                                           |
+| `pnpm --dir backend db:studio`  | Open Drizzle Studio for the configured development database                                     |
+| `pnpm --dir backend cf:typegen` | Regenerate ignored Worker types after Wrangler configuration changes                            |
+| `pnpm --dir backend dev:node`   | Run the optional Node scaffold on port 3000; `/ready` is unavailable without a database checker |
+
+Worker requests use their own `pg` client and close it after the operation;
+Hyperdrive owns origin pooling when deployed. Inject database dependencies into
+modules instead of sharing live clients across Worker requests. Migrations run
+separately in Node, never inside API requests.
+
+## Verification
+
+After `backend:setup`, run:
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test        # or: pnpm test:ci
+pnpm --dir backend lint
+pnpm --dir backend typecheck
+pnpm --dir backend test:ci
+pnpm backend:build
+pnpm backend:check
 ```
 
-## Configuration
+Jest verifies application behavior, including readiness failure redaction.
+`backend:check` verifies database connectivity, creates a Workers bundle without
+deploying, and starts real local Workers on ports **18787/18788** to check liveness,
+readiness through the Hyperdrive local binding/Drizzle/PostGIS, and structured
+404 responses, then verifies a generic `503` with an unreachable database while
+liveness stays available. Leave those test ports free. The test stops the Worker afterward;
+it preserves the database. CI performs setup against a fresh Docker volume,
+replays migrations, and runs the same integration check without cloud credentials.
+The existing repository-wide `pnpm verify` remains available after setup.
 
-Copy [`.env.example`](./.env.example) to `.env` for local overrides. `.env`
-files are gitignored. Credentials must come from the environment or managed
-secrets and must never be committed (see
-[docs/security.md](../docs/security.md)).
+## Local versus deployed behavior
 
-## Layout
-
+```text
+Local:    Expo/API client → Wrangler Worker → Docker PostGIS
+Deployed: Expo/API client → Worker → Hyperdrive → managed PostgreSQL/PostGIS
 ```
-backend/
-├── src/
-│   ├── app.ts       # Express app (no port binding) — testable with supertest
-│   ├── server.ts    # HTTP listener + graceful shutdown
-│   └── config.ts    # Environment-driven configuration
-└── test/
-    ├── health.test.ts
-    └── config.test.ts
-```
+
+Wrangler uses the local override to connect directly to PostgreSQL. Actual
+Hyperdrive pooling/caching are bypassed, so a local pass does not verify those
+features or production latency. The committed Hyperdrive ID is a local-only
+placeholder; production deployment is not configured in this PR.
+
+Before enabling remote development or deployment, provision separate staging
+resources and record ownership, provider/region, budgets, backups, secrets, and
+cache policy under D-10. Disable Hyperdrive query caching initially, especially
+for future ownership/authorization/report reads. Do not rely on session settings
+surviving transaction pooling. Validate the actual Drizzle/PostGIS queries and
+latency through a staging deployment. A later `wrangler dev --remote --env staging`
+uses real remote resources and ignores the local override; a staging environment
+must first be configured explicitly.
+
+The [implementation plan](../docs/tasks/first-task-implementation-plan.md)
+records the broader hosting direction. [Architecture](../docs/architecture.md),
+[API](../docs/api.md), [data model](../docs/data-model.md), and
+[security](../docs/security.md) remain the domain references. GIS endpoints,
+reporting/auth, R2/Queues/email, and production hosting are subsequent work.
+
+References: [Express on Workers](https://developers.cloudflare.com/workers/tutorials/deploy-an-express-app/),
+[Hyperdrive local development](https://developers.cloudflare.com/hyperdrive/configuration/local-development/),
+[Drizzle integration](https://developers.cloudflare.com/hyperdrive/examples/connect-to-postgres/postgres-drivers-and-libraries/drizzle-orm/).

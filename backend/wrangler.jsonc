@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cascade-springs-api-local",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      // Local-only placeholder. Remote hosting needs a real configuration.
+      "id": "00000000000000000000000000000000",
+    },
+  ],
+}

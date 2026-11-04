@@ -1,0 +1,21 @@
+name: cascade-springs-backend
+services:
+  db:
+    image: postgis/postgis:16-3.5
+    # Upstream publishes this tag for amd64; Docker Desktop emulates it on Apple Silicon.
+    platform: linux/amd64
+    environment:
+      POSTGRES_USER: cascade
+      POSTGRES_PASSWORD: cascade_local_only
+      POSTGRES_DB: cascade_springs
+    ports:
+      - '127.0.0.1:${CASCADE_DB_PORT:-55432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U cascade -d cascade_springs']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+volumes:
+  postgres_data:

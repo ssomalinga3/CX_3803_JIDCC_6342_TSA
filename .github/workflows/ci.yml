@@ -24,6 +24,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Generate Worker types
+        run: pnpm --dir backend cf:typegen
       - name: format:check
         run: pnpm format:check
       - name: lint
@@ -38,3 +40,29 @@ jobs:
       - name: bundle:check
         if: ${{ !cancelled() }}
         run: pnpm bundle:check
+
+  backend-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Set up local PostGIS and apply Drizzle migrations
+        run: pnpm backend:setup
+      - name: Verify migration replay
+        run: pnpm --dir backend db:migrate
+      - name: Build and test the Worker against PostGIS
+        run: pnpm backend:check
+      - name: Database diagnostics
+        if: failure()
+        run: docker compose -f backend/docker-compose.yml logs db
+      - name: Stop local database
+        if: always()
+        run: pnpm --dir backend db:down

@@ -19,6 +19,16 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 1, 2026 — D-10 local backend tooling:** Project-owner instruction
+  authorizes the local Workers server, Docker PostgreSQL/PostGIS, and Drizzle
+  foundation. Use nvm with the repository's existing Node pin and pnpm root
+  lockfile. See the [backend setup guide](../backend/README.md) for implemented
+  commands. This resolves the local development workflow only. Production
+  Workers/Hyperdrive hosting remains proposed; database provider, staging,
+  remote credentials, backups, budget, and deployment ownership remain open.
+  Domain schema decisions (including D-12) are not resolved by this setup.
+
+
 - **October 11, 2026 — D-10 tooling only:** During the authorized development-environment setup, the project owner installed Node 24 through nvm. The repository pins the verified Node 24.21.0 and existing pnpm 10.26.2; see the [Expo setup guide](old-plans/expo-setup.md#3-establish-reproducible-tools). Expo SDK compatibility will be checked during scaffolding. Hosting, native device tooling, distribution, and deployment ownership remain open.
 - **October 11, 2026 — D-10 EAS ownership and application identifiers:** To avoid the single-person-account trap flagged in [Expo setup section 10](old-plans/expo-setup.md#10-configure-native-builds-and-team-delivery-with-eas), the mobile project is owned by the shared Expo organization `cx3803jidcc6342tsa` rather than an individual student account. `eas init` created the team-owned project `@cx3803jidcc6342tsa/cascade-springs` (projectId `bca3cac0-3a82-45b8-9df3-3ad9186796ef`). The application identifier `com.cx3803team6342.cascadesprings` is set as both the iOS `bundleIdentifier` and Android `package` in `mobile/app.json`; these are baked into builds/signing and should be treated as stable. `mobile/eas.json` defines `development` (iOS Simulator development client — the only build the setup checklist hard-requires), `preview` (internal device distribution for team review), and `production` (reserved) profiles. **Still open under D-10:** signing ownership for physical-device/TestFlight builds (requires an Apple Developer account, ~$99/yr), supported-device matrix, EAS build budget, and whether the client expects device/store distribution. No `EXPO_TOKEN` or signing credentials are committed; CI build authentication remains a later step gated on these open items.
 - **October 11, 2026 — S8:** Support guest reporting, including custom-recipient and offline submissions. No account or sign-in is required for these flows. Guest ownership/access implementation remains an engineering detail, not an open question about whether guests are allowed.

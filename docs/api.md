@@ -4,6 +4,14 @@ Baseline transport: S1 pp. 9 and 12. Required workflows: S3 stories 1â€“3 and 6â
 
 Use [J6-13](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-13) for trail/boundary/landmark GeoJSON endpoints and [J6-18](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-18) for cached read-only layer catalog/features. Reporting must support the existing [Figma recipient/review flow](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-260), including multiple explicitly listed recipients and recoverable validation failures; its payload and authorization rules still require D-03.
 
+## Implemented operational endpoints
+
+The local Worker foundation exposes `GET /health` for process liveness and
+`GET /ready` for a Drizzle/PostGIS readiness query. Readiness returns `200` with
+`{"status":"ok","database":"ok"}` or `503` with a generic
+`DATABASE_UNAVAILABLE` error envelope. It uses `Cache-Control: no-store` and
+never returns database error details. Domain endpoints below remain proposed.
+
 ## Required interface behavior
 
 | Boundary | Baseline contract |

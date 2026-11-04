@@ -17,3 +17,6 @@ docs/decisions.md
 docs/security.md
 docs/offline-gis.md
 docs/design/
+
+.wrangler/
+backend/worker-configuration.d.ts

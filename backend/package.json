@@ -8,29 +8,45 @@
   },
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "node --env-file-if-exists=.env scripts/dev.mjs",
     "build": "tsc --project tsconfig.build.json",
     "start": "node dist/server.js",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --ci --runInBand --coverage"
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --ci --runInBand --coverage",
+    "dev:node": "tsx watch src/server.ts",
+    "build:worker": "wrangler deploy --dry-run --outdir dist/worker",
+    "cf:typegen": "wrangler types --env-interface CloudflareBindings worker-configuration.d.ts",
+    "local:setup": "pnpm cf:typegen && pnpm db:up && pnpm db:migrate && pnpm db:check",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:generate": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs generate",
+    "db:migrate": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs migrate",
+    "db:studio": "node --env-file-if-exists=.env ./node_modules/drizzle-kit/bin.cjs studio",
+    "db:check": "tsx --env-file-if-exists=.env scripts/check-database.ts",
+    "test:worker": "node scripts/test-worker.mjs && node scripts/test-worker.mjs --database-unavailable"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "drizzle-orm": "^0.45.4",
+    "express": "^5.1.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^6.0.2",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "jest": "^29.7.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.2",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "wrangler": "^4.156.0"
   }
 }
