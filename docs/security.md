@@ -46,3 +46,28 @@ Validate and sanitize text, coordinates, category references, and uploaded files
 Check that unauthorized requests cannot view staff reports, alter statuses, export records, or obtain private media access; public layer requests cannot expose restricted features; invalid/oversized uploads are rejected; denied device permissions have usable fallbacks; location is absent from logs; and expired media links stop working. Authentication/session implementation, password policy, abuse limits, retention, and complete staff permissions are unresolved in D-01, D-02, D-04, and D-09.
 
 Verify guest park/custom submissions and offline retries without a login prompt. Using a park-administrator session, verify a custom report is absent from lists, maps, summaries, exports, and notifications, and that direct detail/media/mutation requests are denied. Verify a different guest cannot retrieve the report by ID and that failed custom delivery never routes it to park staff.
+
+## J6-15 implementation
+
+The native Map tab checks foreground permission without prompting on mount and
+when the app becomes active. Only **Allow location access** invokes the OS prompt.
+Denial leaves map browsing available; an OS-blocked prompt offers **Open Settings**.
+Disabled device location services and permission-check failures have separate,
+retryable notices. Existing approximate/reduced grants are accepted without asking
+for greater precision. This slice checks permission/service readiness only: it
+does not obtain a location fix, start a watcher, persist coordinates, or send them
+to the GIS API. Permission does not prove a fresh GPS fix. Live position,
+stale/missing-fix handling and GPS recenter remain J6-14 work.
+
+Expo config explicitly excludes background location, foreground location services,
+Always permission descriptions and motion permission. A new native development
+build is required; see the [mobile verification guide](../mobile/README.md#location-permissions-and-privacy-j6-15).
+
+The API has no request/body logging middleware. A terminal error handler prevents
+Express's default handler from logging malformed JSON bodies or other unhandled
+request errors. It returns generic `INVALID_JSON` (400), `PAYLOAD_TOO_LARGE` (413),
+or `INTERNAL_ERROR` (500) envelopes with `no-store`; raw errors/bodies are neither
+logged nor echoed. Existing GIS/readiness handlers continue redacting dependency
+failures. Regression tests cover coordinate-bearing bodies, URLs and errors.
+Production hosting/access-log/analytics configuration remains unverified under
+D-10; future infrastructure must preserve the same coordinate exclusion.
