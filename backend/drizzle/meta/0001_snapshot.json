@@ -1,0 +1,175 @@
+{
+  "id": "05b638ff-ef8b-4a8a-b6aa-17d04b936df0",
+  "prevId": "2c5301e4-1ffa-4e82-ad35-31f793b938e8",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.gis_feature": {
+      "name": "gis_feature",
+      "schema": "",
+      "columns": {
+        "feature_id": {
+          "name": "feature_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "layer_id": {
+          "name": "layer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "geometry": {
+          "name": "geometry",
+          "type": "geometry(Geometry,4326)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "properties": {
+          "name": "properties",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "indexes": {
+        "gis_feature_geometry_gist": {
+          "name": "gis_feature_geometry_gist",
+          "columns": [
+            {
+              "expression": "geometry",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gist",
+          "with": {}
+        },
+        "gis_feature_layer_idx": {
+          "name": "gis_feature_layer_idx",
+          "columns": [
+            {
+              "expression": "layer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "gis_feature_layer_id_gis_layer_layer_id_fk": {
+          "name": "gis_feature_layer_id_gis_layer_layer_id_fk",
+          "tableFrom": "gis_feature",
+          "tableTo": "gis_layer",
+          "columnsFrom": ["layer_id"],
+          "columnsTo": ["layer_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "gis_feature_valid_geometry": {
+          "name": "gis_feature_valid_geometry",
+          "value": "ST_IsValid(\"gis_feature\".\"geometry\") AND NOT ST_IsEmpty(\"gis_feature\".\"geometry\")"
+        },
+        "gis_feature_properties_object": {
+          "name": "gis_feature_properties_object",
+          "value": "jsonb_typeof(\"gis_feature\".\"properties\") = 'object'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.gis_layer": {
+      "name": "gis_layer",
+      "schema": "",
+      "columns": {
+        "layer_id": {
+          "name": "layer_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "layer_type": {
+          "name": "layer_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pillar": {
+          "name": "pillar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_public": {
+          "name": "is_public",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_demo": {
+          "name": "is_demo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "gis_layer_pillar": {
+          "name": "gis_layer_pillar",
+          "value": "\"gis_layer\".\"pillar\" IN ('Human', 'Social', 'Environmental', 'Economic')"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

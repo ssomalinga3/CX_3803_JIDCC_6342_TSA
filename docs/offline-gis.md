@@ -42,3 +42,11 @@ The queue needs persistent submission identity, account/guest ownership context,
 ## Acceptance checks
 
 With maps preloaded, disable networking and verify pan/zoom, trail visibility, and available GPS navigation. Capture and submit an offline report, restart the app, and verify the report and photos remain pending. Reconnect and interrupt an upload; retry it and verify exactly one observation is accepted. Confirm offline/pending indicators, local safety reference access, and that failed refreshes do not erase usable map data. Measure rendering and storage on the agreed target devices; numeric performance budgets remain open.
+
+## Current development API
+
+The [public GIS handoff](../backend/GIS-HANDOFF.md) provides three synthetic
+layers for rendering integration. They are not approved preserve datasets and
+must not be used for trail navigation or off-trail warnings. The API implements
+public reads and a 60-second HTTP freshness policy only; device caching,
+offline persistence/restart and refresh UX remain mobile work under D-06.

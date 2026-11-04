@@ -40,3 +40,26 @@ The layer screen labels Historical elements as “Cultural,” while S1/S2 speci
 Denied location access must leave map browsing usable with a clear notice. Report submission must distinguish success, failed transmission, and offline pending state. Historical content should open from a selected marker; proximity prompts are requested in S4 but the trigger distance and repeated-prompt behavior remain open.
 
 Proposed implementation guidance: use text/icons as well as color for states, label controls for assistive technologies, support readable native text sizes, and keep primary actions reachable without precise map gestures. Show loading/empty/unavailable states instead of a blank screen. Preserve entered report content after a recoverable failure. Specific accessibility and performance acceptance targets must be recorded with the final prototype.
+
+## Implementation progress — November 1, 2026
+
+The mobile Map tab now implements the native online basemap foundation of J6-14:
+pan/zoom, return to the initial preserve viewport, floating header, attribution,
+and loading/unavailable/retry states. It uses the existing active-navigation frame
+for layout while explicitly showing location off and the limits of the preview.
+GPS, approved GIS overlays, layers/report/emergency actions, and offline coverage
+remain unimplemented. See [mobile map setup and dependencies](../../mobile/README.md#native-map-preview-j6-14-first-slice).
+OpenFreeMap Liberty is used for development only; D-05/D-06 remain open for
+production data/provider approval and offline policy.
+
+## API integration progress — November 1, 2026
+
+The combined integration branch connects the existing map layout to the public
+GIS catalog and GeoJSON collections. It renders polygon fill/outline, trails
+above polygons, and landmark points, fitting the returned extent. The information
+panel distinguishes unconfigured/loading/empty/unavailable states and includes
+Retry layers plus explicit synthetic-data labeling. The source layer-selection,
+GPS, report, safety, and offline flows remain future work. The
+[integration guide](../development/integration-branch.md) records setup,
+verification and limitations; this is an online development slice using synthetic
+fixtures, not approved navigation or a completed J6-14/J6-19 flow.

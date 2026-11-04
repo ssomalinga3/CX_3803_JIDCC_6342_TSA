@@ -8,6 +8,13 @@
       "when": 1793573465144,
       "tag": "0000_enable-postgis",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793574845347,
+      "tag": "0001_public-gis-layers",
+      "breakpoints": true
     }
   ]
 }

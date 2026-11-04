@@ -1,6 +1,6 @@
 # API and interfaces
 
-Baseline transport: S1 pp. 9 and 12. Required workflows: S3 stories 1–3 and 6–10. S1 does not specify URL paths, payload field names, error envelopes, or authentication transport. The HTTP shape below is **proposed**, to be finalized with D-01–D-07 before client/server implementation.
+Baseline transport: S1 pp. 9 and 12. Required workflows: S3 stories 1–3 and 6–10. S1 does not specify URL paths, payload field names, error envelopes, or authentication transport. The public GIS read contract below is implemented; reporting, tiles and additional filters remain **proposed**, to be finalized with D-01–D-07 before client/server implementation.
 
 Use [J6-13](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-13) for trail/boundary/landmark GeoJSON endpoints and [J6-18](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-18) for cached read-only layer catalog/features. Reporting must support the existing [Figma recipient/review flow](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-260), including multiple explicitly listed recipients and recoverable validation failures; its payload and authorization rules still require D-03.
 
@@ -10,7 +10,7 @@ The local Worker foundation exposes `GET /health` for process liveness and
 `GET /ready` for a Drizzle/PostGIS readiness query. Readiness returns `200` with
 `{"status":"ok","database":"ok"}` or `503` with a generic
 `DATABASE_UNAVAILABLE` error envelope. It uses `Cache-Control: no-store` and
-never returns database error details. Domain endpoints below remain proposed.
+never returns database error details. Public GIS endpoints are documented below; other domain endpoints remain proposed.
 
 ## Required interface behavior
 
@@ -23,12 +23,12 @@ never returns database error details. Domain endpoints below remain proposed.
 | Reporting → email adapter → SES | Route using category/recipient configuration; authenticated SMTP notification |
 | Staff UI → API | Authorized park-routed report filtering, status updates, and exports; exclude all custom-recipient reports |
 
-## Proposed HTTP surface
+## HTTP surface (public GIS reads implemented; other entries proposed)
 
 | Method/path | Input and result | Access |
 | --- | --- | --- |
-| `GET /api/v1/layers` | Optional pillar/type filters; return accessible layer metadata | Public results limited to `is_public=true`; restricted access policy open |
-| `GET /api/v1/layers/{layerId}/features` | Optional `bbox=west,south,east,north`; return a GeoJSON `FeatureCollection` | Same access check as parent layer |
+| `GET /api/v1/layers` | Implemented public metadata catalog; pillar/type filters remain proposed | Public results limited to `is_public=true`; restricted access policy open |
+| `GET /api/v1/layers/{layerId}/features` | Implemented: optional `bbox=west,south,east,north`; return a GeoJSON `FeatureCollection` | Same access check as parent layer |
 | `GET /api/v1/layers/{layerId}/tiles/{z}/{x}/{y}` | Vector tile for a published tiled layer | Same access check as parent layer |
 | `GET /api/v1/report-options` | Return approved categories and reporting choices | Guest-accessible; exclude private recipient details |
 | `POST /api/v1/observations` | Multipart metadata plus `images`; return server observation ID and status | Guests or signed-in reporters; no client-assigned role/status |
@@ -54,3 +54,32 @@ Use a JSON `metadata` multipart field containing `client_submission_id`, `catego
 Use `201` for first creation, `200` for a recognized identical replay/read/update, and `304` for valid conditional GIS requests. Return a structured error such as `{"error":{"code":"INVALID_REPORT","message":"…","fields":{}}}`. Distinguish invalid input (`400`), unauthenticated (`401`), forbidden (`403`), missing resource (`404`), conflicting replay/state (`409`), oversized upload (`413`), unsupported media (`415`), and temporary server failure (`5xx`).
 
 The client retains a queued report until server acceptance is confirmed. Retry temporary connection/server failures and preserve validation failures for correction. Account-based authorization may require renewed sign-in; guest capture/submission/sync must remain available without an account. Guest credential recovery must not expose reports or silently convert their ownership. Exact retry limits, pagination, payload bounds, cache validators, and export format are open. These examples are a proposed contract, not an existing API.
+
+## Implemented public GIS reads (November 1, 2026)
+
+- `GET /api/v1/layers` returns `{ "layers": [...] }` with public metadata only.
+  Each entry has `layerId`, `name`, `description`, `layerType`, nullable `pillar`,
+  `source`, `isDemo`, and origin-relative `featuresUrl`. Ordering is by layer ID.
+- `GET /api/v1/layers/{layerId}/features` returns an RFC 7946 GeoJSON
+  FeatureCollection with string feature IDs, object properties, SRID 4326
+  longitude/latitude coordinates, and deterministic feature-ID ordering.
+  Empty public layers return `200` with `features: []`.
+- Optional `bbox=west,south,east,north` selects intersecting features via
+  parameterized `ST_Intersects`; it returns full geometries, not clipped shapes.
+  Four finite decimal values are required, longitude within [-180,180], latitude
+  within [-90,90], west < east and south < north. Wrapped antimeridian boxes,
+  repeated bbox parameters, missing values and zero-area boxes return `400`
+  `INVALID_BBOX` with `fields.bbox`. Other filters/pagination are not implemented.
+- Unknown and non-public layers return the identical structured `404 NOT_FOUND`.
+  Visibility is checked in the same SQL statement as feature retrieval. Database
+  failures return generic `503 DATABASE_UNAVAILABLE`; SQL and connection details
+  are not returned or logged.
+- Successful GIS reads use `Cache-Control: public, max-age=60`. Errors use
+  `no-store`. A public response may remain in caches for up to 60 seconds after
+  a visibility/data change; only publish data suitable for this policy. No
+  application cache, custom validators, or Hyperdrive SQL caching is enabled.
+
+[Mobile handoff](../backend/GIS-HANDOFF.md) contains exact requests/responses and
+local addressing. [Contract types](../backend/src/modules/gis/types.ts) are
+exported for client reuse without importing runtime database code. Native HTTPS
+production transport remains required; local HTTP is development only.

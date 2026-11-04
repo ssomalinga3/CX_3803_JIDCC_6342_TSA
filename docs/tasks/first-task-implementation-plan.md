@@ -1,3 +1,12 @@
+> **Current implementation update — November 1, 2026:** Public GIS schema,
+> repeatable synthetic seed, catalog/features and optional bbox filtering are
+> implemented on the local Worker foundation. D-12 is resolved in favor of generic
+> tables by project-owner instruction. See the [handoff](../../backend/GIS-HANDOFF.md)
+> for the current contract and verification commands. The original planning text
+> below is retained as historical context; its open D-12 question and generic-model
+> assumption are superseded. Production hosting/staging, approved GIS data, pillar
+> assignments, native rendering and device/offline acceptance remain deferred.
+
 # Agent's Proposed Implementation Plan — First Task
 
 Task: [first-task-gis-layers.md](./first-task-gis-layers.md)

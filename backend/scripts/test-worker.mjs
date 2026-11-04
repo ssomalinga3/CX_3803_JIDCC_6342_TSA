@@ -1,3 +1,5 @@
+import pg from 'pg';
+import { localDatabaseUrl } from './local-config.mjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -19,15 +21,11 @@ const child = spawn('pnpm', ['dev', '--port', port], {
       : {}),
   },
 });
-let output = '';
-for (const stream of [child.stdout, child.stderr]) {
-  stream.on('data', (data) => {
-    output = (output + data.toString()).slice(-16000);
-  });
-}
-child.on('error', (error) => {
-  output += error.message;
-});
+// Drain runtime logs without retaining URLs or connection diagnostics.
+child.stdout.resume();
+child.stderr.resume();
+child.on('error', () => {});
+let fixtureClient;
 const base = `http://127.0.0.1:${port}`;
 
 try {
@@ -60,6 +58,56 @@ try {
     assert.equal(ready.status, 200, 'Worker could not reach migrated PostGIS');
     assert.deepEqual(await ready.json(), { status: 'ok', database: 'ok' });
   }
+  if (!unavailable) {
+    fixtureClient = new pg.Client({ connectionString: localDatabaseUrl() });
+    await fixtureClient.connect();
+    await fixtureClient.query(`INSERT INTO gis_layer (layer_id, name, description, layer_type, source)
+      VALUES ('test-worker-private', 'Private', 'Test fixture', 'test', 'test')`);
+    const catalog = await fetch(`${base}/api/v1/layers`);
+    assert.equal(catalog.status, 200);
+    assert.equal(catalog.headers.get('cache-control'), 'public, max-age=60');
+    const layers = (await catalog.json()).layers;
+    assert.ok(layers.some((layer) => layer.layerId === 'demo-trails' && layer.isDemo));
+    assert.ok(!layers.some((layer) => layer.layerId === 'test-worker-private'));
+    for (const [id, type, count] of [
+      ['demo-trails', 'LineString', 2],
+      ['demo-boundaries', 'Polygon', 1],
+      ['demo-landmarks', 'Point', 2],
+    ]) {
+      const features = await fetch(`${base}/api/v1/layers/${id}/features`);
+      assert.equal(features.status, 200);
+      assert.ok(features.headers.get('content-type').includes('application/geo+json'));
+      const collection = await features.json();
+      assert.equal(collection.type, 'FeatureCollection');
+      assert.equal(collection.features.length, count);
+      assert.equal(collection.features[0].geometry.type, type);
+    }
+    const getFeatures = async (id, query = '') =>
+      fetch(`${base}/api/v1/layers/${id}/features${query}`);
+    const hidden = await getFeatures('test-worker-private');
+    const unknown = await getFeatures('unknown');
+    assert.equal(hidden.status, 404);
+    assert.equal(unknown.status, 404);
+    assert.deepEqual(await hidden.json(), await unknown.json());
+    const filtered = await getFeatures('demo-landmarks', '?bbox=-84.481,33.719,-84.479,33.721');
+    assert.deepEqual(
+      (await filtered.json()).features.map((feature) => feature.id),
+      ['demo-landmark-1'],
+    );
+    const empty = await getFeatures('demo-trails', '?bbox=0,0,1,1');
+    assert.deepEqual(await empty.json(), { type: 'FeatureCollection', features: [] });
+    for (const query of ['?bbox=bad', '?bbox=0,0,1,1&bbox=0,0,2,2', '?bbox=170,0,-170,1']) {
+      const invalid = await getFeatures('demo-trails', query);
+      assert.equal(invalid.status, 400);
+      assert.equal((await invalid.json()).error.code, 'INVALID_BBOX');
+    }
+  } else {
+    const failed = await fetch(`${base}/api/v1/layers`);
+    assert.equal(failed.status, 503);
+    assert.deepEqual(await failed.json(), {
+      error: { code: 'DATABASE_UNAVAILABLE', message: 'Layer data is unavailable', fields: {} },
+    });
+  }
   const missing = await fetch(`${base}/does-not-exist`);
   assert.equal(missing.status, 404);
   assert.equal((await missing.json()).error.code, 'NOT_FOUND');
@@ -69,11 +117,22 @@ try {
       : 'Worker HTTP, Hyperdrive local binding, Drizzle, and PostGIS checks passed.',
   );
 } catch (error) {
-  console.error(output);
+  // Wrangler can echo request URLs and connection settings: keep diagnostics redacted.
+  console.error('Worker HTTP check failed; inspect the local runtime directly for diagnostics.');
   throw error;
 } finally {
-  if (child.exitCode === null) {
-    if (process.platform === 'win32') child.kill();
-    else process.kill(-child.pid, 'SIGTERM');
+  try {
+    if (fixtureClient) {
+      try {
+        await fixtureClient.query("DELETE FROM gis_layer WHERE layer_id = 'test-worker-private'");
+      } finally {
+        await fixtureClient.end();
+      }
+    }
+  } finally {
+    if (child.exitCode === null) {
+      if (process.platform === 'win32') child.kill();
+      else process.kill(-child.pid, 'SIGTERM');
+    }
   }
 }

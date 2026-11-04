@@ -8,6 +8,8 @@
   "scripts": {
     "mobile": "pnpm --dir mobile start",
     "ios": "pnpm --dir mobile ios",
+    "ios:build": "pnpm --dir mobile exec eas build --platform ios --profile development",
+    "ios:install": "pnpm --dir mobile exec eas build:run --platform ios --profile development --latest",
     "android": "pnpm --dir mobile android",
     "web": "pnpm --dir mobile web",
     "backend:dev": "pnpm --dir backend dev",
