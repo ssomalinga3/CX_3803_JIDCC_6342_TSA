@@ -85,3 +85,11 @@ nine features retaining source names, inert `description_html`, `source_url`,
 `source_style_url`, and `isDemo: false` properties. Stable source IDs are derived
 from the original placemark name/type. No surface/difficulty/boundary attributes
 are inferred.
+
+## Future full trail-network attributes
+
+The [trail-network contract](design/trail-network.md#storage-and-exchange) defines
+shared typed properties for named route segments, difficulty, color, landmarks,
+preserve/protective boundaries, water, natural areas and roads. These fit the
+existing generic geometry/JSON tables without migration. GIS is awaiting delivery;
+the planning catalog does not publish empty layers or create inferred geometry.

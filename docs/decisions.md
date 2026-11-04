@@ -71,3 +71,11 @@ The import supplies one trail and eight landmarks; it does not resolve protectiv
 boundaries, difficulty/surface attributes, pillar assignments, redistribution
 licensing, surveyed alignment, or navigation tolerances. J6-22 and D-05 therefore
 remain partially open. Source HTML is retained as inert metadata only.
+
+## November 4, 2026 — D-05 full trail-network reference
+
+The project owner supplied a park-sign photo as the eventual map-content target
+and confirmed that its GIS will arrive later. Preserve the [reference and typed
+structure](design/trail-network.md); retain generic GIS tables under D-12. The
+planning inventory is not published GIS. Final field mapping, colors, source
+geometry, licensing, current routing and safety alignment await provider data.

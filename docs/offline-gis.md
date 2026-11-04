@@ -58,3 +58,7 @@ trail and eight landmarks through an explicit `db:import:source` command. It use
 the existing public read API and native renderer. Demo fixtures remain optional
 and separate. The source has no polygon boundaries and is not approved trail
 safety data. This import adds no offline persistence, caching or queue behavior.
+
+The [full-network reference](design/trail-network.md) records the later park-sign
+target and a catalog marked awaiting GIS. It defines the expected geometry and
+attribute families without importing guessed geometry or changing offline scope.
