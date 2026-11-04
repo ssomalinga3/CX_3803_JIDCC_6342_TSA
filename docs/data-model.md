@@ -78,3 +78,10 @@ than introducing trail-specific columns. This does not implement trail safety.
 See the [handoff](../backend/GIS-HANDOFF.md) for fixture IDs, geometry types,
 extent, and the exact public contract. Reports and private recipient information
 must never be imported as public GIS features.
+
+The [November 4 source-map import](../data/cascade-springs/README.md) uses these
+existing tables without migration: two public layers with nullable pillars, and
+nine features retaining source names, inert `description_html`, `source_url`,
+`source_style_url`, and `isDemo: false` properties. Stable source IDs are derived
+from the original placemark name/type. No surface/difficulty/boundary attributes
+are inferred.

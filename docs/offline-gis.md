@@ -50,3 +50,11 @@ layers for rendering integration. They are not approved preserve datasets and
 must not be used for trail navigation or off-trail warnings. The API implements
 public reads and a 60-second HTTP freshness policy only; device caching,
 offline persistence/restart and refresh UX remain mobile work under D-06.
+
+## Supplied source snapshot (November 4, 2026)
+
+The [Cascade Springs dataset](../data/cascade-springs/README.md) adds one sourced
+trail and eight landmarks through an explicit `db:import:source` command. It uses
+the existing public read API and native renderer. Demo fixtures remain optional
+and separate. The source has no polygon boundaries and is not approved trail
+safety data. This import adds no offline persistence, caching or queue behavior.

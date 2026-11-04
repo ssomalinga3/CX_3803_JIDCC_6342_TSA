@@ -46,6 +46,7 @@ jobs:
     timeout-minutes: 15
     env:
       WRANGLER_SEND_METRICS: 'false'
+      GIS_SOURCE_MAP: '1'
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v6
@@ -60,6 +61,8 @@ jobs:
         run: pnpm --dir backend db:migrate
       - name: Seed synthetic demo GIS (twice to verify repeatability)
         run: pnpm --dir backend db:seed && pnpm --dir backend db:seed
+      - name: Import source map (twice to verify repeatability)
+        run: pnpm --dir backend db:import:source && pnpm --dir backend db:import:source
       - name: Jest integration against PostGIS
         run: pnpm --dir backend test:integration
       - name: Build and test the Worker against PostGIS
