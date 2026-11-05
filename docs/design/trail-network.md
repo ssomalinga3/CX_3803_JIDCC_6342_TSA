@@ -90,8 +90,8 @@ features; show unknown difficulty as unknown rather than easy.
 
 The current renderer provides generic polygon/point styling, collision-managed
 names and sign-inspired colors for identified trail sections, with an
-approximate-name notice for derived source sections. A bounded, scrollable trail
-legend lists only identities present in the loaded line features. Category-specific
+approximate-name notice for derived source sections. A compact, horizontally
+scrollable trail legend lists only identities present in the loaded line features. Category-specific
 symbols, separate polygon treatments, layer selection and feature details remain
 future UI work. Device offline downloads and trail-safety calculations remain
 separate work.

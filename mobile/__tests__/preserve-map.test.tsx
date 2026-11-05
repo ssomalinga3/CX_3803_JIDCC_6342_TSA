@@ -142,7 +142,7 @@ test('legend updates with loaded routes, deduplicates sections, and disappears f
       snapshot: { ...snapshot, collection: { type: 'FeatureCollection', features: [] } },
     });
     await view.rerender(<PreserveMap />);
-    expect(screen.queryByText('Trail colors · Scroll for more')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Trail colors · Swipe for more')).not.toBeOnTheScreen();
   } finally {
     gis.mockRestore();
   }

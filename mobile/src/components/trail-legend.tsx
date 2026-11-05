@@ -6,8 +6,13 @@ export function TrailLegend({ entries }: { entries: TrailLegendEntry[] }) {
   if (entries.length === 0) return null;
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Trail colors · Scroll for more</Text>
-      <ScrollView style={styles.list} contentContainerStyle={styles.rows} nestedScrollEnabled>
+      <Text style={styles.title}>Trail colors · Swipe for more</Text>
+      <ScrollView
+        horizontal
+        style={styles.list}
+        contentContainerStyle={styles.rows}
+        showsHorizontalScrollIndicator={false}
+      >
         {entries.map((entry) => (
           <View
             key={entry.id}
@@ -27,7 +32,7 @@ export function TrailLegend({ entries }: { entries: TrailLegendEntry[] }) {
                 ]}
               />
             </View>
-            <Text style={styles.label}>{entry.name}</Text>
+            <Text style={styles.label}>{entry.name.replace(/ Trails?$/, '')}</Text>
           </View>
         ))}
       </ScrollView>
@@ -36,12 +41,12 @@ export function TrailLegend({ entries }: { entries: TrailLegendEntry[] }) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 4 },
-  title: { fontSize: 13, lineHeight: 19, fontWeight: '600', color: '#1c1c1e' },
-  list: { maxHeight: 96, flexGrow: 0 },
-  rows: { gap: 6, paddingVertical: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  casing: { width: 32, height: 9, justifyContent: 'center', paddingHorizontal: 2 },
-  swatch: { borderTopWidth: 4, width: 28 },
-  label: { flex: 1, fontSize: 13, lineHeight: 19, color: '#3a3a3c' },
+  container: { gap: 2 },
+  title: { fontSize: 12, lineHeight: 16, fontWeight: '600', color: '#1c1c1e' },
+  list: { flexGrow: 0 },
+  rows: { gap: 14, paddingVertical: 4 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  casing: { width: 22, height: 7, justifyContent: 'center', paddingHorizontal: 2 },
+  swatch: { borderTopWidth: 3, width: 18 },
+  label: { fontSize: 12, lineHeight: 16, color: '#3a3a3c' },
 });
