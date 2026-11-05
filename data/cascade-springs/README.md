@@ -148,8 +148,9 @@ The mapping pins the original route geometry's SHA-256. If it changes, import
 fails before replacing database rows; review the ranges and hash together.
 Re-import to replace the old combined route; replay remains transactional and
 duplicate-safe. Native labels use the section names with collision handling and a
-white halo. The map shows “Approximate trail names · Partial network. Check park
-signs.” Names are not surveyed or field-verified navigation guidance.
+white halo. The approximate/partial-network caveat appears in the app's
+Disclaimers tab, not inline on the map. Names are not surveyed or field-verified
+navigation guidance.
 
 ### Naming-slice verification — November 4, 2026
 
