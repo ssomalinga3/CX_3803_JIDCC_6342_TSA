@@ -68,34 +68,31 @@ integration('public GIS with real PostGIS', () => {
     expect(response.body.layers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          layerId: 'demo-trails',
+          layerId: 'demo-boundaries',
           isDemo: true,
           pillar: null,
           source: 'Repository synthetic demo fixtures v1',
-          featuresUrl: '/api/v1/layers/demo-trails/features',
+          featuresUrl: '/api/v1/layers/demo-boundaries/features',
         }),
       ]),
     );
   });
-  it.each([
-    ['demo-trails', 'LineString', 2],
-    ['demo-boundaries', 'Polygon', 1],
-    ['demo-landmarks', 'Point', 2],
-  ])('returns GeoJSON for %s', async (id, geometryType, count) => {
-    const response = await request(app).get(`/api/v1/layers/${id}/features`);
-    expect(response.status).toBe(200);
-    expect(response.headers['content-type']).toContain('application/geo+json');
-    expect(response.body.type).toBe('FeatureCollection');
-    expect(response.body.features).toHaveLength(count as number);
-    expect(response.body.features[0]).toMatchObject({
-      type: 'Feature',
-      id: expect.any(String),
-      geometry: { type: geometryType },
-      properties: { isDemo: true },
-    });
-    if (geometryType === 'Point')
-      expect(response.body.features[0].geometry.coordinates).toEqual([-84.48, 33.72]);
-  });
+  it.each([['demo-boundaries', 'Polygon', 1]])(
+    'returns GeoJSON for %s',
+    async (id, geometryType, count) => {
+      const response = await request(app).get(`/api/v1/layers/${id}/features`);
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('application/geo+json');
+      expect(response.body.type).toBe('FeatureCollection');
+      expect(response.body.features).toHaveLength(count as number);
+      expect(response.body.features[0]).toMatchObject({
+        type: 'Feature',
+        id: expect.any(String),
+        geometry: { type: geometryType },
+        properties: { isDemo: true },
+      });
+    },
+  );
   it('returns identical uncached 404s for unknown and private layers, including bbox requests', async () => {
     for (const suffix of ['', '?bbox=-1,-1,1,1']) {
       const missing = await request(app).get(`/api/v1/layers/unknown/features${suffix}`);
@@ -110,7 +107,7 @@ integration('public GIS with real PostGIS', () => {
     }
   });
   it('returns an empty collection for empty layers and nonintersecting viewports', async () => {
-    for (const path of ['test-gis-empty/features', 'demo-trails/features?bbox=0,0,1,1']) {
+    for (const path of ['test-gis-empty/features', 'demo-boundaries/features?bbox=0,0,1,1']) {
       const response = await request(app).get(`/api/v1/layers/${path}`);
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ type: 'FeatureCollection', features: [] });
@@ -126,24 +123,20 @@ integration('public GIS with real PostGIS', () => {
       [0, 0],
       [2, 2],
     ]);
-    const points = await request(app).get(
-      '/api/v1/layers/demo-landmarks/features?bbox=-84.481,33.719,-84.479,33.721',
-    );
-    expect(points.body.features.map((f: { id: string }) => f.id)).toEqual(['demo-landmark-1']);
   });
   it('preserves counts and stable IDs on repeated seeding', async () => {
-    const before = await request(app).get('/api/v1/layers/demo-trails/features');
+    const before = await request(app).get('/api/v1/layers/demo-boundaries/features');
     await seedDemo(url);
     await seedDemo(url);
-    expect((await request(app).get('/api/v1/layers/demo-trails/features')).body).toEqual(
+    expect((await request(app).get('/api/v1/layers/demo-boundaries/features')).body).toEqual(
       before.body,
     );
     const result = await withDatabase(url, (db) =>
       db.execute<{ layers: number; features: number }>(sql`
-      SELECT (SELECT count(*)::int FROM gis_layer WHERE layer_id IN ('demo-trails','demo-boundaries','demo-landmarks')) AS layers,
-             (SELECT count(*)::int FROM gis_feature WHERE layer_id IN ('demo-trails','demo-boundaries','demo-landmarks')) AS features`),
+      SELECT (SELECT count(*)::int FROM gis_layer WHERE layer_id IN ('demo-boundaries')) AS layers,
+             (SELECT count(*)::int FROM gis_feature WHERE layer_id IN ('demo-boundaries')) AS features`),
     );
-    expect(result.rows[0]).toEqual({ layers: 3, features: 5 });
+    expect(result.rows[0]).toEqual({ layers: 1, features: 1 });
   });
   it('enforces the FK, SRID, valid geometry, object properties and spatial index', async () => {
     await expect(
@@ -156,21 +149,21 @@ integration('public GIS with real PostGIS', () => {
     await expect(
       withDatabase(url, (db) =>
         db.execute(
-          sql`INSERT INTO gis_feature VALUES ('test-bad', 'demo-trails', ST_GeomFromText('POINT(0 0)',3857), '{}')`,
+          sql`INSERT INTO gis_feature VALUES ('test-bad', 'demo-boundaries', ST_GeomFromText('POINT(0 0)',3857), '{}')`,
         ),
       ),
     ).rejects.toThrow();
     await expect(
       withDatabase(url, (db) =>
         db.execute(
-          sql`INSERT INTO gis_feature VALUES ('test-bad', 'demo-trails', ST_GeomFromText('POINT EMPTY',4326), '{}')`,
+          sql`INSERT INTO gis_feature VALUES ('test-bad', 'demo-boundaries', ST_GeomFromText('POINT EMPTY',4326), '{}')`,
         ),
       ),
     ).rejects.toThrow();
     await expect(
       withDatabase(url, (db) =>
         db.execute(
-          sql`INSERT INTO gis_feature VALUES ('test-bad', 'demo-trails', ST_GeomFromText('POINT(0 0)',4326), '[]')`,
+          sql`INSERT INTO gis_feature VALUES ('test-bad', 'demo-boundaries', ST_GeomFromText('POINT(0 0)',4326), '[]')`,
         ),
       ),
     ).rejects.toThrow();
@@ -202,7 +195,7 @@ describe('GIS input validation and failure redaction', () => {
     '170,0,-170,1',
     '0,0,1,1&bbox=0,0,2,2',
   ])('rejects malformed bbox %s before querying', async (bbox) => {
-    const response = await request(app).get(`/api/v1/layers/demo-trails/features?bbox=${bbox}`);
+    const response = await request(app).get(`/api/v1/layers/demo-boundaries/features?bbox=${bbox}`);
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('INVALID_BBOX');
     expect(response.headers['cache-control']).toBe('no-store');
@@ -214,7 +207,7 @@ describe('GIS input validation and failure redaction', () => {
     const failingApp = createApp({
       layers: { listPublicLayers: failing, getPublicLayerFeatures: failing },
     });
-    for (const path of ['/api/v1/layers', '/api/v1/layers/demo-trails/features']) {
+    for (const path of ['/api/v1/layers', '/api/v1/layers/demo-boundaries/features']) {
       const response = await request(failingApp).get(path);
       expect(response.status).toBe(503);
       expect(response.body).toEqual({

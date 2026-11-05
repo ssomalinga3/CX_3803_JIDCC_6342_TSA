@@ -2,40 +2,8 @@ import { sql } from 'drizzle-orm';
 import { withDatabase } from './client.js';
 import { gisLayer } from './schema.js';
 
-/** Synthetic Atlanta-area shapes, not surveyed preserve boundaries or navigation data. */
+/** Approximate preserve boundary fixture. Not surveyed or navigation data. */
 const fixtures = [
-  {
-    layerId: 'demo-trails',
-    layerType: 'trail',
-    name: 'Synthetic demo trails',
-    features: [
-      {
-        id: 'demo-trail-1',
-        name: 'Demo loop segment',
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [-84.48, 33.72],
-            [-84.478, 33.722],
-            [-84.476, 33.721],
-          ],
-        },
-        surface_type: 'durable',
-      },
-      {
-        id: 'demo-trail-2',
-        name: 'Demo connector',
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [-84.478, 33.722],
-            [-84.477, 33.724],
-          ],
-        },
-        surface_type: 'natural',
-      },
-    ],
-  },
   {
     layerId: 'demo-boundaries',
     layerType: 'boundary',
@@ -78,23 +46,6 @@ const fixtures = [
             ],
           ],
         },
-      },
-    ],
-  },
-  {
-    layerId: 'demo-landmarks',
-    layerType: 'landmark',
-    name: 'Synthetic demo landmarks',
-    features: [
-      {
-        id: 'demo-landmark-1',
-        name: 'Demo trailhead',
-        geometry: { type: 'Point', coordinates: [-84.48, 33.72] },
-      },
-      {
-        id: 'demo-landmark-2',
-        name: 'Demo overlook',
-        geometry: { type: 'Point', coordinates: [-84.477, 33.724] },
       },
     ],
   },

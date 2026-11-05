@@ -179,13 +179,13 @@ integration('source map → PostGIS → public API', () => {
         sql`INSERT INTO gis_feature (feature_id, layer_id, geometry) VALUES ('source-map-stale-test', 'cascade-map-trails', ST_GeomFromText('POINT(0 0)',4326))`,
       ),
     );
-    const unrelatedBefore = await request(app).get('/api/v1/layers/demo-trails/features');
+    const unrelatedBefore = await request(app).get('/api/v1/layers/demo-boundaries/features');
     await Promise.all([importSourceMap(url, snapshot), importSourceMap(url, snapshot)]);
     const trails = await request(app).get('/api/v1/layers/cascade-map-trails/features');
     const points = await request(app).get('/api/v1/layers/cascade-map-landmarks/features');
     expect(trails.body.features).toHaveLength(10);
     expect(points.body.features).toHaveLength(8);
-    expect((await request(app).get('/api/v1/layers/demo-trails/features')).body).toEqual(
+    expect((await request(app).get('/api/v1/layers/demo-boundaries/features')).body).toEqual(
       unrelatedBefore.body,
     );
   });
