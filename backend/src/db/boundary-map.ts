@@ -1,19 +1,21 @@
-import { sql } from 'drizzle-orm';
 import type { FeatureCollection } from '../modules/gis/types.js';
-import { withDatabase } from './client.js';
-import { gisLayer } from './schema.js';
+import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
 
 // Symmetric with source-map.ts: a validated, file-backed, transactional import.
 // The boundary is an approximate hand-drawn guess, the same credibility tier as
 // the source trails/landmarks (isDemo: false, name_assignment: approximate), not
 // a synthetic demo fixture.
 export const boundaryMapSource = 'Hand-drawn estimate by the project team';
-export const boundaryMapLayers = [
+export const boundaryMapLayers: readonly ImportLayerSpec[] = [
   {
     layerId: 'cascade-map-boundary',
     name: 'Cascade Springs boundary (approximate)',
     layerType: 'boundary',
     geometryType: 'Polygon',
+    description:
+      'Hand-drawn approximate preserve outline supplied by the project team. Not surveyed, field-verified, or approved for navigation or property determinations. Same provisional tier as the approximate trail data.',
+    source: boundaryMapSource,
+    isDemo: false,
   },
 ] as const;
 
@@ -73,35 +75,5 @@ export function validateBoundaryMap(value: unknown): FeatureCollection {
 /** Replace only this source's boundary layer atomically; unrelated data stays intact. */
 export async function importBoundaryMap(connectionString: string, value: unknown): Promise<void> {
   const collection = validateBoundaryMap(value);
-  await withDatabase(connectionString, (db) =>
-    db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(6342, 3)`);
-      for (const layer of boundaryMapLayers) {
-        const metadata = {
-          layerId: layer.layerId,
-          name: layer.name,
-          layerType: layer.layerType,
-          description:
-            'Hand-drawn approximate preserve outline supplied by the project team. Not surveyed, field-verified, or approved for navigation or property determinations. Same provisional tier as the approximate trail data.',
-          pillar: null,
-          source: boundaryMapSource,
-          isDemo: false,
-          isPublic: true,
-        };
-        await tx
-          .insert(gisLayer)
-          .values(metadata)
-          .onConflictDoUpdate({ target: gisLayer.layerId, set: metadata });
-        await tx.execute(sql`DELETE FROM gis_feature WHERE layer_id = ${layer.layerId}`);
-        for (const feature of collection.features.filter(
-          (feature) => feature.geometry.type === layer.geometryType,
-        )) {
-          await tx.execute(sql`
-          INSERT INTO gis_feature (feature_id, layer_id, geometry, properties)
-          VALUES (${feature.id}, ${layer.layerId}, ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}), 4326), ${JSON.stringify(feature.properties)}::jsonb)
-        `);
-        }
-      }
-    }),
-  );
+  await replaceLayers(connectionString, 3, boundaryMapLayers, collection);
 }
