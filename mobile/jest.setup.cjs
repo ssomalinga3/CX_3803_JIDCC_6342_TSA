@@ -10,6 +10,12 @@ jest.mock('expo-router', () => {
   const mockFocusState = { focused: true };
   return {
     mockFocusState,
+    router: {
+      push: jest.fn(),
+      back: jest.fn(),
+      replace: jest.fn(),
+      canGoBack: jest.fn(() => true),
+    },
     useFocusEffect: (callback) => {
       const focused = mockFocusState.focused;
       React.useEffect(() => {

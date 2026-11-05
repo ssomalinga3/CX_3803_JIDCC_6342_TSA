@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react-native';
 
-import DisclaimersScreen from '@/app/disclaimers';
+import DisclaimersScreen from '@/app/(tabs)/disclaimers';
 import { disclaimers } from '@/data/disclaimers';
 
 test('the Disclaimers screen renders every shared disclaimer', async () => {

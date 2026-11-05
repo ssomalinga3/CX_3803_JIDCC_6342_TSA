@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 
-import PreserveMap from '@/components/preserve-map';
+import NativePreserveMap from '@/components/preserve-map';
+import { MapGisProvider } from '@/hooks/map-gis-context';
 import * as Location from 'expo-location';
 import * as PublicGis from '@/hooks/use-public-gis';
 import { collection, layer } from './fixtures/gis';
@@ -10,6 +11,14 @@ import type { GisSnapshot } from '@/data/gis';
 const { mockZoomTo, mockEaseTo, mockGetZoom, mockFitBounds } = jest.requireMock(
   '@maplibre/maplibre-react-native',
 );
+
+function PreserveMap() {
+  return (
+    <MapGisProvider>
+      <NativePreserveMap />
+    </MapGisProvider>
+  );
+}
 
 beforeEach(() => {
   jest.clearAllMocks();

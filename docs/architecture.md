@@ -79,3 +79,20 @@ media execution. Selection never includes the device-position source and is
 invalidated on snapshot replacement or Map blur. See
 [J6-20 details](development/feature-details.md); no server or schema change is
 required.
+
+### Layer visibility (J6-19)
+
+One root `MapGisProvider` owns the public snapshot and session-only hidden layer
+IDs. Map and `/layers` share that state; opening the chooser or applying switches
+does not reload GIS or request location. An outer Expo Router stack contains the
+existing tab group and the selection screen, preserving the mounted map and its
+camera while the chooser is open. The existing tab URLs remain unchanged.
+
+Done applies the local draft; leaving without Done discards it. Rendering,
+feature hit-testing, counts and the trail legend use the same filtered snapshot
+with original feature IDs and provenance. Camera fitting retains the original
+catalog bounds and is suppressed for visibility-driven layout changes. Trails
+render above boundaries and landmarks; device position remains a separate source.
+New catalog IDs default visible, unknown IDs are ignored, and applied choices
+survive an in-session retry. Nothing is persisted across application restarts.
+See [layer selection verification](development/layer-selection.md).
