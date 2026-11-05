@@ -243,6 +243,8 @@ export default function PreserveMap() {
         )}
       </Map>
 
+      <View pointerEvents="none" style={[styles.tabBackdrop, { height: dockBottom }]} />
+
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Cascade Springs Preserve</Text>
@@ -472,6 +474,13 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 30, color: '#1c1c1e' },
   dimmed: { opacity: 0.5 },
+  tabBackdrop: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+  },
   dock: {
     position: 'absolute',
     bottom: 0,
