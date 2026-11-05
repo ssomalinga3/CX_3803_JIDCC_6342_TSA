@@ -18,6 +18,7 @@ try {
   url.pathname = `/${database}`;
   const env = {
     ...process.env,
+    GIS_SOURCE_MAP: '1',
     DATABASE_URL: url.toString(),
     CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: url.toString(),
   };
@@ -26,6 +27,8 @@ try {
     'db:migrate',
     'db:seed',
     'db:seed',
+    'db:import:source',
+    'db:import:source',
     'test:integration',
     'test:worker',
   ]) {

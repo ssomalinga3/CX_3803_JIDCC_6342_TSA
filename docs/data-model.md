@@ -78,3 +78,18 @@ than introducing trail-specific columns. This does not implement trail safety.
 See the [handoff](../backend/GIS-HANDOFF.md) for fixture IDs, geometry types,
 extent, and the exact public contract. Reports and private recipient information
 must never be imported as public GIS features.
+
+The [November 4 source-map import](../data/cascade-springs/README.md) uses these
+existing tables without migration: two public layers with nullable pillars, and
+nine features retaining source names, inert `description_html`, `source_url`,
+`source_style_url`, and `isDemo: false` properties. Stable source IDs are derived
+from the original placemark name/type. No surface/difficulty/boundary attributes
+are inferred.
+
+## Future full trail-network attributes
+
+The [trail-network contract](design/trail-network.md#storage-and-exchange) defines
+shared typed properties for named route segments, difficulty, color, landmarks,
+preserve/protective boundaries, water, natural areas and roads. These fit the
+existing generic geometry/JSON tables without migration. GIS is awaiting delivery;
+the planning catalog does not publish empty layers or create inferred geometry.

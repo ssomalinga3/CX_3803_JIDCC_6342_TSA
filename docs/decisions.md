@@ -61,3 +61,21 @@ The sources settle the main stack and feature direction, but do not settle the c
 When resolving an item, add the chosen behavior, decision date, supporting client/team reference, and affected specification links. Update contracts and migrations together so future developers do not need to reconstruct the decision from discussion history.
 
 Use the [existing Figma](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=0-1) for UI decisions and the [Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog) for implementation tracking. These documents supplement those artifacts; they do not establish a competing design or task board.
+
+## November 4, 2026 — D-05 supplied source map
+
+Project-owner instruction authorizes pulling the linked Google My Maps data into
+the project as public GIS. The [snapshot inventory](../data/cascade-springs/README.md)
+records the export, provenance, WGS84 coordinates, field mapping and limitations.
+The import supplies one trail and eight landmarks; it does not resolve protective
+boundaries, difficulty/surface attributes, pillar assignments, redistribution
+licensing, surveyed alignment, or navigation tolerances. J6-22 and D-05 therefore
+remain partially open. Source HTML is retained as inert metadata only.
+
+## November 4, 2026 — D-05 full trail-network reference
+
+The project owner supplied a park-sign photo as the eventual map-content target
+and confirmed that its GIS will arrive later. Preserve the [reference and typed
+structure](design/trail-network.md); retain generic GIS tables under D-12. The
+planning inventory is not published GIS. Final field mapping, colors, source
+geometry, licensing, current routing and safety alignment await provider data.

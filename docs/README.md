@@ -12,6 +12,7 @@ Cascade Springs Nature Conservancy Smart GIS: Mapping Atlanta's Ecological Core.
 | [Security and privacy](security.md) | Access boundaries, location consent, private media, and secrets |
 | [GIS and offline operation](offline-gis.md) | Dataset preparation, caching, report queues, and reconnect behavior |
 | [UI specification](design/ui-spec.md) | Screens, map interactions, reporting, and prototype references |
+| [Trail network reference](design/trail-network.md) | Supplied park sign, future layer inventory and GIS attribute structure |
 | [User flows](design/user-flows.md) | Main tasks, failure states, and observable acceptance conditions |
 | [Open decisions](decisions.md) | Unresolved product and engineering choices that must not be silently assumed |
 | [Architecture diagram source](diagrams/architecture.puml) | Editable PlantUML supplied with the assignment request |

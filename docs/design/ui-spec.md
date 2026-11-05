@@ -78,3 +78,11 @@ to assume GIS correctness for this implementation, without changing provenance o
 production data approval. See [GPS setup and acceptance](../../mobile/README.md#foreground-map-gps-j6-14)
 for native rebuild instructions and verification status. Off-trail warnings,
 offline downloads, and the other map flows remain separate work.
+
+## Full trail-network content reference — November 4, 2026
+
+The owner-supplied [park sign](trail-network.md) establishes the future map-content
+direction: distinct named/color-coded trails, difficulty labels, landmark symbols,
+preserve context and legend. Figma remains the application-layout reference. The
+photo and planning catalog are retained; full-network GIS and corresponding
+rendering/legend work are pending.

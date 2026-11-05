@@ -194,3 +194,13 @@ are implemented as described in the [handoff](GIS-HANDOFF.md).
 References: [Express on Workers](https://developers.cloudflare.com/workers/tutorials/deploy-an-express-app/),
 [Hyperdrive local development](https://developers.cloudflare.com/hyperdrive/configuration/local-development/),
 [Drizzle integration](https://developers.cloudflare.com/hyperdrive/examples/connect-to-postgres/postgres-drivers-and-libraries/drizzle-orm/).
+
+## Import the supplied Cascade Springs map
+
+After migrations, run `pnpm --dir backend db:import:source` from the workspace
+root. This repeatable, transactional import adds one sourced trail and eight
+landmarks in two public layers; demo seeding is separate and unchanged. To include
+source data in Worker checks, run both imports and use
+`GIS_SOURCE_MAP=1 pnpm backend:check`. See the
+[dataset inventory, provenance and verification guide](../data/cascade-springs/README.md).
+Python 3 is required for source-conversion fidelity tests.
