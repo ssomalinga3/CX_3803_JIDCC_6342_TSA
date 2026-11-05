@@ -106,7 +106,7 @@ curl --fail --silent --show-error http://127.0.0.1:8787/api/v1/layers
 ```
 
 Expect health `status: ok`, readiness `status: ok` and `database: ok`, and a
-catalog containing `demo-boundaries`, `demo-landmarks`, and `demo-trails`.
+catalog containing `demo-boundaries`.
 This executable smoke check asserts collection types and counts without printing
 geometry:
 
@@ -122,19 +122,14 @@ const get = async (path) => {
 };
 assert.deepEqual(await get('/ready'), { status: 'ok', database: 'ok' });
 const { layers } = await get('/api/v1/layers');
-assert.equal(layers.length, 3);
-for (const [id, type, count] of [
-  ['demo-boundaries', 'Polygon', 1],
-  ['demo-landmarks', 'Point', 2],
-  ['demo-trails', 'LineString', 2],
-]) {
+for (const [id, type, count] of [['demo-boundaries', 'Polygon', 1]]) {
   assert.ok(layers.some((layer) => layer.layerId === id && layer.isDemo));
   const collection = await get(`/api/v1/layers/${id}/features`);
   assert.equal(collection.type, 'FeatureCollection');
   assert.equal(collection.features.length, count);
   assert.ok(collection.features.every((feature) => feature.geometry.type === type));
 }
-console.log('PASS: PostGIS → Worker → 3 demo layers / 5 features');
+console.log('PASS: PostGIS → Worker → demo boundary layer / 1 feature');
 NODE
 ```
 
@@ -208,9 +203,9 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 xcrun simctl openurl booted 'cascade-springs://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082'
 ```
 
-Expect **Demo GIS · 3 layers · 5 features**, a purple boundary, two orange trails,
-and two blue landmark points, fitted into view. Keep the synthetic-data warning
-visible. Blue points are landmarks; no location permission is requested.
+Expect the demo GIS to add one purple boundary polygon (the approximate preserve
+boundary), alongside the source-map trails and landmarks, fitted into view. Keep
+the synthetic-data warning visible. No location permission is requested.
 Check pan/pinch, zoom, and Return to preserve manually.
 
 For failure/retry verification, stop **only Terminal A's Worker** with Ctrl+C.
