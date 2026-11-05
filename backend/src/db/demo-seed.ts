@@ -2,47 +2,26 @@ import { sql } from 'drizzle-orm';
 import { withDatabase } from './client.js';
 import { gisLayer } from './schema.js';
 
-/** Approximate preserve boundary fixture. Not surveyed or navigation data. */
+/** Synthetic demo boundary fixture. Not surveyed preserve data or navigation data.
+ * The real approximate boundary is a separate validated import (boundary-map.ts). */
 const fixtures = [
   {
     layerId: 'demo-boundaries',
     layerType: 'boundary',
-    name: 'Approximate preserve boundary (guess)',
+    name: 'Synthetic demo boundary',
     features: [
       {
-        // Hand-drawn approximation of the preserve outline. Not surveyed or
-        // authoritative. Source copy: data/cascade-springs/approximate-boundary.geojson.
         id: 'demo-boundary-1',
-        name: 'Approximate preserve boundary (guess, not surveyed)',
+        name: 'Demo area (not preserve boundary)',
         geometry: {
           type: 'Polygon',
           coordinates: [
             [
-              [-84.48305737587314, 33.71987633879536],
-              [-84.48308358003182, 33.71991993001039],
-              [-84.48276913012687, 33.71784932287537],
-              [-84.48396141934964, 33.71795830344308],
-              [-84.48402692974673, 33.715898547308754],
-              [-84.48371247984177, 33.714928592121865],
-              [-84.48258570101605, 33.714928592121865],
-              [-84.47604706646709, 33.71494721848262],
-              [-84.47597988871503, 33.715822652974495],
-              [-84.4746139410863, 33.715822652974495],
-              [-84.47443480041406, 33.718244021036995],
-              [-84.47479308175913, 33.718244021036995],
-              [-84.47479308175913, 33.718523405265216],
-              [-84.47524093344028, 33.718523405265216],
-              [-84.4751961482722, 33.718691035365424],
-              [-84.47548725186518, 33.718691035365424],
-              [-84.47566639253803, 33.71924980000324],
-              [-84.4757335702901, 33.71921254914061],
-              [-84.47604706646709, 33.71947330484015],
-              [-84.47676362915718, 33.71913804736684],
-              [-84.47662927365303, 33.719994813863224],
-              [-84.47748019184725, 33.71997618859557],
-              [-84.47936116890922, 33.7202555671867],
-              [-84.48130932372322, 33.720087940141426],
-              [-84.48305737587314, 33.71987633879536],
+              [-84.482, 33.718],
+              [-84.474, 33.718],
+              [-84.474, 33.726],
+              [-84.482, 33.726],
+              [-84.482, 33.718],
             ],
           ],
         },
