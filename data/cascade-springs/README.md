@@ -38,6 +38,7 @@ From the workspace root, after dependency installation and local PostGIS setup:
 pnpm --dir backend data:convert
 pnpm exec prettier --write data/cascade-springs/features.geojson
 pnpm --dir backend db:import:source
+pnpm --dir backend db:import:boundary
 ```
 
 Conversion needs Python 3 (standard library only). It operates on the checked-in
@@ -63,11 +64,14 @@ and schema are unchanged. No durable offline cache is added.
 
 The source map supplies no preserve polygon. A hand-drawn approximate outline is
 kept in [approximate-boundary.geojson](approximate-boundary.geojson)
-(`feature_kind: boundary`, `boundary_kind: preserve`, `name_assignment: approximate`,
-`isDemo: true`). It is a guess — not surveyed, field-verified, or authoritative —
-so it is served through the synthetic demo channel (`backend/src/db/demo-seed.ts`,
-the `demo-boundaries` layer), never the provenance-locked source import. The
-approximation caveat appears in the app's Disclaimers tab, not inline on the map.
+(`feature_kind: boundary`, `boundary_kind: preserve`, `name_assignment: approximate`).
+It is a guess — not surveyed, field-verified, or authoritative — but it is the same
+provisional credibility tier as the approximate trail data, and both are expected to
+be replaced later. It is therefore imported symmetrically with the source map: a
+validated, file-backed, transactional import (`backend/src/db/boundary-map.ts`,
+`pnpm --dir backend db:import:boundary`) that publishes the `cascade-map-boundary`
+layer with `isDemo: false`. It is not a synthetic demo fixture. The approximation
+caveat appears in the app's Disclaimers tab, not inline on the map.
 
 ## Verification
 

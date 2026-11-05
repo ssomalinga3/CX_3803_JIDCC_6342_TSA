@@ -3,7 +3,7 @@
   "features": [
     {
       "type": "Feature",
-      "id": "cascade-approximate-boundary-1",
+      "id": "cascade-boundary-0000000000000001",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -42,7 +42,6 @@
         "boundary_kind": "preserve",
         "name_assignment": "approximate",
         "name_source": "Hand-drawn estimate by the project team",
-        "isDemo": true,
         "description": "Hand-drawn approximate outline of the preserve. Not surveyed, field-verified, or an authoritative boundary. For orientation only."
       }
     }
