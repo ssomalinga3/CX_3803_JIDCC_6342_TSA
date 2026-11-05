@@ -26,3 +26,10 @@ permission is checked again without a new automatic prompt. A 30-second display
 freshness default removes expired dots/recentering until GPS recovers. See the
 [mobile GPS acceptance checklist](../../mobile/README.md#acceptance-checks) for
 permission, Settings recovery, simulated movement, lifecycle and network cases.
+
+For the approximate-name slice, opening the map after re-import shows named
+sections on the existing partial route and an approximate-name notice. Pan/zoom
+reveals labels as room permits; ambiguous connections remain drawn without name
+labels. Permission denial preserves both browsing and the notice. Full-network
+coverage and field identity checks remain pending; see the
+[section mapping](../../data/cascade-springs/README.md#approximate-trail-sections).

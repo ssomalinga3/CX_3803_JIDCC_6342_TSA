@@ -83,3 +83,16 @@ The client retains a queued report until server acceptance is confirmed. Retry t
 local addressing. [Contract types](../backend/src/modules/gis/types.ts) are
 exported for client reuse without importing runtime database code. Native HTTPS
 production transport remains required; local HTTP is development only.
+
+## Approximate source trail names
+
+Re-importing the source map now publishes ten derived LineStrings and eight
+landmark Points through the same endpoints and stable layer IDs. Seven trail
+identities are approximate sign matches. Named sections include `feature_kind:
+trail`, shared `trail_id`, `name_assignment: approximate`, and `name_source`.
+All derived lines retain `source_feature_id`, `source_name`, and inclusive
+`source_vertex_start`/`source_vertex_end` for the unchanged source route.
+Unassigned connections have `name_assignment: unassigned` and no `trail_id`;
+clients must not infer missing names, difficulty or route completeness. Existing
+source description/provenance fields remain intact. See the
+[review table](../data/cascade-springs/README.md#approximate-trail-sections).
