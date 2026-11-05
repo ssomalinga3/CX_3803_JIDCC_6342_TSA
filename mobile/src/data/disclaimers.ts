@@ -19,6 +19,11 @@ export const disclaimers: readonly Disclaimer[] = [
     body: 'Trail names and the trail network are a partial, best-effort match to the park sign. Some routes are missing and some names are approximate. Check park signs on site.',
   },
   {
+    id: 'preserve-boundary',
+    title: 'Approximate preserve boundary',
+    body: 'The preserve boundary shown on the map is a hand-drawn guess, not a surveyed or official boundary. Do not rely on it to determine property lines, access, or whether you are inside the preserve.',
+  },
+  {
     id: 'not-for-navigation',
     title: 'Not for navigation',
     body: 'Map shapes, including any synthetic or demo geometry, are for orientation only. Do not rely on them for navigation, safety, or emergency routing.',
