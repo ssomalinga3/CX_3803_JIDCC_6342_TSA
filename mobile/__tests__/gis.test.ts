@@ -32,6 +32,7 @@ test('loads the catalog and resolves feature URLs against the origin, preserving
   ]);
   expect(mockFetch.mock.calls.every(([, options]) => options.signal === signal)).toBe(true);
   expect(data.collection.features[0].id).toBe('demo-trails/trail-1');
+  expect(data.featureLayers.get('demo-trails/trail-1')).toEqual(layer);
   expect(data.bounds).toEqual([-84.48, 33.72, -84.478, 33.722]);
   expect(data.isDemo).toBe(true);
 });
@@ -45,6 +46,22 @@ test('empty catalogs and feature collections are valid empty results', async () 
   expect(mockFetch).toHaveBeenCalledTimes(1);
   expect(parseCollection({ type: 'FeatureCollection', features: [] }).features).toEqual([]);
   expect(collectionBounds({ type: 'FeatureCollection', features: [] })).toBeNull();
+});
+
+test('rejects ambiguous combined feature IDs rather than attaching another layer provenance', async () => {
+  const first = { ...layer, layerId: 'a', featuresUrl: '/api/v1/layers/a/features' };
+  const second = { ...layer, layerId: 'a/b', featuresUrl: '/api/v1/layers/a%2Fb/features' };
+  mockFetch
+    .mockResolvedValueOnce(response({ layers: [first, second] }))
+    .mockResolvedValueOnce(
+      response({ ...collection, features: [{ ...collection.features[0], id: 'b/c' }] }),
+    )
+    .mockResolvedValueOnce(
+      response({ ...collection, features: [{ ...collection.features[0], id: 'c' }] }),
+    );
+  await expect(
+    loadPublicGis('http://localhost:8787/api/v1', new AbortController().signal),
+  ).rejects.toThrow('Ambiguous GIS feature identity');
 });
 
 test.each([

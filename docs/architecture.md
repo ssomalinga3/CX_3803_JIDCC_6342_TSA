@@ -69,3 +69,13 @@ failure. The first integration reads full public collections in memory only.
 See the [integration guide](development/integration-branch.md) for the combined
 branch workflow, transport configuration, rendering verification, and deferred
 large-dataset/offline work.
+
+Public feature details use the same in-memory, runtime-validated snapshot. The
+mobile loader retains an exact feature-ID-to-layer map so a native hit-test can
+resolve public metadata without another request or parsing layer IDs out of a
+combined string. Ambiguous combined IDs reject the snapshot. Display fields are
+allowlisted, and raw source HTML is converted to native text without remote
+media execution. Selection never includes the device-position source and is
+invalidated on snapshot replacement or Map blur. See
+[J6-20 details](development/feature-details.md); no server or schema change is
+required.

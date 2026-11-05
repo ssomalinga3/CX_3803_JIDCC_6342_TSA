@@ -5,6 +5,7 @@ import PreserveMap from '@/components/preserve-map';
 import * as Location from 'expo-location';
 import * as PublicGis from '@/hooks/use-public-gis';
 import { collection, layer } from './fixtures/gis';
+import type { GisSnapshot } from '@/data/gis';
 
 const { mockZoomTo, mockEaseTo, mockGetZoom, mockFitBounds } = jest.requireMock(
   '@maplibre/maplibre-react-native',
@@ -15,12 +16,132 @@ beforeEach(() => {
   Object.defineProperty(AppState, 'currentState', { configurable: true, value: 'active' });
 });
 
+const detailId = `${layer.layerId}/trail-1`;
+function detailSnapshot(): GisSnapshot {
+  return {
+    layers: [layer],
+    featureLayers: new Map([[detailId, layer]]),
+    collection: {
+      ...collection,
+      features: [
+        {
+          ...collection.features[0],
+          id: detailId,
+          properties: { name: 'Selected trail', description_html: '<p>Follow the creek.</p>' },
+        },
+      ],
+    },
+    bounds: null,
+    isDemo: true,
+  };
+}
+async function pressFeature(id = detailId) {
+  await fireEvent(screen.getByTestId('public-gis-source'), 'press', {
+    nativeEvent: { features: [{ id, properties: { name: 'Untrusted native title' } }] },
+    stopPropagation: jest.fn(),
+  });
+}
+
+test('opens current GIS details without requesting GPS and dismisses back to map controls', async () => {
+  const gis = jest
+    .spyOn(PublicGis, 'usePublicGis')
+    .mockReturnValue({ status: 'ready', snapshot: detailSnapshot(), retry: jest.fn() });
+  try {
+    await render(<PreserveMap />);
+    await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+    await pressFeature('device-location');
+    expect(screen.queryByText('Feature details')).not.toBeOnTheScreen();
+    await pressFeature();
+    expect(screen.getByRole('header', { name: 'Selected trail' })).toBeOnTheScreen();
+    expect(screen.getByText('Follow the creek.')).toBeOnTheScreen();
+    expect(screen.queryByText('Untrusted native title')).not.toBeOnTheScreen();
+    expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
+    expect(Location.watchPositionAsync).not.toHaveBeenCalled();
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Close feature details' }));
+    expect(screen.queryByText('Feature details')).not.toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
+    await pressFeature();
+    expect(screen.getByText('Feature details')).toBeOnTheScreen();
+  } finally {
+    gis.mockRestore();
+  }
+});
+
+test('closes selection on snapshot replacement, API failure and Map blur', async () => {
+  const initial = detailSnapshot();
+  const gis = jest
+    .spyOn(PublicGis, 'usePublicGis')
+    .mockReturnValue({ status: 'ready', snapshot: initial, retry: jest.fn() });
+  const { mockFocusState } = jest.requireMock('expo-router');
+  try {
+    const view = await render(<PreserveMap />);
+    await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+    await pressFeature();
+    gis.mockReturnValue({ status: 'ready', snapshot: detailSnapshot(), retry: jest.fn() });
+    await view.rerender(<PreserveMap />);
+    expect(screen.queryByText('Feature details')).not.toBeOnTheScreen();
+    await pressFeature();
+    mockFocusState.focused = false;
+    await view.rerender(<PreserveMap />);
+    expect(screen.queryByText('Feature details')).not.toBeOnTheScreen();
+    mockFocusState.focused = true;
+    await view.rerender(<PreserveMap />);
+    await pressFeature();
+    gis.mockReturnValue({ status: 'error', retry: jest.fn() });
+    await view.rerender(<PreserveMap />);
+    expect(screen.queryByText('Feature details')).not.toBeOnTheScreen();
+  } finally {
+    mockFocusState.focused = true;
+    gis.mockRestore();
+  }
+});
+
+test('selection preserves a live GPS watcher and camera position', async () => {
+  const gis = jest
+    .spyOn(PublicGis, 'usePublicGis')
+    .mockReturnValue({ status: 'ready', snapshot: detailSnapshot(), retry: jest.fn() });
+  let update!: Location.LocationCallback;
+  jest.mocked(Location.watchPositionAsync).mockImplementationOnce(async (_options, callback) => {
+    update = callback;
+    return { remove: jest.fn() };
+  });
+  try {
+    await render(<PreserveMap />);
+    await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+    await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1));
+    await act(() =>
+      update({
+        timestamp: Date.now(),
+        coords: {
+          latitude: 33.72,
+          longitude: -84.48,
+          accuracy: 5,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+      }),
+    );
+    const cameraCalls = mockEaseTo.mock.calls.length;
+    await pressFeature();
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Close feature details' }));
+    expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1);
+    expect(mockEaseTo).toHaveBeenCalledTimes(cameraCalls);
+    expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeEnabled();
+  } finally {
+    gis.mockRestore();
+  }
+});
+
 test('refits the loaded route after measuring the legend panel without refitting unchanged layouts', async () => {
   const gis = jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({
     status: 'ready',
     retry: jest.fn(),
     snapshot: {
       layers: [layer],
+      featureLayers: new Map(),
       collection,
       bounds: [-84.48, 33.72, -84.47, 33.73],
       isDemo: false,
@@ -65,6 +186,7 @@ test('approximate-name notice remains visible while browsing with denied locatio
     retry: jest.fn(),
     snapshot: {
       layers: [layer],
+      featureLayers: new Map(),
       collection: {
         ...collection,
         features: [
@@ -113,6 +235,7 @@ test('approximate-name notice remains visible while browsing with denied locatio
 test('legend updates with loaded routes, deduplicates sections, and disappears for empty data', async () => {
   const snapshot = {
     layers: [layer],
+    featureLayers: new Map(),
     collection: {
       ...collection,
       features: ['gateway', 'gateway', null].map((id, index) => ({
