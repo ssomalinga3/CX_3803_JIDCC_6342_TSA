@@ -107,6 +107,8 @@ and the approximate-name notice remain visible under the existing collision rule
 The GIS panel replaces the fixed orange-trails description with a compact,
 horizontally scrollable strip. Smaller swatches and labels omit the repeated
 “Trail” suffix; accessible names retain the full name and descriptive color.
-The “Swipe for more” hint identifies the horizontal scroll interaction. Repeated
+Small gray edge chevrons appear only in directions with more content; the cue
+disappears at each end. The scroll hint remains available to assistive technology
+without instructional text in the visible heading. Repeated
 sections share one row; missing routes are omitted. Boundary and landmark styling
 is unchanged. Figma remains the reference for the surrounding app layout.
