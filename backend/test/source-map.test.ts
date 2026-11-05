@@ -1,4 +1,4 @@
-import { URL } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import request from 'supertest';
@@ -86,7 +86,7 @@ describe('source map snapshot', () => {
   });
   it('reproduces every source placemark, coordinate and description from KML', () => {
     // Compare without rewriting the checked-in artifact (Prettier controls its layout).
-    const script = new URL('../scripts/convert-source-map.py', import.meta.url).pathname;
+    const script = fileURLToPath(new URL('../scripts/convert-source-map.py', import.meta.url));
     const converted = execFileSync(
       'python3',
       [
