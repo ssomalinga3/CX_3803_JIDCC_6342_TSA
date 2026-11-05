@@ -111,11 +111,10 @@ transport and native behavior are not verified by this iOS check.
 
 ## Observable behavior and checks
 
-After seeding, expect **Demo GIS · 3 layers · 5 features**: one purple dashed
-boundary polygon, two orange trail lines with white casing, and two blue landmark
-points. The map automatically fits the returned geometry. Rendering order keeps
-trails above polygons. These shapes are synthetic and unsuitable for navigation;
-the warning must remain visible. Blue landmarks are not the user's GPS position.
+After seeding, the demo GIS adds one purple dashed boundary polygon (the
+approximate preserve boundary). The map automatically fits the returned geometry.
+Rendering order keeps trails above polygons. This boundary is a hand-drawn guess,
+unsuitable for navigation; the warning must remain visible. Blue landmarks are not the user's GPS position.
 
 A missing API URL shows basemap-only status. An empty public result is distinct
 from a failed request. API failure preserves basemap controls and shows Retry

@@ -36,14 +36,11 @@ pillar mappings remain open under D-05; demo `pillar` is `null`.
 
 | Stable layer ID   | Geometry type | Feature count | Features URL                                                   |
 | ----------------- | ------------- | ------------- | -------------------------------------------------------------- |
-| `demo-trails`     | LineString    | 2             | `http://localhost:8787/api/v1/layers/demo-trails/features`     |
 | `demo-boundaries` | Polygon       | 1             | `http://localhost:8787/api/v1/layers/demo-boundaries/features` |
-| `demo-landmarks`  | Point         | 2             | `http://localhost:8787/api/v1/layers/demo-landmarks/features`  |
 
-Combined extent `[west,south,east,north]`: **[-84.482,33.718,-84.474,33.726]**.
-Suggested map center `[longitude,latitude]`: **[-84.478,33.722]**. Fit that extent
-to see all three layers. Demo trail properties illustrate `surface_type` as
-`durable` or `natural`; they do not establish a production property schema.
+The demo seed publishes only the approximate preserve boundary. Real trails and
+landmarks come from the source-map import (`cascade-map-trails`,
+`cascade-map-landmarks`), not synthetic fixtures.
 The transactional seed upserts stable IDs, so reruns restore these fixtures
 without duplicating rows. It does not delete other layers or features. Run it
 only against a development database.
@@ -52,22 +49,22 @@ only against a development database.
 
 ```bash
 curl http://localhost:8787/api/v1/layers
-curl http://localhost:8787/api/v1/layers/demo-landmarks/features
-curl 'http://localhost:8787/api/v1/layers/demo-landmarks/features?bbox=-84.481,33.719,-84.479,33.721'
+curl http://localhost:8787/api/v1/layers/demo-boundaries/features
+curl 'http://localhost:8787/api/v1/layers/demo-boundaries/features?bbox=-84.49,33.71,-84.47,33.73'
 ```
 
 The catalog response is `{ "layers": [...] }`. One complete entry is:
 
 ```json
 {
-  "layerId": "demo-landmarks",
-  "name": "Synthetic demo landmarks",
+  "layerId": "demo-boundaries",
+  "name": "Approximate preserve boundary (guess)",
   "description": "Synthetic development fixture. Not authoritative preserve data; do not use for navigation.",
-  "layerType": "landmark",
+  "layerType": "boundary",
   "pillar": null,
   "source": "Repository synthetic demo fixtures v1",
   "isDemo": true,
-  "featuresUrl": "/api/v1/layers/demo-landmarks/features"
+  "featuresUrl": "/api/v1/layers/demo-boundaries/features"
 }
 ```
 
@@ -86,9 +83,12 @@ The bbox request above returns this complete GeoJSON response, served as
   "features": [
     {
       "type": "Feature",
-      "id": "demo-landmark-1",
-      "geometry": { "type": "Point", "coordinates": [-84.48, 33.72] },
-      "properties": { "name": "Demo trailhead", "isDemo": true }
+      "id": "demo-boundary-1",
+      "geometry": { "type": "Polygon", "coordinates": [[[-84.483, 33.72], "..."]] },
+      "properties": {
+        "name": "Approximate preserve boundary (guess, not surveyed)",
+        "isDemo": true
+      }
     }
   ]
 }

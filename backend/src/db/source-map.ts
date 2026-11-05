@@ -1,22 +1,28 @@
-import { sql } from 'drizzle-orm';
 import type { FeatureCollection } from '../modules/gis/types.js';
-import { withDatabase } from './client.js';
-import { gisLayer } from './schema.js';
+import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
 import { splitSourceMapTrails } from './source-map-trails.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
-export const sourceMapLayers = [
+const sourceMapDescription =
+  'User-supplied Google My Maps snapshot, retrieved 2026-11-04. Trail names are approximate park-sign matches on partial source geometry. Not surveyed or approved for trail safety. No protective boundary supplied.';
+export const sourceMapLayers: readonly ImportLayerSpec[] = [
   {
     layerId: 'cascade-map-trails',
     name: 'Cascade Springs trails (approximate names)',
     layerType: 'trail',
     geometryType: 'LineString',
+    description: sourceMapDescription,
+    source: sourceMapUrl,
+    isDemo: false,
   },
   {
     layerId: 'cascade-map-landmarks',
     name: 'Cascade Springs landmarks (source map)',
     layerType: 'landmark',
     geometryType: 'Point',
+    description: sourceMapDescription,
+    source: sourceMapUrl,
+    isDemo: false,
   },
 ] as const;
 
@@ -78,35 +84,5 @@ export function validateSourceMap(value: unknown): FeatureCollection {
 /** Replace only this source's two layers atomically; unrelated and demo data stay intact. */
 export async function importSourceMap(connectionString: string, value: unknown): Promise<void> {
   const collection = splitSourceMapTrails(validateSourceMap(value));
-  await withDatabase(connectionString, (db) =>
-    db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(6342, 2)`);
-      for (const layer of sourceMapLayers) {
-        const metadata = {
-          layerId: layer.layerId,
-          name: layer.name,
-          layerType: layer.layerType,
-          description:
-            'User-supplied Google My Maps snapshot, retrieved 2026-11-04. Trail names are approximate park-sign matches on partial source geometry. Not surveyed or approved for trail safety. No protective boundary supplied.',
-          pillar: null,
-          source: sourceMapUrl,
-          isDemo: false,
-          isPublic: true,
-        };
-        await tx
-          .insert(gisLayer)
-          .values(metadata)
-          .onConflictDoUpdate({ target: gisLayer.layerId, set: metadata });
-        await tx.execute(sql`DELETE FROM gis_feature WHERE layer_id = ${layer.layerId}`);
-        for (const feature of collection.features.filter(
-          (feature) => feature.geometry.type === layer.geometryType,
-        )) {
-          await tx.execute(sql`
-          INSERT INTO gis_feature (feature_id, layer_id, geometry, properties)
-          VALUES (${feature.id}, ${layer.layerId}, ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}), 4326), ${JSON.stringify(feature.properties)}::jsonb)
-        `);
-        }
-      }
-    }),
-  );
+  await replaceLayers(connectionString, 2, sourceMapLayers, collection);
 }

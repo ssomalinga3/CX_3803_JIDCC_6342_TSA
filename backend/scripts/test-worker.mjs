@@ -67,13 +67,9 @@ try {
     assert.equal(catalog.status, 200);
     assert.equal(catalog.headers.get('cache-control'), 'public, max-age=60');
     const layers = (await catalog.json()).layers;
-    assert.ok(layers.some((layer) => layer.layerId === 'demo-trails' && layer.isDemo));
+    assert.ok(layers.some((layer) => layer.layerId === 'demo-boundaries' && layer.isDemo));
     assert.ok(!layers.some((layer) => layer.layerId === 'test-worker-private'));
-    for (const [id, type, count] of [
-      ['demo-trails', 'LineString', 2],
-      ['demo-boundaries', 'Polygon', 1],
-      ['demo-landmarks', 'Point', 2],
-    ]) {
+    for (const [id, type, count] of [['demo-boundaries', 'Polygon', 1]]) {
       const features = await fetch(`${base}/api/v1/layers/${id}/features`);
       assert.equal(features.status, 200);
       assert.ok(features.headers.get('content-type').includes('application/geo+json'));
@@ -118,15 +114,10 @@ try {
     assert.equal(hidden.status, 404);
     assert.equal(unknown.status, 404);
     assert.deepEqual(await hidden.json(), await unknown.json());
-    const filtered = await getFeatures('demo-landmarks', '?bbox=-84.481,33.719,-84.479,33.721');
-    assert.deepEqual(
-      (await filtered.json()).features.map((feature) => feature.id),
-      ['demo-landmark-1'],
-    );
-    const empty = await getFeatures('demo-trails', '?bbox=0,0,1,1');
+    const empty = await getFeatures('demo-boundaries', '?bbox=0,0,1,1');
     assert.deepEqual(await empty.json(), { type: 'FeatureCollection', features: [] });
     for (const query of ['?bbox=bad', '?bbox=0,0,1,1&bbox=0,0,2,2', '?bbox=170,0,-170,1']) {
-      const invalid = await getFeatures('demo-trails', query);
+      const invalid = await getFeatures('demo-boundaries', query);
       assert.equal(invalid.status, 400);
       assert.equal((await invalid.json()).error.code, 'INVALID_BBOX');
     }
