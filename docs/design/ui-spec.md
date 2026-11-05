@@ -77,7 +77,7 @@ Feature UI may still show transient, state-specific status messages (for example
 loading, permission-denied, offline-pending, or error-and-retry notices) because
 those communicate the current state rather than a standing caveat. New disclaimer
 copy is added to the shared disclaimers source (`mobile/src/data/disclaimers.ts`)
-and surfaced by the Disclaimers tab (`mobile/src/app/disclaimers.tsx`), not by
+and surfaced by the Disclaimers tab (`mobile/src/app/(tabs)/disclaimers.tsx`), not by
 adding inline text to other screens.
 
 ## Implementation progress — November 1, 2026
@@ -86,8 +86,9 @@ The mobile Map tab now implements the native online basemap foundation of J6-14:
 pan/zoom, return to the initial preserve viewport, floating header, attribution,
 and loading/unavailable/retry states. It uses the existing active-navigation frame
 for layout while explicitly showing location off and the limits of the preview.
-GPS, approved GIS overlays, layers/report/emergency actions, and offline coverage
-remain unimplemented. See [mobile map setup and dependencies](../../mobile/README.md#native-map-preview-j6-14-first-slice).
+At this initial slice, GPS, approved GIS overlays, layers/report/emergency actions,
+and offline coverage were unimplemented; later progress is recorded below. See
+[mobile map setup and dependencies](../../mobile/README.md#native-map-preview-j6-14-first-slice).
 OpenFreeMap Liberty is used for development only; D-05/D-06 remain open for
 production data/provider approval and offline policy.
 
@@ -97,11 +98,30 @@ The combined integration branch connects the existing map layout to the public
 GIS catalog and GeoJSON collections. It renders polygon fill/outline, trails
 above polygons, and landmark points, fitting the returned extent. The information
 panel distinguishes unconfigured/loading/empty/unavailable states and includes
-Retry layers plus explicit synthetic-data labeling. The source layer-selection,
-GPS, report, safety, and offline flows remain future work. The
+Retry layers plus explicit synthetic-data labeling. At this initial slice,
+layer selection, GPS, report, safety, and offline flows remained future work. The
 [integration guide](../development/integration-branch.md) records setup,
 verification and limitations; this is an online development slice using synthetic
 fixtures, not approved navigation or a completed J6-14/J6-19 flow.
+
+## Layer selection progress — November 5, 2026
+
+J6-19 implements the documented Choose GIS Layers screen in a route above the
+map tabs: Map back, descriptive cards, individual switches and Done. Switches
+edit a draft; Done applies it and other return actions cancel it. Applied choices
+live in memory for this app session. All public catalog layers are independently
+selectable, including trails. Names come from validated public metadata; short
+descriptions explain the layer type. Human, Social, Environmental and Economic
+badges appear only when supplied; today's source catalog has no pillar values.
+No Cultural mapping or unavailable dataset is invented.
+
+The map filters geometry, selectable details, counts and legend together and
+keeps trails above the other GIS overlays. All-off explains the empty overlay
+while preserving basemap and device-location controls. This follows the screen
+structure already recorded for Figma rather than Jira's older drawer wording;
+exact visual alignment remains unverified because the live Figma frame could
+not be retrieved for this implementation. See [verification and screenshots](../development/layer-selection.md)
+and [acceptance paths](user-flows.md#public-layer-selection-acceptance-j6-19).
 
 ## Foreground GPS progress — November 4, 2026
 

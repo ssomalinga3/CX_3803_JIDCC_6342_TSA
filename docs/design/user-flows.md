@@ -36,8 +36,33 @@ For release verification, exercise the normal and exception paths on iOS, then t
    return. Repeat with large text and assistive technology on supported devices.
 
 Implementation evidence and explicit device/design limits are recorded in
-[feature details](../development/feature-details.md). This is independent of
-the unimplemented layer-selection screen and historical/proximity content.
+[feature details](../development/feature-details.md). Historical/proximity content
+remains separate from public feature details.
+
+### Public layer selection acceptance (J6-19)
+
+1. Open Choose GIS Layers from Map with location off or denied. Show current
+   public catalog names, type descriptions, independent native switches and
+   supported pillar badges only when metadata supplies them. Do not infer pillar
+   assignments or fetch features again just to open the screen.
+2. Toggle one or several rows. Done applies the draft and returns to the mounted
+   map; Map back, system back or swipe back cancels it. Reopen to see the applied
+   choices. Pan/zoom must survive applying choices without an automatic refit.
+3. Hidden features disappear from rendering, hit-testing, counts and the trail
+   key. Re-enable repeatedly without duplicate geometry or legend entries.
+   With everything off, show the all-hidden explanation and retain basemap,
+   zoom, return-to-preserve and independent location controls.
+4. Keep trails above other GIS overlays. The device position is unaffected by
+   public layer switches. The existing location lifecycle still pauses GPS while
+   Map is blurred and resumes an enabled session without an automatic prompt.
+5. Without a catalog, keep Map return available and Done disabled; distinguish
+   loading, unconfigured and failed reads, with Retry for a failed read. Discard
+   draft edits if the catalog is replaced. Preserve applied choices across an
+   in-session retry, ignoring unknown IDs and enabling new catalog IDs by default.
+   Choices reset on a full application restart; durable offline GIS is separate.
+
+See [layer selection evidence](../development/layer-selection.md) for automated
+checks, iOS smoke results and remaining design/device verification.
 
 The current map GPS slice starts from **Use my location** and native foreground
 permission. Recenter uses the latest fix; subsequent fixes move the dot while

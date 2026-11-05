@@ -6,7 +6,7 @@ import {
   type CameraRef,
   type MapRef,
 } from '@maplibre/maplibre-react-native';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +16,7 @@ import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
 import { trailPresentation } from '@/data/trail-presentation';
-import { usePublicGis } from '@/hooks/use-public-gis';
+import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
@@ -33,7 +33,7 @@ export default function PreserveMap() {
   const dockBottom = insets.bottom;
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
-  const gis = usePublicGis(process.env.EXPO_PUBLIC_API_URL);
+  const { gis, visibleSnapshot, hidden } = useMapGis();
   const location = useMapLocation();
   const [settingsFailed, setSettingsFailed] = useState(false);
   const [dockHeight, setDockHeight] = useState(160);
@@ -52,7 +52,7 @@ export default function PreserveMap() {
   }, [attempt]);
 
   const ready = loadState === 'ready';
-  const snapshot = gis.snapshot;
+  const snapshot = visibleSnapshot;
   const details =
     selection && selection.snapshot === snapshot
       ? featureDetails(selection.snapshot, selection.id)
@@ -63,14 +63,24 @@ export default function PreserveMap() {
   );
   const fittedSnapshot = useRef<typeof snapshot>(undefined);
   const fittedDockHeight = useRef<number | undefined>(undefined);
-  const bounds = snapshot?.bounds;
+  // Visibility changes must not refit the visitor's camera when the key shrinks.
+  const originalSnapshot = gis.snapshot;
+  const bounds = originalSnapshot?.bounds;
+  const visibilityChanged = useRef(false);
+  const fittedHidden = useRef(hidden);
   useEffect(() => {
+    if (fittedHidden.current !== hidden) {
+      fittedHidden.current = hidden;
+      visibilityChanged.current = true;
+    }
+    if (fittedSnapshot.current !== originalSnapshot) visibilityChanged.current = false;
     if (
       ready &&
       bounds &&
-      (fittedSnapshot.current !== snapshot || fittedDockHeight.current !== dockHeight)
+      (fittedSnapshot.current !== originalSnapshot ||
+        (!visibilityChanged.current && fittedDockHeight.current !== dockHeight))
     ) {
-      fittedSnapshot.current = snapshot;
+      fittedSnapshot.current = originalSnapshot;
       fittedDockHeight.current = dockHeight;
       if (location.fix) return;
       const [west, south, east, north] = bounds;
@@ -92,7 +102,7 @@ export default function PreserveMap() {
         });
       }
     }
-  }, [ready, bounds, snapshot, dockBottom, dockHeight, insets.top, location.fix]);
+  }, [ready, bounds, originalSnapshot, dockBottom, dockHeight, insets.top, location.fix, hidden]);
   const locationMessage = {
     off: 'Browse the map · Location off',
     requesting: 'Checking location permission…',
@@ -166,9 +176,21 @@ export default function PreserveMap() {
               paint={{ 'line-color': '#7442b5', 'line-width': 3, 'line-dasharray': [3, 2] }}
             />
             <Layer
+              id="gis-landmarks"
+              type="circle"
+              afterId="gis-boundary-outline"
+              filter={['==', ['geometry-type'], 'Point']}
+              paint={{
+                'circle-color': '#007aff',
+                'circle-radius': 7,
+                'circle-stroke-color': '#fff',
+                'circle-stroke-width': 2,
+              }}
+            />
+            <Layer
               id="gis-trail-casing"
               type="line"
-              afterId="gis-boundary-outline"
+              afterId="gis-landmarks"
               filter={['==', ['geometry-type'], 'LineString']}
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
               paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
@@ -224,18 +246,6 @@ export default function PreserveMap() {
                 'text-allow-overlap': false,
               }}
               paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
-            />
-            <Layer
-              id="gis-landmarks"
-              type="circle"
-              afterId="gis-trail-names"
-              filter={['==', ['geometry-type'], 'Point']}
-              paint={{
-                'circle-color': '#007aff',
-                'circle-radius': 7,
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 2,
-              }}
             />
           </GeoJSONSource>
         )}
@@ -349,6 +359,14 @@ export default function PreserveMap() {
         )}
         {ready && <Text style={styles.subtitle}>Pan or pinch to explore</Text>}
         <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Choose GIS layers"
+            onPress={() => router.push('/layers')}
+            style={styles.secondaryAction}
+          >
+            <Text style={styles.secondaryText}>Choose GIS Layers</Text>
+          </Pressable>
           <Text style={styles.note}>{locationMessage}</Text>
           {location.fix?.coords.accuracy != null && (
             <Text style={styles.note}>
@@ -419,10 +437,32 @@ export default function PreserveMap() {
           {snapshot && (
             <>
               <Text style={styles.gisTitle}>
-                {snapshot.isDemo ? 'Demo GIS' : 'Public GIS'} · {snapshot.layers.length} layers ·{' '}
-                {snapshot.collection.features.length} features
+                {snapshot.isDemo ? 'Demo GIS' : 'Public GIS'} · {snapshot.layers.length}{' '}
+                {snapshot.layers.length === 1 ? 'layer' : 'layers'} ·{' '}
+                {snapshot.collection.features.length}{' '}
+                {snapshot.collection.features.length === 1 ? 'feature' : 'features'}
               </Text>
-              <Text style={styles.note}>Purple boundary · Blue landmarks</Text>
+              <Text style={styles.note}>
+                {[
+                  snapshot.collection.features.some((feature) =>
+                    feature.geometry.type.includes('Polygon'),
+                  )
+                    ? 'Purple boundary'
+                    : null,
+                  snapshot.collection.features.some((feature) =>
+                    feature.geometry.type.includes('Point'),
+                  )
+                    ? 'Blue landmarks'
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Text>
+              {snapshot.layers.length === 0 && originalSnapshot!.layers.length > 0 && (
+                <Text style={styles.note}>
+                  All GIS layers are hidden. Basemap browsing remains available.
+                </Text>
+              )}
               {trails && <TrailLegend entries={trails.legend} />}
             </>
           )}

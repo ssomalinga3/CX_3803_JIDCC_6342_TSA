@@ -19,6 +19,17 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 5, 2026 — D-08 J6-19 implementation reconciliation:** The layer
+  chooser follows the dedicated screen already documented from Figma, with Map
+  back, individual switches and Done, rather than the ticket's older drawer
+  wording. Draft edits apply with Done and cancel on other return actions;
+  applied visibility is session-only. This records implementation behavior for
+  review, not a new client approval or resolution of all D-08 items. Direct Figma
+  visual matching remains unverified. D-05 pillar/category mapping stays open;
+  show only supported pillar metadata, without inventing a Cultural assignment.
+  See [UI progress](design/ui-spec.md#layer-selection-progress--november-5-2026)
+  and [evidence](development/layer-selection.md).
+
 - **November 4, 2026 — J6-14 GPS scope:** The project owner instructed us to
   focus on map/GPS and assume the current GIS data is correct for this work.
   Implement foreground permission, position display, recentering and location
