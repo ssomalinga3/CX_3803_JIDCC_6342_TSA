@@ -2,6 +2,10 @@
 
 Expo SDK 57 / React Native 0.86 / TypeScript starter application. The Map tab renders an initial native basemap preview; follow the team's Figma prototype and [project specifications](../docs/README.md) when feature work begins.
 
+For EAS cloud compilation, the Android Emulator, Metro and the local GIS Worker
+on Windows, use the [Windows/Android runbook](../docs/development/windows-android.md).
+The iOS instructions and verification below remain available for macOS teammates.
+
 ## First-time iOS Simulator setup
 
 Use EAS cloud compilation and a local iOS Simulator. Local JavaScript development uses Metro; a macOS upgrade is not part of this workflow. MapLibre requires a development client and cannot run in Expo Go.

@@ -4,6 +4,9 @@ The API runs locally in Cloudflare Workers through Wrangler, using Express 5,
 TypeScript, Drizzle, and PostgreSQL 16/PostGIS. No Cloudflare account, cloud
 resources, or real credentials are needed for local development.
 
+For the complete Windows PowerShell → Android Emulator → Worker/PostGIS path,
+see the [Windows/Android runbook](../docs/development/windows-android.md).
+
 ## First run from a fresh clone
 
 Install [nvm](https://github.com/nvm-sh/nvm) and Docker Desktop (Mac) or Docker
