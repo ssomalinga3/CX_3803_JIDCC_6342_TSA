@@ -52,10 +52,16 @@ export default function PreserveMap() {
     [snapshot],
   );
   const fittedSnapshot = useRef<typeof snapshot>(undefined);
+  const fittedDockHeight = useRef<number | undefined>(undefined);
   const bounds = snapshot?.bounds;
   useEffect(() => {
-    if (ready && bounds && fittedSnapshot.current !== snapshot) {
+    if (
+      ready &&
+      bounds &&
+      (fittedSnapshot.current !== snapshot || fittedDockHeight.current !== dockHeight)
+    ) {
       fittedSnapshot.current = snapshot;
+      fittedDockHeight.current = dockHeight;
       if (location.fix) return;
       const [west, south, east, north] = bounds;
       if (west === east || south === north) {

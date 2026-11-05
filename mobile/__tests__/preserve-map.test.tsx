@@ -6,11 +6,42 @@ import * as Location from 'expo-location';
 import * as PublicGis from '@/hooks/use-public-gis';
 import { collection, layer } from './fixtures/gis';
 
-const { mockZoomTo, mockEaseTo, mockGetZoom } = jest.requireMock('@maplibre/maplibre-react-native');
+const { mockZoomTo, mockEaseTo, mockGetZoom, mockFitBounds } = jest.requireMock(
+  '@maplibre/maplibre-react-native',
+);
 
 beforeEach(() => {
   jest.clearAllMocks();
   Object.defineProperty(AppState, 'currentState', { configurable: true, value: 'active' });
+});
+
+test('refits the loaded route after measuring the legend panel without refitting unchanged layouts', async () => {
+  const gis = jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({
+    status: 'ready',
+    retry: jest.fn(),
+    snapshot: {
+      layers: [layer],
+      collection,
+      bounds: [-84.48, 33.72, -84.47, 33.73],
+      isDemo: false,
+    },
+  });
+  try {
+    await render(<PreserveMap />);
+    await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+    const previousPadding = mockFitBounds.mock.calls.at(-1)[1].padding.bottom;
+    await fireEvent(screen.getByText('Pan or pinch to explore').parent!, 'layout', {
+      nativeEvent: { layout: { height: 380 } },
+    });
+    expect(mockFitBounds.mock.calls.at(-1)[1].padding.bottom).toBeGreaterThan(previousPadding);
+    const count = mockFitBounds.mock.calls.length;
+    await fireEvent(screen.getByText('Pan or pinch to explore').parent!, 'layout', {
+      nativeEvent: { layout: { height: 380 } },
+    });
+    expect(mockFitBounds).toHaveBeenCalledTimes(count);
+  } finally {
+    gis.mockRestore();
+  }
 });
 
 test('browsing becomes available only after native rendering; zoom follows the current viewport', async () => {

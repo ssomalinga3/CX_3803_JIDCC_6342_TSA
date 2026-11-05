@@ -35,10 +35,12 @@ jest.mock('@maplibre/maplibre-react-native', () => {
   const mockZoomTo = jest.fn();
   const mockEaseTo = jest.fn();
   const mockGetZoom = jest.fn().mockResolvedValue(16);
+  const mockFitBounds = jest.fn();
   return {
     mockZoomTo,
     mockEaseTo,
     mockGetZoom,
+    mockFitBounds,
     GeoJSONSource: ({ children, ...props }) => React.createElement(View, props, children),
     Layer: (props) => React.createElement(View, props),
     Map: ({ ref, ...props }) => {
@@ -49,7 +51,7 @@ jest.mock('@maplibre/maplibre-react-native', () => {
       React.useImperativeHandle(ref, () => ({
         zoomTo: mockZoomTo,
         easeTo: mockEaseTo,
-        fitBounds: jest.fn(),
+        fitBounds: mockFitBounds,
       }));
       return null;
     },
