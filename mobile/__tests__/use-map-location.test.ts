@@ -223,3 +223,87 @@ test('native errors clear the fix and retry creates a new watcher', async () => 
   await act(() => result.current.enable());
   await waitFor(() => expect(watch).toHaveBeenCalledTimes(2));
 });
+
+test.each(['disable', 'background', 'blur', 'unmount'] as const)(
+  'a permission grant arriving after %s does not start GPS',
+  async (cancel) => {
+    permission.mockResolvedValue({
+      ...granted,
+      granted: false,
+    } as Location.LocationPermissionResponse);
+    let finish!: (response: Location.LocationPermissionResponse) => void;
+    request.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const { result, rerender, unmount } = await renderHook(useMapLocation);
+    await act(() => result.current.enable());
+    await waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+
+    if (cancel === 'disable') await act(() => result.current.disable());
+    else if (cancel === 'background') await act(() => changeAppState('background'));
+    else if (cancel === 'blur') {
+      mockFocusState.focused = false;
+      await rerender({});
+    } else await unmount();
+
+    await act(() => finish(granted as Location.LocationPermissionResponse));
+    expect(watch).not.toHaveBeenCalled();
+    if (cancel !== 'unmount') {
+      expect(result.current.status).toBe('off');
+      expect(result.current.fix).toBeUndefined();
+    }
+  },
+);
+
+test('callbacks from the pre-background watcher cannot change or stop the resumed watcher', async () => {
+  const { result } = await renderHook(useMapLocation);
+  await act(() => result.current.enable());
+  await waitFor(() => expect(watch).toHaveBeenCalledTimes(1));
+  const previousUpdate = update;
+  const previousError = error;
+  await act(() => previousUpdate(fix()));
+  await act(() => changeAppState('background'));
+  expect(remove).toHaveBeenCalledTimes(1);
+  expect(result.current.fix).toBeUndefined();
+  await act(() => changeAppState('active'));
+  await waitFor(() => expect(watch).toHaveBeenCalledTimes(2));
+  const currentFix = fix(33.721);
+  await act(() => update(currentFix));
+
+  await act(() => previousUpdate(fix(33.722, currentFix.timestamp + 1)));
+  await act(() => previousError?.('obsolete native error'));
+  expect(result.current.status).toBe('ready');
+  expect(result.current.fix).toEqual(currentFix);
+  expect(remove).toHaveBeenCalledTimes(1);
+  expect(request).not.toHaveBeenCalled();
+});
+
+test('a subscription finishing after background/resume is removed without replacing the new watcher', async () => {
+  let finish!: (subscription: Location.LocationSubscription) => void;
+  const removePrevious = jest.fn();
+  watch.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const { result } = await renderHook(useMapLocation);
+  await act(() => result.current.enable());
+  await waitFor(() => expect(watch).toHaveBeenCalledTimes(1));
+  await act(() => changeAppState('background'));
+  await act(() => changeAppState('active'));
+  await waitFor(() => expect(watch).toHaveBeenCalledTimes(2));
+  const currentFix = fix();
+  await act(() => update(currentFix));
+  await act(() => finish({ remove: removePrevious }));
+
+  expect(removePrevious).toHaveBeenCalledTimes(1);
+  expect(remove).not.toHaveBeenCalled();
+  expect(result.current.fix).toEqual(currentFix);
+  await act(() => result.current.disable());
+  expect(remove).toHaveBeenCalledTimes(1);
+  expect(result.current.fix).toBeUndefined();
+});
