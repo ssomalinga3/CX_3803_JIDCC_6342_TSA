@@ -59,6 +59,16 @@ The existing mobile client reads both layers through the public catalog and
 feature endpoints, renders the trail and points, and fits their extent. API paths
 and schema are unchanged. No durable offline cache is added.
 
+## Approximate preserve boundary (guess)
+
+The source map supplies no preserve polygon. A hand-drawn approximate outline is
+kept in [approximate-boundary.geojson](approximate-boundary.geojson)
+(`feature_kind: boundary`, `boundary_kind: preserve`, `name_assignment: approximate`,
+`isDemo: true`). It is a guess — not surveyed, field-verified, or authoritative —
+so it is served through the synthetic demo channel (`backend/src/db/demo-seed.ts`,
+the `demo-boundaries` layer), never the provenance-locked source import. The
+approximation caveat appears in the app's Disclaimers tab, not inline on the map.
+
 ## Verification
 
 See [approximate trail sections](#approximate-trail-sections) for the later naming slice.
