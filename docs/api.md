@@ -12,6 +12,23 @@ The local Worker foundation exposes `GET /health` for process liveness and
 `DATABASE_UNAVAILABLE` error envelope. It uses `Cache-Control: no-store` and
 never returns database error details. Public GIS endpoints are documented below; other domain endpoints remain proposed.
 
+## Implemented request-error responses
+
+Application error middleware returns the same `{ error: { code, message, fields: {} } }`
+shape with `Cache-Control: no-store`. Malformed JSON returns `400 INVALID_JSON`,
+the existing JSON parser's body limit returns `413 PAYLOAD_TOO_LARGE`, unsupported
+charset/content encoding returns `415 UNSUPPORTED_MEDIA_TYPE`, other malformed
+requests (including undecodable route parameters) return `400 INVALID_REQUEST`,
+and unexpected handler failures return `500 INTERNAL_ERROR`. Messages are fixed;
+raw bodies, URLs, parser messages, stack traces and dependency errors are not
+echoed or passed to Express's default error logger. A failure after headers are
+sent closes the response connection rather than emitting another response.
+
+This does not add reporting endpoints or alter the existing JSON size limit.
+Readiness/GIS failures keep their existing `503 DATABASE_UNAVAILABLE` responses.
+Reverse-proxy, Wrangler development request logs and hosting/access-log policies
+are outside this application handler and require separate review before deployment.
+
 ## Required interface behavior
 
 | Boundary | Baseline contract |

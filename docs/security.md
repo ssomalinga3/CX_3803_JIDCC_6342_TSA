@@ -34,7 +34,15 @@ Persist the custom delivery mode and recipients with the report and its offline 
   and never adds device coordinates to GIS requests or logs. Returning to the map
   rechecks existing permission without automatically prompting again. Report and
   explicit location-sharing flows remain separate from this map-only permission.
-- Do not write user GPS coordinates to server logs. Proposed implementation checks include request-body redaction and excluding sensitive values from error/analytics payloads.
+- Do not write user GPS coordinates to server logs. Application request-error
+  handling now returns fixed, uncached JSON errors without logging raw parser
+  input, URLs, stack traces or dependency failures. Regression tests use synthetic
+  coordinates and capture application stdout/stderr. This restores the backend
+  privacy slice from closed PR #8 without replacing the newer mobile GPS flow.
+  This is not a claim about reverse-proxy, Wrangler development request logs,
+  production hosting/access logs or future analytics: review their independent
+  logging policies before handling real visitor locations. See the
+  [request-error contract](api.md#implemented-request-error-responses).
 - Read needed EXIF GPS/time on submission, then strip unnecessary sensitive image metadata before storage. EXIF coordinates are optional evidence, not a replacement for report location.
 - Restrict uploads to JPEG/PNG and enforce a configured maximum size. Exact image count, byte/dimension limits, and handling of unsupported phone formats are open in D-04.
 - Do not make the S3 bucket public or persist expiring presigned URLs as durable image identifiers.
