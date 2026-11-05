@@ -7,11 +7,12 @@ import {
   type MapRef,
 } from '@maplibre/maplibre-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabInset } from '@/constants/theme';
 import { usePublicGis } from '@/hooks/use-public-gis';
+import { useMapLocation } from '@/hooks/use-map-location';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -27,6 +28,8 @@ export default function PreserveMap() {
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
   const gis = usePublicGis(process.env.EXPO_PUBLIC_API_URL);
+  const location = useMapLocation();
+  const [settingsFailed, setSettingsFailed] = useState(false);
   const [dockHeight, setDockHeight] = useState(160);
   const [attempt, setAttempt] = useState(0);
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -42,9 +45,12 @@ export default function PreserveMap() {
 
   const ready = loadState === 'ready';
   const snapshot = gis.snapshot;
+  const fittedSnapshot = useRef<typeof snapshot>(undefined);
   const bounds = snapshot?.bounds;
   useEffect(() => {
-    if (ready && bounds) {
+    if (ready && bounds && fittedSnapshot.current !== snapshot) {
+      fittedSnapshot.current = snapshot;
+      if (location.fix) return;
       const [west, south, east, north] = bounds;
       if (west === east || south === north) {
         camera.current?.easeTo({
@@ -64,7 +70,19 @@ export default function PreserveMap() {
         });
       }
     }
-  }, [ready, bounds, dockBottom, dockHeight, insets.top]);
+  }, [ready, bounds, snapshot, dockBottom, dockHeight, insets.top, location.fix]);
+  const locationMessage = {
+    off: 'Browse the map · Location off',
+    requesting: 'Checking location permission…',
+    searching: 'Finding your location…',
+    ready: 'Your location is shown in blue',
+    stale: 'Location is out of date. Waiting for a fresh GPS fix.',
+    denied: 'Location permission denied. You can still browse the map.',
+    blocked: 'Location access is off. Enable it in Settings to see your position.',
+    'services-disabled': 'Device location services are off. You can still browse the map.',
+    unavailable: 'Location unavailable. Check device location services and try again.',
+  }[location.status];
+  const locating = location.status === 'requesting' || location.status === 'searching';
   async function zoomBy(delta: number) {
     try {
       const zoom = await map.current?.getZoom();
@@ -143,16 +161,62 @@ export default function PreserveMap() {
             />
           </GeoJSONSource>
         )}
+        {location.fix && (
+          <GeoJSONSource
+            id="device-location"
+            data={{
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [location.fix.coords.longitude, location.fix.coords.latitude],
+              },
+              properties: {},
+            }}
+          >
+            <Layer
+              id="device-location-dot"
+              type="circle"
+              paint={{
+                'circle-radius': 9,
+                'circle-color': '#007aff',
+                'circle-stroke-color': '#fff',
+                'circle-stroke-width': 3,
+              }}
+            />
+          </GeoJSONSource>
+        )}
       </Map>
 
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Cascade Springs Preserve</Text>
-          <Text style={styles.subtitle}>Browse the map · Location off</Text>
+          <Text style={styles.subtitle}>Explore trails and boundaries</Text>
         </View>
       </View>
 
       <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
+        <MapButton
+          label="Recenter on my location"
+          disabled={!ready || !location.fix}
+          onPress={() => {
+            if (!location.fix) return;
+            camera.current?.easeTo({
+              center: [location.fix.coords.longitude, location.fix.coords.latitude],
+              zoom: INITIAL_ZOOM,
+              padding: {
+                top: insets.top + 110,
+                bottom: dockBottom + dockHeight + 20,
+                left: 24,
+                right: 84,
+              },
+              bearing: 0,
+              pitch: 0,
+              duration: 300,
+            });
+          }}
+        >
+          ⌖
+        </MapButton>
         <MapButton
           label="Return to preserve"
           disabled={!ready}
@@ -193,6 +257,7 @@ export default function PreserveMap() {
               accessibilityRole="button"
               accessibilityLabel="Retry loading map"
               onPress={() => {
+                fittedSnapshot.current = undefined;
                 setLoadState('loading');
                 setAttempt((value) => value + 1);
               }}
@@ -203,6 +268,53 @@ export default function PreserveMap() {
           </View>
         )}
         {ready && <Text style={styles.subtitle}>Pan or pinch to explore</Text>}
+        <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
+          <Text style={styles.note}>{locationMessage}</Text>
+          {location.fix?.coords.accuracy != null && (
+            <Text style={styles.note}>
+              Reported accuracy: about {Math.ceil(location.fix.coords.accuracy)} m
+            </Text>
+          )}
+          {location.status === 'blocked' ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open location settings"
+              style={styles.retry}
+              onPress={() => {
+                setSettingsFailed(false);
+                void Linking.openSettings().catch(() => setSettingsFailed(true));
+              }}
+            >
+              <Text style={styles.retryText}>Open Settings</Text>
+            </Pressable>
+          ) : location.status !== 'ready' ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Use my location"
+              accessibilityState={{ disabled: locating }}
+              disabled={locating}
+              style={[styles.retry, locating && styles.dimmed]}
+              onPress={location.enable}
+            >
+              <Text style={styles.retryText}>
+                {locating ? 'Finding location…' : 'Use my location'}
+              </Text>
+            </Pressable>
+          ) : null}
+          {location.status !== 'off' && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Turn off map location"
+              onPress={location.disable}
+              style={styles.secondaryAction}
+            >
+              <Text style={styles.secondaryText}>Turn off location</Text>
+            </Pressable>
+          )}
+          {settingsFailed && (
+            <Text style={styles.note}>Could not open Settings. Open device Settings manually.</Text>
+          )}
+        </View>
         <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
           {gis.status === 'unconfigured' && (
             <Text style={styles.note}>GIS API not configured. Basemap only.</Text>
@@ -238,7 +350,7 @@ export default function PreserveMap() {
           )}
         </View>
         <Text style={styles.note}>
-          Online preview. GPS and offline downloads are not available yet.
+          Location stays on this device. Offline map downloads are not available yet.
         </Text>
       </View>
     </View>
@@ -320,4 +432,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   retryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  secondaryAction: { minHeight: 44, justifyContent: 'center' },
+  secondaryText: { color: '#007aff', fontSize: 16 },
 });

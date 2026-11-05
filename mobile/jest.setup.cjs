@@ -5,6 +5,30 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 59, bottom: 34, left: 0, right: 0 }),
 }));
 
+jest.mock('expo-router', () => {
+  const React = require('react');
+  const mockFocusState = { focused: true };
+  return {
+    mockFocusState,
+    useFocusEffect: (callback) => {
+      const focused = mockFocusState.focused;
+      React.useEffect(() => {
+        if (focused) return callback();
+      }, [callback, focused]);
+    },
+  };
+});
+
+jest.mock('expo-location', () => ({
+  Accuracy: { High: 4 },
+  getForegroundPermissionsAsync: jest.fn().mockResolvedValue({ granted: true, canAskAgain: true }),
+  requestForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ granted: true, canAskAgain: true }),
+  hasServicesEnabledAsync: jest.fn().mockResolvedValue(true),
+  watchPositionAsync: jest.fn().mockResolvedValue({ remove: jest.fn() }),
+}));
+
 jest.mock('@maplibre/maplibre-react-native', () => {
   const React = require('react');
   const { View } = require('react-native');

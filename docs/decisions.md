@@ -19,6 +19,13 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 4, 2026 — J6-14 GPS scope:** The project owner instructed us to
+  focus on map/GPS and assume the current GIS data is correct for this work.
+  Implement foreground permission, position display, recentering and location
+  fallbacks against the existing data/API. This does not resolve production
+  provenance/pillar mapping, offline coverage, or the off-trail tolerance in D-05.
+  See the [map GPS implementation and acceptance checks](../mobile/README.md#foreground-map-gps-j6-14).
+
 - **November 1, 2026 — D-10 local iOS workflow:** The project owner selected EAS cloud builds with a local iOS Simulator and local Metro, retaining Expo SDK 57 and the existing macOS installation. Reuse the team-owned project and `development` simulator profile. Native dependency/configuration changes require a new cloud build; JavaScript edits use local Fast Refresh. Reconsider host upgrades if native-build turnaround becomes disruptive. See the [mobile setup guide](../mobile/README.md) for commands and verification. Physical-device signing, store distribution, and the supported-device matrix remain open.
 - **November 1, 2026 — D-12 generic GIS schema:** Project owner confirmed
   “lets do generic, we want to prioritize flexibility.” Use `gis_layer` and

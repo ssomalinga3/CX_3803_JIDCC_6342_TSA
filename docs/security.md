@@ -29,6 +29,11 @@ Persist the custom delivery mode and recipients with the report and its offline 
 ## Location and images
 
 - Request explicit device location permission before capturing GPS. The map remains interactive if permission is denied. Camera permission is needed for photo capture.
+- The map GPS implementation requests foreground permission on **Use my location**.
+  It keeps fixes in memory, removes subscriptions on map blur/background/disable,
+  and never adds device coordinates to GIS requests or logs. Returning to the map
+  rechecks existing permission without automatically prompting again. Report and
+  explicit location-sharing flows remain separate from this map-only permission.
 - Do not write user GPS coordinates to server logs. Proposed implementation checks include request-body redaction and excluding sensitive values from error/analytics payloads.
 - Read needed EXIF GPS/time on submission, then strip unnecessary sensitive image metadata before storage. EXIF coordinates are optional evidence, not a replacement for report location.
 - Restrict uploads to JPEG/PNG and enforce a configured maximum size. Exact image count, byte/dimension limits, and handling of unsupported phone formats are open in D-04.
