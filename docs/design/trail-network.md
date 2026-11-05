@@ -88,14 +88,50 @@ uses text as well as any visual treatment. White Gateway Trail needs a contrasti
 casing. Keep legend colors/symbols and feature details consistent with displayed
 features; show unknown difficulty as unknown rather than easy.
 
-The current renderer provides generic polygon, line and point styling plus
-collision-managed names for identified trail sections, with an approximate-name
-notice for derived source sections. Per-trail colors, category-specific symbols,
-separate polygon treatments,
-legend, layer selection and feature details are future UI work. The new catalog
-and types provide their data structure without pretending these interactions
-already exist. Device offline downloads and trail-safety calculations remain
+The current renderer provides generic polygon/point styling, collision-managed
+names and sign-inspired colors for identified trail sections, with an
+approximate-name notice for derived source sections. A bounded, scrollable trail
+legend lists only identities present in the loaded line features. Category-specific
+symbols, separate polygon treatments, layer selection and feature details remain
+future UI work. Device offline downloads and trail-safety calculations remain
 separate work.
+
+## Approximate trail display palette
+
+The owner requested this color pass stacked on the approximate-name work, using
+[PR #11's sign-color reference](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/11#issuecomment-6646425788).
+These tokens approximate the sign's descriptive colors; they are not sampled or
+provider-approved hex values. The shared mobile
+[palette](../../mobile/src/constants/trail-colors.ts) drives route strokes and
+legend swatches together.
+
+| Trail ID | Sign color | Display token |
+| --- | --- | --- |
+| `springs` | Orange | `#C95700` |
+| `white-oak` | Light blue | `#73C6D5` |
+| `bigleaf-magnolia` | Dark green | `#24533E` |
+| `turkeyfoot-utoy-creek` | Blue | `#2864B4` |
+| `battle-ridge` | Pink | `#D65388` |
+| `west` | Red | `#C9363E` |
+| `terrace` | Purple | `#78479B` |
+| `gateway` | White | `#FFFFFF` |
+| `spur` | Black | `#202020` |
+
+Named lines must have `feature_kind: trail` and a recognized string `trail_id`
+to receive a sign color. Both Gateway sections use white strokes with dark
+`#444444` casing; other lines retain white casing. Explicitly unassigned
+connections use dashed gray `#60646C`; other unknown/generic lines use solid gray
+and the legend label “Other trails.” Bigleaf Magnolia and Spur tokens are ready
+for future data but do not create geometry or legend rows in the current snapshot.
+Names and accessible legend labels identify routes alongside color; absent
+difficulty values stay absent.
+
+The mobile client derives `_display_trail_*` properties on a separate render
+collection. Input values for those keys are overwritten on line features.
+Original geometry, API properties and snapshots remain unchanged; these local
+properties are never written back to GIS. No migration, API contract change,
+source re-import or native dependency/configuration change is required for this
+color pass if the approximate-name sections are already imported.
 
 ## Acceptance when data is supplied
 

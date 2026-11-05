@@ -33,3 +33,15 @@ reveals labels as room permits; ambiguous connections remain drawn without name
 labels. Permission denial preserves both browsing and the notice. Full-network
 coverage and field identity checks remain pending; see the
 [section mapping](../../data/cascade-springs/README.md#approximate-trail-sections).
+
+For the trail-color slice, verify all seven loaded identities use the
+[display palette](trail-network.md#approximate-trail-display-palette), both Gateway
+sections stay visible with dark casing, and the two unnamed connections are
+dashed gray. Pan/zoom across junctions and light/dark basemap content; labels,
+landmarks and the approximation notice must remain readable. The scrollable
+legend must match the strokes, deduplicate Gateway and omit Bigleaf Magnolia and
+Spur Trails while their geometry is missing. Unknown or malformed trail IDs must
+render safely as solid gray. Check legend scrolling, text scaling and browsing
+with location denied on iOS and supported Android targets. Retry after a failed
+GIS read must repopulate the legend from the recovered data; this change adds no
+durable offline restart/retry behavior.

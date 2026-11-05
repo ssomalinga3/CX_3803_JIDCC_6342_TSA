@@ -69,6 +69,49 @@ test('approximate-name notice remains visible while browsing with denied locatio
       screen.getByText('Approximate trail names · Partial network. Check park signs.'),
     ).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
+    expect(screen.getByLabelText('Terrace Trail: Purple')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Orange trails · Purple boundary · Blue landmarks'),
+    ).not.toBeOnTheScreen();
+  } finally {
+    gis.mockRestore();
+  }
+});
+
+test('legend updates with loaded routes, deduplicates sections, and disappears for empty data', async () => {
+  const snapshot = {
+    layers: [layer],
+    collection: {
+      ...collection,
+      features: ['gateway', 'gateway', null].map((id, index) => ({
+        ...collection.features[0],
+        id: `section-${index}`,
+        properties: id
+          ? { feature_kind: 'trail', trail_id: id }
+          : { name_assignment: 'unassigned' },
+      })),
+    },
+    bounds: null,
+    isDemo: false,
+  };
+  const gis = jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({
+    status: 'ready',
+    retry: jest.fn(),
+    snapshot,
+  });
+  try {
+    const view = await render(<PreserveMap />);
+    expect(screen.getAllByLabelText('Gateway Trail: White')).toHaveLength(1);
+    expect(screen.getByLabelText('Unnamed connections: Gray, dashed')).toBeOnTheScreen();
+    expect(screen.queryByText('Bigleaf Magnolia Trail')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Spur Trails')).not.toBeOnTheScreen();
+    gis.mockReturnValue({
+      status: 'empty',
+      retry: jest.fn(),
+      snapshot: { ...snapshot, collection: { type: 'FeatureCollection', features: [] } },
+    });
+    await view.rerender(<PreserveMap />);
+    expect(screen.queryByText('Trail colors · Scroll for more')).not.toBeOnTheScreen();
   } finally {
     gis.mockRestore();
   }
