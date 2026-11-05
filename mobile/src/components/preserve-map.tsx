@@ -6,11 +6,13 @@ import {
   type CameraRef,
   type MapRef,
 } from '@maplibre/maplibre-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabInset } from '@/constants/theme';
+import { TrailLegend } from '@/components/trail-legend';
+import { trailPresentation } from '@/data/trail-presentation';
 import { usePublicGis } from '@/hooks/use-public-gis';
 import { useMapLocation } from '@/hooks/use-map-location';
 
@@ -45,11 +47,21 @@ export default function PreserveMap() {
 
   const ready = loadState === 'ready';
   const snapshot = gis.snapshot;
+  const trails = useMemo(
+    () => (snapshot ? trailPresentation(snapshot.collection) : undefined),
+    [snapshot],
+  );
   const fittedSnapshot = useRef<typeof snapshot>(undefined);
+  const fittedDockHeight = useRef<number | undefined>(undefined);
   const bounds = snapshot?.bounds;
   useEffect(() => {
-    if (ready && bounds && fittedSnapshot.current !== snapshot) {
+    if (
+      ready &&
+      bounds &&
+      (fittedSnapshot.current !== snapshot || fittedDockHeight.current !== dockHeight)
+    ) {
       fittedSnapshot.current = snapshot;
+      fittedDockHeight.current = dockHeight;
       if (location.fix) return;
       const [west, south, east, north] = bounds;
       if (west === east || south === north) {
@@ -116,8 +128,8 @@ export default function PreserveMap() {
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
         />
-        {snapshot && snapshot.collection.features.length > 0 && (
-          <GeoJSONSource id="public-gis" data={snapshot.collection}>
+        {trails && trails.collection.features.length > 0 && (
+          <GeoJSONSource id="public-gis" data={trails.collection}>
             <Layer
               id="gis-boundary-fill"
               type="fill"
@@ -137,20 +149,40 @@ export default function PreserveMap() {
               afterId="gis-boundary-outline"
               filter={['==', ['geometry-type'], 'LineString']}
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-              paint={{ 'line-color': '#fff', 'line-width': 7 }}
+              paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
             />
             <Layer
               id="gis-trails"
               type="line"
               afterId="gis-trail-casing"
-              filter={['==', ['geometry-type'], 'LineString']}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['==', ['get', '_display_trail_dashed'], false],
+              ]}
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-              paint={{ 'line-color': '#c95700', 'line-width': 4 }}
+              paint={{ 'line-color': ['get', '_display_trail_color'], 'line-width': 4 }}
+            />
+            <Layer
+              id="gis-unnamed-connections"
+              type="line"
+              afterId="gis-trails"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['==', ['get', '_display_trail_dashed'], true],
+              ]}
+              layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
+              paint={{
+                'line-color': ['get', '_display_trail_color'],
+                'line-width': 4,
+                'line-dasharray': [2, 2],
+              }}
             />
             <Layer
               id="gis-trail-names"
               type="symbol"
-              afterId="gis-trails"
+              afterId="gis-unnamed-connections"
               minzoom={14}
               filter={[
                 'all',
@@ -366,7 +398,7 @@ export default function PreserveMap() {
                 {snapshot.isDemo ? 'Demo GIS' : 'Public GIS'} · {snapshot.layers.length} layers ·{' '}
                 {snapshot.collection.features.length} features
               </Text>
-              <Text style={styles.note}>Orange trails · Purple boundary · Blue landmarks</Text>
+              <Text style={styles.note}>Purple boundary · Blue landmarks</Text>
               {snapshot.collection.features.some(
                 (feature) => feature.properties.name_assignment === 'approximate',
               ) && (
@@ -377,6 +409,7 @@ export default function PreserveMap() {
               {snapshot.isDemo && (
                 <Text style={styles.warning}>Synthetic shapes — not for navigation.</Text>
               )}
+              {trails && <TrailLegend entries={trails.legend} />}
             </>
           )}
         </View>

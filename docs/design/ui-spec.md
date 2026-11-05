@@ -97,3 +97,22 @@ label; missing routes are not drawn. The GIS panel states “Approximate trail
 names · Partial network. Check park signs.” The eight existing blue source points
 are called landmarks, following the owner's latest clarification. See
 [section evidence and omissions](../../data/cascade-springs/README.md#approximate-trail-sections).
+
+## Approximate trail colors
+
+The existing map now uses the [sign-inspired display palette](trail-network.md#approximate-trail-display-palette)
+for identified trail sections, including dark casing around white Gateway strokes.
+Unnamed connections are dashed gray; other unknown lines are solid gray. Labels
+and the approximate-name notice remain visible under the existing collision rules.
+The GIS panel replaces the fixed orange-trails description with a compact,
+horizontally scrollable strip. Smaller swatches and labels omit the repeated
+“Trail” suffix; accessible names retain the full name and descriptive color.
+The full-width swipe area is at least 44 logical points high; the small swatches
+and decorative chevrons are not separate buttons.
+The heading sits inside that area to reduce visible vertical padding, with its
+measured height keeping larger text from overlapping the color row.
+Small gray edge chevrons appear only in directions with more content; the cue
+disappears at each end. The scroll hint remains available to assistive technology
+without instructional text in the visible heading. Repeated
+sections share one row; missing routes are omitted. Boundary and landmark styling
+is unchanged. Figma remains the reference for the surrounding app layout.
