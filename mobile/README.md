@@ -226,6 +226,11 @@ device checks are separate evidence; see the verification record below.
 
 ### GPS verification record
 
+The [updated map/GPS acceptance record](../docs/development/map-gps-acceptance.md)
+covers the PR #11/#12 re-import, native iOS permission/lifecycle/failure checks,
+and the subsequent services-off feedback correction. The earlier build record
+below remains separate evidence.
+
 November 4, 2026: `pnpm verify` passed (formatting, workspace lint/type checks,
 24 backend tests, 45 mobile tests, iOS/Android JavaScript exports; 9 existing
 database integration cases are skipped by this default command). Mobile tests
