@@ -304,7 +304,11 @@ The portable helpers passed PowerShell 5.1 parsing, environment loading with the
 custom tool/SDK/AVD directories, and the missing-AVD guard. Launching a new AVD
 through the wrapper was not repeated while the existing emulator was in use.
 In the Codex sandbox, `taskkill` rejects child-tree termination and Docker pipe access is
-restricted; normal PowerShell and Windows CI must verify those command paths.
+restricted. On November 5, the normal PowerShell `test:fresh` run reported all
+60 backend tests passing, both Worker success/failure checks passing, and fresh
+database migration/replay/seed/import/HTTP checks passing. This includes the
+Windows process-tree regression that the sandbox could not execute. Windows CI
+remains separate and pending publication of these changes.
 One existing mobile layout test timed out at its default 5-second limit in that
 sandbox and passed when run diagnostically with 30 seconds; this guide does not
 change that timeout or claim a full mobile test pass. Android physical devices,
