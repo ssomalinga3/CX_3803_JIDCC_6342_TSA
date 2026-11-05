@@ -3,35 +3,45 @@ import { localDatabaseUrl } from './local-config.mjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath, URL } from 'node:url';
+import { once } from 'node:events';
+import { stopProcessTree } from './process-tools.mjs';
 
 // A real Worker process and real PostGIS; no database mocks or Cloudflare login.
 const unavailable = process.argv.includes('--database-unavailable');
 const port = unavailable ? '18788' : '18787';
-const child = spawn('pnpm', ['dev', '--port', port], {
-  stdio: ['ignore', 'pipe', 'pipe'],
-  detached: process.platform !== 'win32',
-  env: {
-    ...process.env,
-    WRANGLER_SEND_METRICS: 'false',
-    ...(unavailable
-      ? {
-          CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-            'postgres://invalid:invalid@127.0.0.1:1/cascade_springs',
-        }
-      : {}),
+const child = spawn(
+  process.execPath,
+  [fileURLToPath(new URL('./dev.mjs', import.meta.url)), '--port', port],
+  {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    detached: process.platform !== 'win32',
+    env: {
+      ...process.env,
+      WRANGLER_SEND_METRICS: 'false',
+      ...(unavailable
+        ? {
+            CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
+              'postgres://invalid:invalid@127.0.0.1:1/cascade_springs',
+          }
+        : {}),
+    },
   },
-});
+);
 // Drain runtime logs without retaining URLs or connection diagnostics.
 child.stdout.resume();
 child.stderr.resume();
-child.on('error', () => {});
+let launchFailed = false;
+child.on('error', () => {
+  launchFailed = true;
+});
 let fixtureClient;
 const base = `http://127.0.0.1:${port}`;
 
 try {
   let started = false;
   for (let attempt = 0; attempt < 120; attempt++) {
-    if (child.exitCode !== null) break;
+    if (launchFailed || child.exitCode !== null) break;
     try {
       const response = await fetch(`${base}/health`, { signal: AbortSignal.timeout(1000) });
       if (response.ok) {
@@ -150,9 +160,9 @@ try {
       }
     }
   } finally {
-    if (child.exitCode === null) {
-      if (process.platform === 'win32') child.kill();
-      else process.kill(-child.pid, 'SIGTERM');
+    if (child.pid && child.exitCode === null && child.signalCode === null) {
+      stopProcessTree(child, true);
+      await once(child, 'close', { signal: AbortSignal.timeout(10000) });
     }
   }
 }

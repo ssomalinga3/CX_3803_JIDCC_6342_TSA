@@ -4,11 +4,16 @@ The API runs locally in Cloudflare Workers through Wrangler, using Express 5,
 TypeScript, Drizzle, and PostgreSQL 16/PostGIS. No Cloudflare account, cloud
 resources, or real credentials are needed for local development.
 
+For the complete Windows PowerShell → Android Emulator → Worker/PostGIS path,
+see the [Windows/Android runbook](../docs/development/windows-android.md).
+
 ## First run from a fresh clone
 
 Install [nvm](https://github.com/nvm-sh/nvm) and Docker Desktop (Mac) or Docker
-Engine with Compose v2 (Linux). Start Docker before setup. On Windows, use WSL2
-with Docker integration and run these commands inside WSL2.
+Engine with Compose v2 (Linux). Start Docker before setup. Windows can run the
+backend commands in PowerShell with Docker Desktop's WSL2 engine; WSL2 remains
+an alternative shell environment. The `nvm` commands below are for macOS/Linux;
+on Windows, select the Node and pnpm versions pinned by the repository first.
 
 From the **workspace root**:
 
@@ -26,6 +31,17 @@ pnpm backend:dev
 `nvm use` selects it. Corepack uses the pnpm version pinned in root
 [`package.json`](../package.json). Install dependencies at the workspace root;
 keep the single root lockfile.
+
+Jest, Drizzle, and the Wrangler launcher resolve their installed CLI through Node,
+so both pnpm's default isolated layout and a hoisted layout work. Integration
+tests set their environment inside Node rather than using a Unix shell assignment.
+Keep using the package commands below, including `pnpm --dir backend test:fresh`;
+the fresh-database runner uses the invoking pnpm CLI and cleans up its temporary
+database. Worker checks terminate only their spawned process tree (Windows) or
+process group (macOS/Linux). They use ports 18787/18788; do not run concurrent
+copies. In PowerShell, set overrides before running commands, for example
+`$env:CASCADE_DB_PORT = '55434'`. These process-scoped values do not alter system
+environment variables.
 
 `backend:setup` generates Worker types, starts a healthy PostGIS container,
 applies committed Drizzle migrations, and checks a PostGIS query through Drizzle.

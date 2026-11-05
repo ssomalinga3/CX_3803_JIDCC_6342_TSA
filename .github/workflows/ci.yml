@@ -41,6 +41,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm bundle:check
 
+  backend-tooling:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Process and CLI portability checks
+        run: pnpm --dir backend test --ci --runInBand --runTestsByPath test/process-tools.test.ts
+      - name: Worker startup, failure response and process-tree cleanup (no Docker required)
+        run: pnpm --dir backend exec node scripts/test-worker.mjs --database-unavailable
+
   backend-local:
     runs-on: ubuntu-latest
     timeout-minutes: 15
