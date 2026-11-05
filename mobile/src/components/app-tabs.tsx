@@ -9,6 +9,7 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
+      disableTransparentOnScrollEdge
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       labelStyle={{ selected: { color: colors.text } }}
