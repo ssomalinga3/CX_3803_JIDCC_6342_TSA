@@ -10,7 +10,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabInset } from '@/constants/theme';
 import { TrailLegend } from '@/components/trail-legend';
 import { trailPresentation } from '@/data/trail-presentation';
 import { usePublicGis } from '@/hooks/use-public-gis';
@@ -26,7 +25,8 @@ type LoadState = 'loading' | 'ready' | 'unavailable';
 
 export default function PreserveMap() {
   const insets = useSafeAreaInsets();
-  const dockBottom = insets.bottom + BottomTabInset + 8;
+  // Native tabs already account for their height in the screen safe area.
+  const dockBottom = insets.bottom;
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
   const gis = usePublicGis(process.env.EXPO_PUBLIC_API_URL);
@@ -242,6 +242,8 @@ export default function PreserveMap() {
           </GeoJSONSource>
         )}
       </Map>
+
+      <View pointerEvents="none" style={[styles.tabBackdrop, { height: dockBottom }]} />
 
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
         <View style={styles.header}>
@@ -472,6 +474,13 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 30, color: '#1c1c1e' },
   dimmed: { opacity: 0.5 },
+  tabBackdrop: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+  },
   dock: {
     position: 'absolute',
     bottom: 0,
