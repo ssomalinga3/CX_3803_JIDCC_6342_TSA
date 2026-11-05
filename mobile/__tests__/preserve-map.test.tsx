@@ -96,9 +96,10 @@ test('approximate-name notice remains visible while browsing with denied locatio
     expect(
       screen.getByText('Location access is off. Enable it in Settings to see your position.'),
     ).toBeOnTheScreen();
+    // Disclaimers now live in the Disclaimers tab, not inline on the map.
     expect(
-      screen.getByText('Approximate trail names · Partial network. Check park signs.'),
-    ).toBeOnTheScreen();
+      screen.queryByText('Approximate trail names · Partial network. Check park signs.'),
+    ).not.toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
     expect(screen.getByLabelText('Terrace Trail: Purple')).toBeOnTheScreen();
     expect(

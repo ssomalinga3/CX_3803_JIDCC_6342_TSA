@@ -401,23 +401,10 @@ export default function PreserveMap() {
                 {snapshot.collection.features.length} features
               </Text>
               <Text style={styles.note}>Purple boundary · Blue landmarks</Text>
-              {snapshot.collection.features.some(
-                (feature) => feature.properties.name_assignment === 'approximate',
-              ) && (
-                <Text style={styles.warning}>
-                  Approximate trail names · Partial network. Check park signs.
-                </Text>
-              )}
-              {snapshot.isDemo && (
-                <Text style={styles.warning}>Synthetic shapes — not for navigation.</Text>
-              )}
               {trails && <TrailLegend entries={trails.legend} />}
             </>
           )}
         </View>
-        <Text style={styles.note}>
-          Location stays on this device. Offline map downloads are not available yet.
-        </Text>
       </View>
     </View>
   );
@@ -496,7 +483,6 @@ const styles = StyleSheet.create({
   note: { fontSize: 13, lineHeight: 19, color: '#60646c' },
   gisStatus: { gap: 4 },
   gisTitle: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
-  warning: { fontSize: 13, lineHeight: 19, fontWeight: '600', color: '#934400' },
   retry: {
     minHeight: 44,
     paddingHorizontal: 16,

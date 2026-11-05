@@ -41,6 +41,21 @@ Denied location access must leave map browsing usable with a clear notice. Repor
 
 Proposed implementation guidance: use text/icons as well as color for states, label controls for assistive technologies, support readable native text sizes, and keep primary actions reachable without precise map gestures. Show loading/empty/unavailable states instead of a blank screen. Preserve entered report content after a recoverable failure. Specific accessibility and performance acceptance targets must be recorded with the final prototype.
 
+## Disclaimers
+
+Disclaimers and standing caveats — such as approximate/partial trail names,
+"not for navigation," and "location stays on this device" — must not be rendered
+inline in feature UI (map dock, panels, reporting screens). Place all disclaimer
+copy in the dedicated **Disclaimers** tab so wording stays consistent, reviewable,
+and discoverable in one place.
+
+Feature UI may still show transient, state-specific status messages (for example,
+loading, permission-denied, offline-pending, or error-and-retry notices) because
+those communicate the current state rather than a standing caveat. New disclaimer
+copy is added to the shared disclaimers source (`mobile/src/data/disclaimers.ts`)
+and surfaced by the Disclaimers tab (`mobile/src/app/disclaimers.tsx`), not by
+adding inline text to other screens.
+
 ## Implementation progress — November 1, 2026
 
 The mobile Map tab now implements the native online basemap foundation of J6-14:
@@ -93,8 +108,9 @@ At the owner's request, the existing partial source route is split into sections
 with seven best-effort sign identities. Native line labels use readable dark text
 with a white halo, sit horizontally at section centers at zoom 14 and above,
 and allow collision handling to hide labels that do not fit. Unassigned connections have no name
-label; missing routes are not drawn. The GIS panel states “Approximate trail
-names · Partial network. Check park signs.” The eight existing blue source points
+label; missing routes are not drawn. The approximate/partial-network caveat is
+stated in the Disclaimers tab (see [Disclaimers](#disclaimers)), not inline on the
+map. The eight existing blue source points
 are called landmarks, following the owner's latest clarification. See
 [section evidence and omissions](../../data/cascade-springs/README.md#approximate-trail-sections).
 
@@ -102,8 +118,10 @@ are called landmarks, following the owner's latest clarification. See
 
 The existing map now uses the [sign-inspired display palette](trail-network.md#approximate-trail-display-palette)
 for identified trail sections, including dark casing around white Gateway strokes.
-Unnamed connections are dashed gray; other unknown lines are solid gray. Labels
-and the approximate-name notice remain visible under the existing collision rules.
+Unnamed connections are dashed gray; other unknown lines are solid gray. On-map
+trail labels remain visible under the existing collision rules; the approximate-name
+caveat itself is stated in the Disclaimers tab (see [Disclaimers](#disclaimers)),
+not inline on the map.
 The GIS panel replaces the fixed orange-trails description with a compact,
 horizontally scrollable strip. Smaller swatches and labels omit the repeated
 “Trail” suffix; accessible names retain the full name and descriptive color.
