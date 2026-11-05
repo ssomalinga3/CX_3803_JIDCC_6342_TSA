@@ -17,3 +17,12 @@ S8 confirms that all capture/submission flows below support guests without accou
 | Access safety information | Emergency Hub → Exact Location or Confirm Location Share → review location/recipients → Confirm & share → shared/failure state. Calling follows Confirm 911 Call → Phone Handoff. | Follow Figma scenario 7. Calling, sharing, and reports are separate; no data is sent before confirmation. Reference content works offline; show location-unavailable fallback. The live emergency-report frame remains stretch. |
 
 For release verification, exercise the normal and exception paths on iOS, then the supported Android targets. Cover permissions, poor/no connectivity, app restart with queued photos, duplicate retries, restricted records/media, and overlapping map layers. Use approved client GIS/content fixtures and simulated GPS positions; validate geographic alignment during field testing. The exact device matrix and numeric tolerances are D-05/D-10 decisions.
+
+The current map GPS slice starts from **Use my location** and native foreground
+permission. Recenter uses the latest fix; subsequent fixes move the dot while
+preserving manual browsing. Denial does not block the map. On blur/background or
+explicit disable, subscriptions and the displayed fix are cleared. On return,
+permission is checked again without a new automatic prompt. A 30-second display
+freshness default removes expired dots/recentering until GPS recovers. See the
+[mobile GPS acceptance checklist](../../mobile/README.md#acceptance-checks) for
+permission, Settings recovery, simulated movement, lifecycle and network cases.

@@ -1,10 +1,15 @@
-import { act, fireEvent, render, screen, userEvent } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 
 import PreserveMap from '@/components/preserve-map';
+import * as Location from 'expo-location';
 
 const { mockZoomTo, mockEaseTo, mockGetZoom } = jest.requireMock('@maplibre/maplibre-react-native');
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  Object.defineProperty(AppState, 'currentState', { configurable: true, value: 'active' });
+});
 
 test('browsing becomes available only after native rendering; zoom follows the current viewport', async () => {
   const user = userEvent.setup();
@@ -46,4 +51,41 @@ test('a silent first-load connection failure stops the spinner', async () => {
   } finally {
     jest.useRealTimers();
   }
+});
+
+test('recenter uses the moving device fix rather than the preserve center', async () => {
+  let update!: Location.LocationCallback;
+  jest.mocked(Location.watchPositionAsync).mockImplementationOnce(async (_options, callback) => {
+    update = callback;
+    return { remove: jest.fn() };
+  });
+  await render(<PreserveMap />);
+  await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+  expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeDisabled();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+  await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalled());
+  await act(() =>
+    update({
+      timestamp: Date.now(),
+      coords: {
+        longitude: -84.48,
+        latitude: 33.72,
+        accuracy: 15,
+        altitude: null,
+        altitudeAccuracy: null,
+        heading: null,
+        speed: null,
+      },
+    }),
+  );
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Recenter on my location' }));
+  expect(mockEaseTo).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      center: [-84.48, 33.72],
+      padding: expect.objectContaining({ top: 169, bottom: expect.any(Number) }),
+    }),
+  );
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Turn off map location' }));
+  expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
 });

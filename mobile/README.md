@@ -156,4 +156,101 @@ for a single-branch checkout, isolated backend setup, `EXPO_PUBLIC_API_URL`,
 Metro/device addressing, verification, and later PR merge instructions. Earlier
 basemap-preview sections record the PR #4 baseline; this branch additionally
 renders server-provided geometry and its demo warning. No new native dependency
-or app configuration is introduced.
+or app configuration was introduced by that integration slice.
+
+## Foreground map GPS (J6-14)
+
+The Map tab now offers **Use my location**, requests foreground permission only
+after that action, and draws a blue position dot from `expo-location`. **Recenter
+on my location** centers on the latest fix; **Return to preserve** remains a
+separate action. Position updates move the dot without pulling the camera away
+from manual browsing. Reported accuracy is displayed in meters, including coarse
+fixes when the OS grants approximate location.
+
+The location subscription exists only while the Map screen is focused and the
+app is in the foreground. Turning location off, changing tabs, or backgrounding
+removes the subscription and clears the displayed fix. Returning to the map
+rechecks permission and reacquires a fix if location was enabled. Denial preserves
+pan/zoom; permanent denial offers device Settings. Disabled device services,
+missing GPS, stale fixes, and map/API network failures have separate messages.
+No coordinates are persisted, logged, or added to GIS API requests.
+
+Display freshness is currently 30 seconds: no initial fix produces an unavailable
+message, and a fix older than 30 seconds loses its dot and recenter action until a
+fresh fix arrives. This is an engineering display default, not an approved
+off-trail buffer or an accuracy guarantee. Off-trail detection remains J6-24/25.
+Offline tile/GIS downloads remain separate; GPS does not require a GIS API call.
+The project owner instructed us on November 4 to assume the current GIS data is
+correct for this GPS work; that assumption does not establish production dataset
+approval or remove the demo provenance labels.
+
+### Rebuild before running
+
+This change adds a native module and location permission configuration. Existing
+clients may lack the module or the permission text; install a rebuilt client
+before native acceptance checks. From the workspace root, use the existing
+team-owned EAS simulator profile:
+
+```sh
+pnpm ios:build
+pnpm ios:install
+pnpm mobile --port 8082
+```
+
+See [local startup](../docs/development/local-startup.md) for Xcode selection,
+API startup and the development-client URL. No generated native projects are
+edited. Background location and Android location foreground services are disabled.
+Implementation follows the [SDK 57 location API](https://docs.expo.dev/versions/v57.0.0/sdk/location/).
+
+### Acceptance checks
+
+1. Open Map without enabling location. Confirm GIS/pan/zoom work and no OS prompt
+   appears. Tap Use my location; verify the native explanation and deny it.
+   Confirm browsing still works and the blue dot/recenter remain unavailable.
+2. Enable location in device Settings, return to Map and supply a simulated fix.
+   Confirm the blue dot and reported accuracy. Tap recenter, pan away, then move
+   the simulated position: the dot moves but the camera stays where you left it.
+   Tap recenter again to move to the new fix.
+3. Disable device services or remove the simulated fix. Verify unavailable/stale
+   feedback and that old coordinates are not presented as current. Restore the
+   fix and confirm recovery. Test approximate permission on supported devices.
+4. Switch tabs, background/resume, turn location off, and revoke permission in
+   Settings. Verify cleanup, permission recheck, and no repeated automatic prompt.
+5. Repeat the location checks with networking unavailable, keeping the distinction
+   between GPS availability and missing uncached map tiles. Repeat on supported
+   Android hardware/emulator separately from iOS.
+
+Automated checks: `pnpm --dir mobile lint`, `pnpm --dir mobile typecheck`,
+`pnpm --dir mobile test:ci`, and `pnpm bundle:check`. Native compilation and these
+device checks are separate evidence; see the verification record below.
+
+### GPS verification record
+
+November 4, 2026: `pnpm verify` passed (formatting, workspace lint/type checks,
+24 backend tests, 45 mobile tests, iOS/Android JavaScript exports; 9 existing
+database integration cases are skipped by this default command). Mobile tests
+include location denial, permanent
+denial, missing/stale/invalid fixes, simulated movement/recenter, permission-dialog
+lifecycle, background and tab cleanup, permission revocation, late native
+subscriptions, inactive-to-active startup, and retry. The first sandboxed workspace
+run could not open the backend tests' loopback sockets; the permitted rerun passed.
+
+[EAS iOS development build 628c6f51](https://expo.dev/accounts/cx3803jidcc6342tsa/projects/cascade-springs/builds/628c6f51-d666-49e0-86ad-e36ef661225c)
+compiled successfully and was installed/launched on iPhone 17 Pro / iOS 26.3.
+The client connected to this checkout's Metro on 8082. The updated native
+foreground-permission explanation, permission grant, blue-dot rendering,
+reported accuracy, movement along a synthetic 1 m/s route, recentering clear of
+the information panel, stale-fix fallback, Map/Explore return without another
+permission prompt, explicit location disable, and zoom with location off were
+visually checked. Denial/Settings fallback was also inspected in the running
+client before installing the rebuild. See the [GPS screenshot](../docs/images/ios-simulator-map-gps.png).
+The simulated route was cleared and map location turned off after verification.
+
+The latest JavaScript adjustments (including camera padding) were served by Metro
+after native installation. These do not change the native module/configuration.
+Android native execution, physical-device/approximate GPS, full Settings recovery,
+manual pan/pinch, background/resume on device, dynamic text sizes, and
+network-disabled device behavior remain unverified. Background/permission
+revocation and cleanup are covered with native mocks, which do not establish
+device acceptance. Offline map persistence and off-trail warnings are not part of
+this slice.

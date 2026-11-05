@@ -63,3 +63,18 @@ GPS, report, safety, and offline flows remain future work. The
 [integration guide](../development/integration-branch.md) records setup,
 verification and limitations; this is an online development slice using synthetic
 fixtures, not approved navigation or a completed J6-14/J6-19 flow.
+
+## Foreground GPS progress — November 4, 2026
+
+J6-14 now adds an explicit Use my location action, foreground permission, a moving
+blue dot, reported accuracy, recenter-to-user, and a separate return-to-preserve
+control in the existing map layout. Manual panning does not follow subsequent GPS
+updates. Denial preserves browsing; permanent denial offers Settings. Device
+services disabled, waiting/missing/stale GPS, and network/map errors remain
+distinct. Location can be turned off and is paused when leaving Map/backgrounding.
+An engineering 30-second display freshness default hides expired fixes and
+disables recentering; it does not define J6-24's trail tolerance. The user asked us
+to assume GIS correctness for this implementation, without changing provenance or
+production data approval. See [GPS setup and acceptance](../../mobile/README.md#foreground-map-gps-j6-14)
+for native rebuild instructions and verification status. Off-trail warnings,
+offline downloads, and the other map flows remain separate work.
