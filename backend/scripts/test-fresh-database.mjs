@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import pg from 'pg';
 import { localDatabaseUrl } from './local-config.mjs';
+import { pnpmCommand } from './process-tools.mjs';
 
 const url = new URL(localDatabaseUrl());
 if (!['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) {
@@ -10,6 +11,8 @@ if (!['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) {
 }
 const database = `gis_test_${randomUUID().replaceAll('-', '')}`;
 const admin = new pg.Client({ connectionString: url.toString() });
+// Validate the invocation before creating a disposable database.
+pnpmCommand([]);
 let created = false;
 try {
   await admin.connect();
@@ -32,7 +35,8 @@ try {
     'test:integration',
     'test:worker',
   ]) {
-    const result = spawnSync('pnpm', [command], { env, stdio: 'inherit' });
+    const invocation = pnpmCommand([command], env);
+    const result = spawnSync(invocation.file, invocation.args, { env, stdio: 'inherit' });
     if (result.status !== 0) throw new Error(`Fresh database check failed: ${command}`);
   }
   console.log('Fresh database migration, replay, seed and HTTP checks passed.');
