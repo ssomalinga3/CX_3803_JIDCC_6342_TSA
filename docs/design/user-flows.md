@@ -18,6 +18,27 @@ S8 confirms that all capture/submission flows below support guests without accou
 
 For release verification, exercise the normal and exception paths on iOS, then the supported Android targets. Cover permissions, poor/no connectivity, app restart with queued photos, duplicate retries, restricted records/media, and overlapping map layers. Use approved client GIS/content fixtures and simulated GPS positions; validate geographic alignment during field testing. The exact device matrix and numeric tolerances are D-05/D-10 decisions.
 
+### Public feature detail acceptance (J6-20)
+
+1. With public GIS loaded and location off or denied, tap a landmark, trail and
+   boundary. Confirm details match the selected snapshot record; no new location
+   prompt or network request should occur. Overlaps prefer points, then lines,
+   then polygons. Tapping basemap content or the device position alone does not
+   open a public feature record.
+2. Check source descriptions containing HTML/images: show readable inert text,
+   without fetching images, executing markup or activating URLs. Missing names
+   and descriptions have fallbacks; unavailable domain attributes are omitted.
+3. Close with Done, iOS dismissal, accessibility escape or the Android system
+   back action as applicable. Confirm browsing and an enabled GPS session remain
+   available without selecting a new camera target.
+4. Open another feature; confirm content is replaced. Leave Map or replace/fail
+   the GIS snapshot; confirm obsolete details disappear and do not reopen on
+   return. Repeat with large text and assistive technology on supported devices.
+
+Implementation evidence and explicit device/design limits are recorded in
+[feature details](../development/feature-details.md). This is independent of
+the unimplemented layer-selection screen and historical/proximity content.
+
 The current map GPS slice starts from **Use my location** and native foreground
 permission. Recenter uses the latest fix; subsequent fixes move the dot while
 preserving manual browsing. Denial does not block the map. On blur/background or

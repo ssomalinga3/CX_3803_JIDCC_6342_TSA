@@ -6,11 +6,15 @@ import {
   type CameraRef,
   type MapRef,
 } from '@maplibre/maplibre-react-native';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrailLegend } from '@/components/trail-legend';
+import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
+import { featureDetails, pressedFeatureId } from '@/data/feature-details';
+import type { GisSnapshot } from '@/data/gis';
 import { trailPresentation } from '@/data/trail-presentation';
 import { usePublicGis } from '@/hooks/use-public-gis';
 import { useMapLocation } from '@/hooks/use-map-location';
@@ -35,6 +39,8 @@ export default function PreserveMap() {
   const [dockHeight, setDockHeight] = useState(160);
   const [attempt, setAttempt] = useState(0);
   const [loadState, setLoadState] = useState<LoadState>('loading');
+  const [selection, setSelection] = useState<{ snapshot: GisSnapshot; id: string }>();
+  useFocusEffect(useCallback(() => () => setSelection(undefined), []));
 
   useEffect(() => {
     // A first launch without a connection must not leave an endless spinner.
@@ -47,6 +53,10 @@ export default function PreserveMap() {
 
   const ready = loadState === 'ready';
   const snapshot = gis.snapshot;
+  const details =
+    selection && selection.snapshot === snapshot
+      ? featureDetails(selection.snapshot, selection.id)
+      : undefined;
   const trails = useMemo(
     () => (snapshot ? trailPresentation(snapshot.collection) : undefined),
     [snapshot],
@@ -129,7 +139,19 @@ export default function PreserveMap() {
           maxZoom={MAX_ZOOM}
         />
         {trails && trails.collection.features.length > 0 && (
-          <GeoJSONSource id="public-gis" data={trails.collection}>
+          <GeoJSONSource
+            id="public-gis"
+            testID="public-gis-source"
+            data={trails.collection}
+            onPress={(event) => {
+              if (!ready || !snapshot) return;
+              const id = pressedFeatureId(snapshot, event.nativeEvent.features);
+              if (id) {
+                event.stopPropagation();
+                setSelection({ snapshot, id });
+              }
+            }}
+          >
             <Layer
               id="gis-boundary-fill"
               type="fill"
@@ -406,6 +428,7 @@ export default function PreserveMap() {
           )}
         </View>
       </View>
+      {details && <FeatureDetailSheet details={details} onClose={() => setSelection(undefined)} />}
     </View>
   );
 }

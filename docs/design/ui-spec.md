@@ -35,6 +35,30 @@ S3 specifies camera-first reporting and a three-tap target; Figma explicitly sho
 
 The layer screen labels Historical elements as “Cultural,” while S1/S2 specify Human, Social, Environmental, and Economic. Record the label-to-domain resolution in D-05 before coding the category contract; do not silently introduce a fifth persisted pillar. Prototype layer examples do not establish that each dataset is available.
 
+## Public GIS feature details (J6-20 draft)
+
+Tapping a loaded landmark, trail or polygon opens a scrollable native detail
+sheet with a Done action; closing returns to the existing map. Where a hit
+contains overlapping features, point features take priority over lines, then
+polygons, with stable feature-ID ordering for equal geometry priority. Only
+public GIS snapshot IDs can open details; the device-position dot and basemap
+features are not detail records. Missing descriptions show a plain fallback;
+absent pillar/difficulty/surface/length values are omitted, not inferred.
+
+The sheet presents name, readable description, type, layer, available supported
+attributes and source attribution. Source HTML is converted to bounded native
+text; embedded images, links and scripts are not loaded or activated. Source
+URLs are inert text. Standing caveats remain in Disclaimers. No additional API
+request or location permission is needed to open details. Selection is discarded
+when Map loses focus or the public snapshot changes/becomes unavailable.
+
+The draft uses the app's existing theme, rounded cards and native modal styling.
+Figma could not be fetched in this session and browser/Chrome access was
+unavailable or denied; exact alignment with the live design remains for owner
+review. This implementation does not claim to reproduce the History Detail
+screen or deliver the history/proximity flow. See the
+[implementation and acceptance record](../development/feature-details.md).
+
 ## Feedback and fallback requirements
 
 Denied location access must leave map browsing usable with a clear notice. Report submission must distinguish success, failed transmission, and offline pending state. Historical content should open from a selected marker; proximity prompts are requested in S4 but the trigger distance and repeated-prompt behavior remain open.

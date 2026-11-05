@@ -9,6 +9,7 @@ import type {
 export type GisSnapshot = {
   layers: Layer[];
   collection: FeatureCollection;
+  featureLayers: ReadonlyMap<string, Layer>;
   bounds: [number, number, number, number] | null;
   isDemo: boolean;
 };
@@ -181,18 +182,22 @@ export async function loadPublicGis(value: string, signal: AbortSignal): Promise
   // Validate every URL before sending any feature requests.
   const urls = layers.map((layer) => featureUrl(base, layer));
   const collections = await Promise.all(urls.map(async (url) => parseCollection(await read(url))));
+  const featureLayers = new Map<string, Layer>();
   const collection: FeatureCollection = {
     type: 'FeatureCollection',
     features: collections.flatMap((data, i) =>
-      data.features.map((feature) => ({
-        ...feature,
-        id: `${layers[i].layerId}/${feature.id}`,
-      })),
+      data.features.map((feature) => {
+        const id = `${layers[i].layerId}/${feature.id}`;
+        if (featureLayers.has(id)) throw new Error('Ambiguous GIS feature identity');
+        featureLayers.set(id, layers[i]);
+        return { ...feature, id };
+      }),
     ),
   };
   return {
     layers,
     collection,
+    featureLayers,
     bounds: collectionBounds(collection),
     isDemo:
       layers.some((layer) => layer.isDemo) ||

@@ -9,6 +9,7 @@ jest.mock('@/data/gis', () => ({ ...jest.requireActual('@/data/gis'), loadPublic
 const { loadPublicGis } = jest.requireMock('@/data/gis');
 const snapshot = {
   layers: [layer],
+  featureLayers: new Map(),
   collection,
   bounds: collectionBounds(collection),
   isDemo: true,
