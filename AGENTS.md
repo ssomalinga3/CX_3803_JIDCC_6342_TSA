@@ -38,4 +38,6 @@ Consult [docs/decisions.md](docs/decisions.md); distinguish Baseline, Proposed, 
 
 ## Commits & Pull Requests
 
+Create pull requests as drafts and keep them in draft while the project owner reviews the work. Mark a PR ready for review only when the project owner explicitly asks after reviewing it; passing checks or a request to create a PR does not authorize changing it out of draft.
+
 Use concise, action-oriented commit subjects. PRs should describe behavior changes, link relevant J6 issues, report verification, and include screenshots for UI changes.
