@@ -86,6 +86,10 @@ applies migrations, and checks a query through Drizzle. Seeding is repeatable.
 On later starts, repeat this block to apply any new migrations and fixtures.
 No Cloudflare account or cloud deployment is needed.
 
+`db:seed` publishes the approximate preserve boundary (the `demo-boundaries`
+layer). After pulling a change to the seed fixtures, re-run `db:seed` against the
+same database the Worker reads (match `CASCADE_DB_PORT`) and reload the app.
+
 Before setup, review any existing `backend/.env` and shell overrides locally.
 Normally no backend environment file is needed. `DATABASE_URL` overrides the
 port-derived development URL; `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`
