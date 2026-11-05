@@ -2,12 +2,13 @@ import { sql } from 'drizzle-orm';
 import type { FeatureCollection } from '../modules/gis/types.js';
 import { withDatabase } from './client.js';
 import { gisLayer } from './schema.js';
+import { splitSourceMapTrails } from './source-map-trails.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
 export const sourceMapLayers = [
   {
     layerId: 'cascade-map-trails',
-    name: 'Cascade Springs Trail (source map)',
+    name: 'Cascade Springs trails (approximate names)',
     layerType: 'trail',
     geometryType: 'LineString',
   },
@@ -76,7 +77,7 @@ export function validateSourceMap(value: unknown): FeatureCollection {
 
 /** Replace only this source's two layers atomically; unrelated and demo data stay intact. */
 export async function importSourceMap(connectionString: string, value: unknown): Promise<void> {
-  const collection = validateSourceMap(value);
+  const collection = splitSourceMapTrails(validateSourceMap(value));
   await withDatabase(connectionString, (db) =>
     db.transaction(async (tx) => {
       await tx.execute(sql`SELECT pg_advisory_xact_lock(6342, 2)`);
@@ -86,7 +87,7 @@ export async function importSourceMap(connectionString: string, value: unknown):
           name: layer.name,
           layerType: layer.layerType,
           description:
-            'User-supplied public Google My Maps snapshot, retrieved 2026-11-04. Not surveyed or approved for trail safety. No protective boundary supplied.',
+            'User-supplied Google My Maps snapshot, retrieved 2026-11-04. Trail names are approximate park-sign matches on partial source geometry. Not surveyed or approved for trail safety. No protective boundary supplied.',
           pillar: null,
           source: sourceMapUrl,
           isDemo: false,

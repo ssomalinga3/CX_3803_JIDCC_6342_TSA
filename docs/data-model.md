@@ -93,3 +93,11 @@ shared typed properties for named route segments, difficulty, color, landmarks,
 preserve/protective boundaries, water, natural areas and roads. These fit the
 existing generic geometry/JSON tables without migration. GIS is awaiting delivery;
 the planning catalog does not publish empty layers or create inferred geometry.
+
+The later owner-authorized [approximate trail sections](../data/cascade-springs/README.md#approximate-trail-sections)
+use existing JSON properties and LineStrings without a migration. Named sections
+share `trail_id` where appropriate; unique section IDs replace the combined source
+route ID during re-import. `name_assignment`, `name_source`, `source_feature_id`,
+`source_name`, and inclusive source vertex ranges record derivation and uncertainty.
+Unassigned connections keep the generic source-property contract without a guessed
+trail identity. Original source artifacts and point IDs remain unchanged.

@@ -86,7 +86,7 @@ try {
       // Import path is exercised by CI/local setup; verify real source data through the Worker.
       assert.ok(layers.some((layer) => layer.layerId === 'cascade-map-trails' && !layer.isDemo));
       for (const [id, count] of [
-        ['cascade-map-trails', 1],
+        ['cascade-map-trails', 10],
         ['cascade-map-landmarks', 8],
       ]) {
         const response = await fetch(`${base}/api/v1/layers/${id}/features`);
@@ -94,8 +94,21 @@ try {
         const collection = await response.json();
         assert.equal(collection.features.length, count);
         assert.ok(collection.features.every((feature) => feature.properties.isDemo === false));
-        if (id === 'cascade-map-trails')
-          assert.equal(collection.features[0].geometry.coordinates.length, 191);
+        if (id === 'cascade-map-trails') {
+          assert.equal(
+            new Set(
+              collection.features
+                .filter((feature) => feature.properties.trail_id)
+                .map((feature) => feature.properties.trail_id),
+            ).size,
+            7,
+          );
+          assert.ok(
+            collection.features.every(
+              (feature) => feature.properties.source_feature_id === 'cascade-map-024c5c466a926108',
+            ),
+          );
+        }
       }
     }
     const getFeatures = async (id, query = '') =>

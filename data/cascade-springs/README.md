@@ -61,6 +61,8 @@ and schema are unchanged. No durable offline cache is added.
 
 ## Verification
 
+See [approximate trail sections](#approximate-trail-sections) for the later naming slice.
+
 ```sh
 pnpm verify
 pnpm --dir backend test:fresh
@@ -103,3 +105,69 @@ Android native execution, field/survey alignment, new native compilation, manual
 permission denial, and durable offline restart/retry were not verified. GPS,
 reporting and persistent offline storage are outside this data import's scope.
 The pre-existing GPS branch was preserved; this branch starts from main.
+
+## Approximate trail sections
+
+The project owner authorized best-effort names from the
+[physical sign](../../docs/design/references/cascade-springs-trail-network.png),
+despite incomplete GIS, on November 4, 2026. The raw KML and nine-feature GeoJSON
+remain unchanged. During `db:import:source`, the
+[section mapping](../../backend/src/db/source-map-trails.ts) replaces the single
+route with ten sections covering seven sign identities. The API now returns
+18 features: ten lines and eight landmarks. Stable layer IDs and endpoint
+paths stay the same. The `cascade-map-landmarks` ID/type is retained for
+compatibility; the owner requested calling these eight source annotations landmarks.
+
+Ranges below are inclusive, zero-based positions in the original 191-position
+LineString. Adjacent sections share their endpoint. All positions and traversal
+order, including original out-and-back portions, are preserved without snapping,
+simplifying, extending, or guessing new coordinates.
+
+| Range   | Display identity            | Evidence and uncertainty                                                                                                                                                                                            |
+| ------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0–9     | Gateway Trail               | Trailhead approach to the spring/creek junction, matching the sign's entrance path.                                                                                                                                 |
+| 9–65    | Turkeyfoot/Utoy Creek Trail | Western creek-side arc and southern out-and-back; uses the sign legend's combined route family. The sign distinguishes creek portions along this arc; the southern source endpoint may predate the sign's reroute.  |
+| 65–84   | West Trail                  | Northbound interior path from the southern Trail Junction to the west/central junction. Approximate sign-shape match.                                                                                               |
+| 84–92   | Battle Ridge Trail          | Short eastward junction connection before Terrace; lower-confidence shape match, not the sign's full eastern Battle Ridge loop.                                                                                     |
+| 92–114  | Terrace Trail               | Central east–west traverse, anchored by the source's “Left on Terrace Trail” marker near vertex 92.                                                                                                                 |
+| 114–130 | Unnamed connection          | Southeast detour lacks a reliable sign correspondence.                                                                                                                                                              |
+| 130–146 | White Oak Trail             | Eastern north–south leg approaching the waterfall junction, corresponding to the sign's light-blue corridor. Lower-confidence: the older source's nearby “Right on Springs Trail” annotation uses a different name. |
+| 146–176 | Springs Trail               | Waterfall out-and-back and northern return toward the spring junction, matching the sign's northern route.                                                                                                          |
+| 176–182 | Unnamed connection          | Spring-junction transition; identity is unclear.                                                                                                                                                                    |
+| 182–190 | Gateway Trail               | Return traversal of the entrance approach; same `trail_id`, distinct section ID.                                                                                                                                    |
+
+Bigleaf Magnolia Trail and Spur Trails are omitted as named routes because their
+geometry cannot be matched confidently. This is partial coverage, not seven
+complete routes. No difficulty, surface, sign color, protective area or measured
+route length is inferred. Named sections carry `name_assignment: approximate`,
+`name_source`, `trail_id`, the original `source_name`/`source_feature_id`, and
+`source_vertex_start`/`source_vertex_end`. Unassigned connections retain provenance
+with `name_assignment: unassigned`, without a guessed route identity.
+
+The mapping pins the original route geometry's SHA-256. If it changes, import
+fails before replacing database rows; review the ranges and hash together.
+Re-import to replace the old combined route; replay remains transactional and
+duplicate-safe. Native labels use the section names with collision handling and a
+white halo. The map shows “Approximate trail names · Partial network. Check park
+signs.” Names are not surveyed or field-verified navigation guidance.
+
+### Naming-slice verification — November 4, 2026
+
+- `pnpm verify`: formatting, lint, typecheck, 36 backend unit tests, 46 mobile
+  tests, and iOS/Android JavaScript exports passed. Database cases run separately.
+- `CASCADE_DB_PORT=55435 pnpm --dir backend test:fresh`: all 50 backend tests
+  passed, including repeated imports, unchanged-coordinate reconstruction,
+  stale-feature cleanup, real PostGIS rollback, public/private access and bbox
+  checks, plus Worker HTTP and database-failure/liveness checks.
+- `pnpm backend:build` and `pnpm --dir backend build:worker`: passed.
+- Existing iPhone 16 / iOS 18.6 development client: native rendering of the
+  18-feature source dataset, horizontal trail names, approximation notice,
+  location-off browsing and zoom controls observed.
+  [Screenshot](../../docs/images/ios-simulator-trail-names.png).
+- Relative file links and `git diff --check`: passed.
+
+No native dependencies/configuration changed; no new native compilation was run.
+Android native execution, field identity/alignment, every label at every zoom,
+manual native permission denial, and persistent offline restart/retry remain
+unverified. Permission-denial browsing is covered by the mobile regression test;
+durable offline caching is not implemented by this change.

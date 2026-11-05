@@ -12,6 +12,12 @@ scale and terrain artwork are not georeferenced. GIS for this full network will
 be supplied later. Do not trace coordinates, infer protective zones, or treat the
 previously downloaded My Maps route as all named trails on this sign.
 
+**Subsequent owner authorization, November 4, 2026:** best-effort splitting and
+names on the existing partial route are now authorized. The
+[reviewed section mapping](../../data/cascade-springs/README.md#approximate-trail-sections)
+assigns seven approximate identities without changing coordinates; ambiguous
+connections remain unnamed. This does not replace the full-network GIS request.
+
 ## Inventory awaiting GIS
 
 The [planning catalog](../../data/trail-network/catalog.json) records the sign's
@@ -82,8 +88,10 @@ uses text as well as any visual treatment. White Gateway Trail needs a contrasti
 casing. Keep legend colors/symbols and feature details consistent with displayed
 features; show unknown difficulty as unknown rather than easy.
 
-The current renderer provides generic polygon, line and point styling. Per-trail
-colors and names, category-specific symbols, separate polygon treatments,
+The current renderer provides generic polygon, line and point styling plus
+collision-managed names for identified trail sections, with an approximate-name
+notice for derived source sections. Per-trail colors, category-specific symbols,
+separate polygon treatments,
 legend, layer selection and feature details are future UI work. The new catalog
 and types provide their data structure without pretending these interactions
 already exist. Device offline downloads and trail-safety calculations remain
@@ -110,5 +118,6 @@ through PostGIS/API for shared route IDs, optional difficulty, color, surface an
 length attributes, both boundary kinds, landmark categories and multi-geometries
 across the planned feature families. The inventory check confirms all routes are
 awaiting GIS and each planned layer matches the shared geometry contract. No
-full-network geometry or renderer changes were introduced; future visual/device
-acceptance remains pending actual datasets.
+full-network geometry or renderer changes were introduced in that structure-only
+verification. The later approximate-name slice is documented in the section
+mapping above; full-network acceptance remains pending actual datasets.

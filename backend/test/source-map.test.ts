@@ -8,11 +8,82 @@ import { withDatabase } from '../src/db/client.js';
 import { importSourceMap, sourceMapLayers, validateSourceMap } from '../src/db/source-map.js';
 import { createLayersRepository } from '../src/modules/gis/layers.repo.js';
 import { localDatabaseUrl } from '../scripts/local-config.mjs';
+import { splitSourceMapTrails } from '../src/db/source-map-trails.js';
 
 const path = new URL('../../data/cascade-springs/features.geojson', import.meta.url);
 const snapshot = JSON.parse(readFileSync(path, 'utf8'));
+const displaySnapshot = splitSourceMapTrails(snapshot);
 
 describe('source map snapshot', () => {
+  it('splits the entire traversal without losing, moving or inventing coordinates', () => {
+    const before = structuredClone(snapshot);
+    const sections = splitSourceMapTrails(snapshot).features.filter(
+      (feature) => feature.geometry.type === 'LineString',
+    );
+    expect(sections).toHaveLength(10);
+    expect(new Set(sections.map((section) => section.id)).size).toBe(10);
+    expect(
+      sections.flatMap((section, index) => {
+        if (section.geometry.type !== 'LineString') throw new Error('Expected line');
+        return index ? section.geometry.coordinates.slice(1) : section.geometry.coordinates;
+      }),
+    ).toEqual(snapshot.features[0].geometry.coordinates);
+    expect(
+      splitSourceMapTrails(snapshot).features.filter(
+        (feature) => feature.geometry.type === 'Point',
+      ),
+    ).toEqual(snapshot.features.slice(1));
+    expect(snapshot).toEqual(before);
+  });
+  it('publishes only seven approximate identities with provenance and leaves uncertain sections unnamed', () => {
+    const sections = displaySnapshot.features.filter(
+      (feature) => feature.geometry.type === 'LineString',
+    );
+    expect(
+      [
+        ...new Set(
+          sections.flatMap((section) =>
+            section.properties.trail_id ? [section.properties.name] : [],
+          ),
+        ),
+      ].sort(),
+    ).toEqual([
+      'Battle Ridge Trail',
+      'Gateway Trail',
+      'Springs Trail',
+      'Terrace Trail',
+      'Turkeyfoot/Utoy Creek Trail',
+      'West Trail',
+      'White Oak Trail',
+    ]);
+    for (const section of sections) {
+      expect(section.properties).toMatchObject({
+        source_feature_id: snapshot.features[0].id,
+        source_name: snapshot.features[0].properties.name,
+        source_url: snapshot.features[0].properties.source_url,
+      });
+      expect(section.properties.difficulty).toBeUndefined();
+      expect(section.properties.length_m).toBeUndefined();
+      if (section.properties.trail_id) {
+        expect(section.properties.feature_kind).toBe('trail');
+        expect(section.properties.name_assignment).toBe('approximate');
+        expect(section.properties.name_source).toContain('cascade-springs-trail-network.png');
+      } else {
+        expect(section.properties.name_assignment).toBe('unassigned');
+        expect(section.properties.name).toBe('Unnamed trail connection');
+      }
+    }
+    expect(sections.filter((section) => !section.properties.trail_id)).toHaveLength(2);
+    expect(splitSourceMapTrails(snapshot)).toEqual(displaySnapshot);
+  });
+  it('requires a new review when the original route changes, before assigning index-based names', () => {
+    const changed = structuredClone(snapshot);
+    changed.features[0].geometry.coordinates[20][0] += 0.000001;
+    expect(() => splitSourceMapTrails(changed)).toThrow('Source route changed');
+    expect(() =>
+      splitSourceMapTrails({ ...snapshot, features: snapshot.features.slice(1) }),
+    ).toThrow('Source route changed');
+  });
   it('reproduces every source placemark, coordinate and description from KML', () => {
     // Compare without rewriting the checked-in artifact (Prettier controls its layout).
     const script = new URL('../scripts/convert-source-map.py', import.meta.url).pathname;
@@ -76,7 +147,7 @@ integration('source map → PostGIS → public API', () => {
       const response = await request(app).get(`/api/v1/layers/${layer.layerId}/features`);
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('application/geo+json');
-      const expected = snapshot.features.filter(
+      const expected = displaySnapshot.features.filter(
         (f: { geometry: { type: string } }) => f.geometry.type === layer.geometryType,
       );
       expect(response.body.features).toEqual(
@@ -87,7 +158,7 @@ integration('source map → PostGIS → public API', () => {
       db.execute(sql`
       SELECT count(*)::int AS count FROM gis_feature WHERE layer_id IN ('cascade-map-trails', 'cascade-map-landmarks') AND ST_SRID(geometry) = 4326 AND ST_IsValid(geometry)`),
     );
-    expect(validity.rows[0]).toEqual({ count: 9 });
+    expect(validity.rows[0]).toEqual({ count: 18 });
   });
   it('filters source geometry with a bbox and returns no features outside the preserve', async () => {
     const point = snapshot.features.find(
@@ -112,7 +183,7 @@ integration('source map → PostGIS → public API', () => {
     await Promise.all([importSourceMap(url, snapshot), importSourceMap(url, snapshot)]);
     const trails = await request(app).get('/api/v1/layers/cascade-map-trails/features');
     const points = await request(app).get('/api/v1/layers/cascade-map-landmarks/features');
-    expect(trails.body.features).toHaveLength(1);
+    expect(trails.body.features).toHaveLength(10);
     expect(points.body.features).toHaveLength(8);
     expect((await request(app).get('/api/v1/layers/demo-trails/features')).body).toEqual(
       unrelatedBefore.body,
@@ -121,10 +192,19 @@ integration('source map → PostGIS → public API', () => {
   it('rolls back the complete replacement if PostGIS rejects a geometry', async () => {
     const before = await request(app).get('/api/v1/layers/cascade-map-trails/features');
     const invalid = structuredClone(snapshot);
-    invalid.features[0].geometry.coordinates = [
-      [0, 0],
-      [0, 0],
-    ];
+    // Keep the reviewed route intact so this reaches PostGIS, rather than being
+    // rejected earlier by the source-geometry hash guard.
+    invalid.features.push({
+      ...structuredClone(snapshot.features[0]),
+      id: 'cascade-map-0000000000000000',
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [0, 0],
+          [0, 0],
+        ],
+      },
+    });
     await expect(importSourceMap(url, invalid)).rejects.toThrow();
     expect((await request(app).get('/api/v1/layers/cascade-map-trails/features')).body).toEqual(
       before.body,

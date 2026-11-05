@@ -8,7 +8,9 @@ try {
     await readFile(new URL('../../data/cascade-springs/features.geojson', import.meta.url), 'utf8'),
   );
   await importSourceMap(localDatabaseUrl(), data);
-  console.log('Cascade Springs source map imported (2 layers, 9 features; safe to rerun).');
+  console.log(
+    'Cascade Springs source map imported (2 layers, 10 trail sections, 8 landmarks; safe to rerun).',
+  );
 } catch {
   console.error('Source map import failed. Check the snapshot, PostGIS and migrations.');
   process.exitCode = 1;

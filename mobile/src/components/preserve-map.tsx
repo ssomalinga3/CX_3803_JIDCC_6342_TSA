@@ -148,9 +148,33 @@ export default function PreserveMap() {
               paint={{ 'line-color': '#c95700', 'line-width': 4 }}
             />
             <Layer
+              id="gis-trail-names"
+              type="symbol"
+              afterId="gis-trails"
+              minzoom={14}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['==', ['get', 'feature_kind'], 'trail'],
+                ['has', 'trail_id'],
+                ['==', ['typeof', ['get', 'name']], 'string'],
+                ['!=', ['get', 'name'], ''],
+              ]}
+              layout={{
+                'symbol-placement': 'line-center',
+                'text-field': ['get', 'name'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': 13,
+                'text-offset': [0, -0.8],
+                'text-rotation-alignment': 'viewport',
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
+            />
+            <Layer
               id="gis-landmarks"
               type="circle"
-              afterId="gis-trails"
+              afterId="gis-trail-names"
               filter={['==', ['geometry-type'], 'Point']}
               paint={{
                 'circle-color': '#007aff',
@@ -343,6 +367,13 @@ export default function PreserveMap() {
                 {snapshot.collection.features.length} features
               </Text>
               <Text style={styles.note}>Orange trails · Purple boundary · Blue landmarks</Text>
+              {snapshot.collection.features.some(
+                (feature) => feature.properties.name_assignment === 'approximate',
+              ) && (
+                <Text style={styles.warning}>
+                  Approximate trail names · Partial network. Check park signs.
+                </Text>
+              )}
               {snapshot.isDemo && (
                 <Text style={styles.warning}>Synthetic shapes — not for navigation.</Text>
               )}

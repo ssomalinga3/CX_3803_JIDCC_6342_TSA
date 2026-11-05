@@ -79,3 +79,15 @@ and confirmed that its GIS will arrive later. Preserve the [reference and typed
 structure](design/trail-network.md); retain generic GIS tables under D-12. The
 planning inventory is not published GIS. Final field mapping, colors, source
 geometry, licensing, current routing and safety alignment await provider data.
+
+## November 4, 2026 — D-05 approximate trail-name assignments
+
+The project owner explicitly authorized best-effort splitting of the current GIS
+route and naming its sections from the physical sign, accepting incomplete coverage.
+This supersedes the earlier prohibition on matching this route to sign names for
+this limited task. Preserve source geometry; do not trace missing trails. Seven
+identities are approximate; two connections remain unnamed. The
+[section review table](../data/cascade-springs/README.md#approximate-trail-sections)
+records evidence, uncertainty and reproducible vertex ranges. Full-network GIS,
+official identity and navigation approval remain open. The owner confirmed
+that the eight existing source points should be called landmarks in the app.

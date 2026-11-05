@@ -86,3 +86,14 @@ direction: distinct named/color-coded trails, difficulty labels, landmark symbol
 preserve context and legend. Figma remains the application-layout reference. The
 photo and planning catalog are retained; full-network GIS and corresponding
 rendering/legend work are pending.
+
+## Approximate trail names — November 4, 2026
+
+At the owner's request, the existing partial source route is split into sections
+with seven best-effort sign identities. Native line labels use readable dark text
+with a white halo, sit horizontally at section centers at zoom 14 and above,
+and allow collision handling to hide labels that do not fit. Unassigned connections have no name
+label; missing routes are not drawn. The GIS panel states “Approximate trail
+names · Partial network. Check park signs.” The eight existing blue source points
+are called landmarks, following the owner's latest clarification. See
+[section evidence and omissions](../../data/cascade-springs/README.md#approximate-trail-sections).

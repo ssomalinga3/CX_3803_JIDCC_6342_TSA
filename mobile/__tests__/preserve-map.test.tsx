@@ -3,6 +3,8 @@ import { AppState } from 'react-native';
 
 import PreserveMap from '@/components/preserve-map';
 import * as Location from 'expo-location';
+import * as PublicGis from '@/hooks/use-public-gis';
+import { collection, layer } from './fixtures/gis';
 
 const { mockZoomTo, mockEaseTo, mockGetZoom } = jest.requireMock('@maplibre/maplibre-react-native');
 
@@ -24,6 +26,52 @@ test('browsing becomes available only after native rendering; zoom follows the c
   expect(mockZoomTo).toHaveBeenCalledWith(17, { duration: 200 });
   await user.press(screen.getByRole('button', { name: 'Return to preserve' }));
   expect(mockEaseTo).toHaveBeenCalledWith(expect.objectContaining({ zoom: 15, bearing: 0 }));
+});
+
+test('approximate-name notice remains visible while browsing with denied location permission', async () => {
+  const gis = jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({
+    status: 'ready',
+    retry: jest.fn(),
+    snapshot: {
+      layers: [layer],
+      collection: {
+        ...collection,
+        features: [
+          {
+            ...collection.features[0],
+            properties: {
+              name: 'Terrace Trail',
+              trail_id: 'terrace',
+              feature_kind: 'trail',
+              name_assignment: 'approximate',
+            },
+          },
+        ],
+      },
+      bounds: null,
+      isDemo: false,
+    },
+  });
+  jest.mocked(Location.getForegroundPermissionsAsync).mockResolvedValueOnce({
+    granted: false,
+    canAskAgain: false,
+    status: 'denied' as Location.PermissionStatus,
+    expires: 'never',
+  });
+  try {
+    await render(<PreserveMap />);
+    await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+    expect(
+      screen.getByText('Location access is off. Enable it in Settings to see your position.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('Approximate trail names · Partial network. Check park signs.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
+  } finally {
+    gis.mockRestore();
+  }
 });
 
 test('failed loading offers retry and can recover without enabling GPS', async () => {
