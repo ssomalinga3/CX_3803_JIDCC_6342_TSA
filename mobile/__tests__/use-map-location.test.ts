@@ -83,13 +83,23 @@ test.each([true, false])(
   },
 );
 
-test('device services disabled is distinct from a missing fix', async () => {
-  services.mockResolvedValue(false);
-  const { result } = await renderHook(useMapLocation);
-  await act(() => result.current.enable());
-  await waitFor(() => expect(result.current.status).toBe('services-disabled'));
-  expect(watch).not.toHaveBeenCalled();
-});
+test.each([true, false])(
+  'device services off takes precedence over permission granted=%s',
+  async (isGranted) => {
+    services.mockResolvedValue(false);
+    permission.mockResolvedValue({
+      ...granted,
+      granted: isGranted,
+      canAskAgain: false,
+      status: isGranted ? 'granted' : 'denied',
+    } as Location.LocationPermissionResponse);
+    const { result } = await renderHook(useMapLocation);
+    await act(() => result.current.enable());
+    await waitFor(() => expect(result.current.status).toBe('services-disabled'));
+    expect(request).not.toHaveBeenCalled();
+    expect(watch).not.toHaveBeenCalled();
+  },
+);
 
 test('missing and stale fixes remove the dot, then recover with a fresh fix', async () => {
   jest.useFakeTimers();

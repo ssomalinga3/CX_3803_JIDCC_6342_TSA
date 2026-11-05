@@ -46,6 +46,14 @@ export function useMapLocation() {
         const active = () => current === generation;
         setState({ status: 'requesting' });
         try {
+          // iOS can report permission as denied while device services are off.
+          // Check the device switch first so the recovery message is accurate.
+          const servicesEnabled = await Location.hasServicesEnabledAsync();
+          if (!active()) return;
+          if (!servicesEnabled) {
+            setState({ status: 'services-disabled' });
+            return;
+          }
           let permission = await Location.getForegroundPermissionsAsync();
           if (!active()) return;
           if (!permission.granted && permission.canAskAgain && mayRequest) {
@@ -54,12 +62,6 @@ export function useMapLocation() {
           if (!active()) return;
           if (!permission.granted) {
             setState({ status: permission.canAskAgain ? 'denied' : 'blocked' });
-            return;
-          }
-          const servicesEnabled = await Location.hasServicesEnabledAsync();
-          if (!active()) return;
-          if (!servicesEnabled) {
-            setState({ status: 'services-disabled' });
             return;
           }
           setState({ status: 'searching' });
