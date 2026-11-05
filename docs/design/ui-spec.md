@@ -109,6 +109,8 @@ horizontally scrollable strip. Smaller swatches and labels omit the repeated
 “Trail” suffix; accessible names retain the full name and descriptive color.
 The full-width swipe area is at least 44 logical points high; the small swatches
 and decorative chevrons are not separate buttons.
+The heading sits inside that area to reduce visible vertical padding, with its
+measured height keeping larger text from overlapping the color row.
 Small gray edge chevrons appear only in directions with more content; the cue
 disappears at each end. The scroll hint remains available to assistive technology
 without instructional text in the visible heading. Repeated
