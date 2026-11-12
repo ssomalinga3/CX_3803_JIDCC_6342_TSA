@@ -1,6 +1,6 @@
 {
   "supplied": {
-    "dataset_version": "52aacc345b9e7f68",
+    "dataset_version": "da011543fb732b52",
     "source_sha256": "0ed71645f3015e9e2724f823b4592799f47841bfdd63fe283ad1fd682818f214",
     "coordinates": [
       [-84.484123494, 33.7203341017],
@@ -11,10 +11,10 @@
     "width": 512,
     "height": 384,
     "bytes": 161015,
-    "sha256": "b8fcc106f21488b90d28d334ca2671db5f302ed04ff85f591656d769c60f4ffc"
+    "sha256": "f78ae6fba1c4a1080a20ffa4df77ff8f13b2ef69662d1792ebe1f00a97b6e218"
   },
   "usgs": {
-    "dataset_version": "52aacc345b9e7f68",
+    "dataset_version": "da011543fb732b52",
     "source_sha256": "ddb1e68056488b3e0336bb472cfb3c936e7399dbfc823d2d4a8892e64883a8b3",
     "coordinates": [
       [-84.484123494, 33.7203341017],
@@ -24,7 +24,7 @@
     ],
     "width": 512,
     "height": 384,
-    "bytes": 126350,
-    "sha256": "fdd1b75cb4451c75578a42bae8ed725a97fc2f97eaeec06e6339b7a7beeb9e5b"
+    "bytes": 126348,
+    "sha256": "7bec81eb83de08ee72b024d1fddda0efa7891e4d51bd015b3a3b6e895532b240"
   }
 }

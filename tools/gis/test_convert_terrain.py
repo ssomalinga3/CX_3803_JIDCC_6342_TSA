@@ -1,6 +1,7 @@
 """Terrain unit conversion, nodata, registration, bounded output and provenance."""
 
 from collections import Counter
+from copy import deepcopy
 import json
 import tempfile
 import unittest
@@ -14,6 +15,7 @@ from shapely.geometry import box, mapping, shape
 from convert_terrain import (
     ASSETS, CONTROLS, FT_US_M, OUTPUT, WORK, bands, boundary, convert,
     fit_controls, read_warp, shade,
+    compare_pixels, verify_snapshot,
 )
 from source_package import PACKAGE, file_record
 
@@ -24,16 +26,37 @@ class TerrainTests(unittest.TestCase):
         cls.data, cls.assets = convert()
 
     def test_reproduces_two_distinct_source_snapshots_and_bundled_assets(self):
-        self.assertEqual(self.data, json.loads(OUTPUT.read_text()))
-        self.assertEqual(self.assets, json.loads((ASSETS / "terrain-assets.json").read_text()))
+        verify_snapshot(self.data, self.assets)
         self.assertEqual(Counter(f["properties"]["feature_kind"] for f in self.data["features"]), {"elevation_band": 60, "hillshade": 2})
         self.assertEqual(len({f["id"] for f in self.data["features"]}), 62)
         for key, asset in self.assets.items():
-            self.assertEqual(file_record(ASSETS / f"{key}-hillshade.png"), file_record(WORK / f"{key}-hillshade.png"))
             self.assertLess(asset["bytes"], 180_000)
             with Image.open(ASSETS / f"{key}-hillshade.png") as image:
                 self.assertEqual(image.size, (512, 384))
         self.assertLess(len(json.dumps(self.data).encode()), 600_000)
+
+    def test_platform_verification_never_accepts_new_properties_or_displaced_geometry(self):
+        for kind in ("properties", "geometry"):
+            candidate = deepcopy(self.data)
+            feature = candidate["features"][1]
+            if kind == "properties":
+                feature["properties"]["elevation_max_ft_us"] += 20
+            else:
+                feature["geometry"]["coordinates"][0][0][0] += 0.00001
+            with self.assertRaises(ValueError):
+                verify_snapshot(candidate, self.assets)
+
+    def test_pixel_verification_keeps_alpha_and_shading_exact(self):
+        expected = np.full((4, 4, 4), 100, dtype="uint8")
+        candidate = expected.copy()
+        compare_pixels(candidate, expected)
+        candidate[0, 0, 0] += 1
+        with self.assertRaisesRegex(ValueError, "shading"):
+            compare_pixels(candidate, expected)
+        candidate = expected.copy()
+        candidate[0, 0, 3] += 1
+        with self.assertRaisesRegex(ValueError, "transparency"):
+            compare_pixels(candidate, expected)
 
     def test_bands_preserve_geometry_units_and_source_evidence_without_ascent(self):
         extent = shape(boundary()).buffer(2e-9)

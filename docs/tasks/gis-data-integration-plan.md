@@ -739,9 +739,9 @@ corners (maximum validation residual 1.145 m); diagnostic comparison with both
 grids supports approximate alignment, not survey accuracy or terrain-change claims.
 The runtime regenerates relief to avoid importing the PNG's baked-in boundary.
 
-Terrain GeoJSON is 473,766 bytes formatted / 327,743 bytes compact. Bundled PNGs
-total 287,365 bytes; decoded RGBA buffers total 1,572,864 bytes, excluding native
-overhead. Desktop Node parsing observed ~0.7–0.8 ms median and 736 KB immediate
+Terrain GeoJSON is 469,759 bytes formatted / 324,996 bytes compact. Bundled PNGs
+total 287,363 bytes; decoded RGBA buffers total 1,572,864 bytes, excluding native
+overhead. Desktop Node parsing observed ~0.7–0.8 ms median and 730 KB immediate
 heap allocation. These are bounded-data observations, not device startup/frame
 budgets. Footprint version/source hash/image hash/coordinates must match bundled
 metadata or the mobile load fails visibly. The API remains GeoJSON-only; no
@@ -749,13 +749,18 @@ raster serving/Worker asset binding is added. Source and terrain-only imports ar
 atomic, share `(6342, 2)` and preserve unrelated layers.
 
 Verification completed on macOS with Node 24.21.0/pnpm 10.26.2 and the locked GIS
-environment: 25 GIS regression tests and reproducible conversion checks;
+environment: 27 GIS regression tests and reproducible conversion checks;
 `pnpm verify` (formatting, lint, typechecks, 105 backend unit tests with 22 DB
 cases skipped, 107 mobile tests, iOS/Android JavaScript exports); backend/Worker
 builds; fresh disposable PostGIS with all 127 tests, repeated/concurrent imports,
 stale cleanup, complete rollback, bbox/private reads and real Worker HTTP/failure
 checks. Final diff/`git diff --check` passed. Sandbox loopback/cache restrictions
 required rerunning affected checks with normal host access; final runs passed.
+The first Linux CI run exposed floating-point hashing and PNG-compression
+differences. Sampling bounds are now canonicalized to one micrometre; checks
+require exact geometry/properties and decoded RGBA pixels while still validating
+the published PNG byte hashes exactly. All eight terrain tests also passed in
+an x86 Linux container (Python 3.12.12; same locked GIS libraries).
 
 The existing iPhone 16 Plus/iOS 18.6 development client was restarted and showed
 9 layers/131 features with location off, readable trails above terrain, source
