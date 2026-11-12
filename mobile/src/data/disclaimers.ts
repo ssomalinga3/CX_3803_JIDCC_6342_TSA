@@ -15,8 +15,8 @@ export type Disclaimer = {
 export const disclaimers: readonly Disclaimer[] = [
   {
     id: 'trail-names',
-    title: 'Approximate trail names',
-    body: 'Trail names and the trail network are a partial, best-effort match to the park sign. Some routes are missing and some names are approximate. Check park signs on site.',
+    title: 'Supplied trail data',
+    body: 'Trails use the supplied GIS export from April 9, 2026. One segment has no source name, and most segments have no supplied difficulty. Colors follow the app’s park-sign palette; source colors may differ. Notes describe source observations, not live alerts. Check park signs and current conditions on site.',
   },
   {
     id: 'preserve-boundary',

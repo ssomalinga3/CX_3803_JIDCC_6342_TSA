@@ -1,20 +1,12 @@
 import type { FeatureCollection } from '../modules/gis/types.js';
 import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
-import { splitSourceMapTrails } from './source-map-trails.js';
+import { officialTrailLayer, readOfficialTrails } from './official-trails.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
 const sourceMapDescription =
-  'User-supplied Google My Maps snapshot, retrieved 2026-11-04. Trail names are approximate park-sign matches on partial source geometry. Not surveyed or approved for trail safety. No protective boundary supplied.';
+  'User-supplied Google My Maps landmarks, retrieved 2026-11-04. Preserved until reconciliation with the supplied PDF map.';
 export const sourceMapLayers: readonly ImportLayerSpec[] = [
-  {
-    layerId: 'cascade-map-trails',
-    name: 'Cascade Springs trails (approximate names)',
-    layerType: 'trail',
-    geometryType: 'LineString',
-    description: sourceMapDescription,
-    source: sourceMapUrl,
-    isDemo: false,
-  },
+  officialTrailLayer,
   {
     layerId: 'cascade-map-landmarks',
     name: 'Cascade Springs landmarks (source map)',
@@ -83,6 +75,18 @@ export function validateSourceMap(value: unknown): FeatureCollection {
 
 /** Replace only this source's two layers atomically; unrelated and demo data stay intact. */
 export async function importSourceMap(connectionString: string, value: unknown): Promise<void> {
-  const collection = splitSourceMapTrails(validateSourceMap(value));
-  await replaceLayers(connectionString, 2, sourceMapLayers, collection);
+  const source = validateSourceMap(value);
+  // The legacy command deliberately selects the supplied snapshot. It must never
+  // restore the KML's approximate trail sections, even on a fresh database.
+  const trails = readOfficialTrails();
+  const landmarks: FeatureCollection = {
+    type: 'FeatureCollection',
+    features: source.features.filter((f) => f.geometry.type === 'Point'),
+  };
+  if (landmarks.features.length !== 8)
+    throw new Error('Expected the eight preserved source landmarks');
+  await replaceLayers(connectionString, 2, [
+    { layer: sourceMapLayers[0]!, collection: trails },
+    { layer: sourceMapLayers[1]!, collection: landmarks },
+  ]);
 }

@@ -122,3 +122,21 @@ conditional South Utoy guidance), terrain horizontal datum/alignment, hillshade
 registration, signal units/registration and redistribution rights remain open.
 No layer is imported or published by PR 1, and the current approximate data and
 legacy commands remain unchanged until PRs 2 and 3 implement supersession.
+
+## November 11, 2026 — D-05 supplied trail selection (PR 2)
+
+The owner's request to implement PR 2 authorizes replacing approximate trail
+sections with the supplied shapefile. Retain `cascade-map-trails`, use canonical
+GlobalID feature IDs, preserve all 36 source segments and eight My Maps landmarks,
+and leave the approximate boundary for PR 3. Both legacy source and new trail-only
+commands select supplied trails under lock `(6342, 2)`; legacy conversion remains
+archive-only. [The implementation record](../data/cascade-springs-gis/TRAILS.md)
+defines field mapping, publication filtering, derivation and replacement checks.
+
+Explicit source-name mapping groups Turkeyfoot and South Utoy for the app palette
+while preserving their separate labels. Existing display colors remain, including
+red West versus raw source `ORAN`. Source blank difficulty remains absent; only
+Big Beech Spur supplies `easy`. Width units are inches and lengths are geodesic
+segment measurements. This implements the engineering contract without treating
+PDF difficulty observations as approval. Licensing, surveyed accuracy, safety
+tolerances, pillars, PDF precedence and raster/signal registration remain open.

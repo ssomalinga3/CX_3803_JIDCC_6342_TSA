@@ -37,6 +37,15 @@ The layer screen labels Historical elements as “Cultural,” while S1/S2 speci
 
 ## Public GIS feature details (J6-20 draft)
 
+PR 2's [supplied trails](../../data/cascade-springs-gis/TRAILS.md) use this existing
+detail sheet. Its allowlist now includes source roughness, segment ID and mean
+tread width with an explicit `in` unit; unknown/zero width remains omitted.
+Source notes remain inert text. The trail key includes Bigleaf Magnolia and Spur
+when supplied, and one unassigned segment remains dashed gray. Existing palette,
+Gateway casing, chooser interactions and camera behavior remain in place. The
+Disclaimers tab now describes supplied data and missing attributes instead of
+claiming all trail names are approximate. The boundary disclaimer stays separate.
+
 Tapping a loaded landmark, trail or polygon opens a scrollable native detail
 sheet with a Done action; closing returns to the existing map. Where a hit
 contains overlapping features, point features take priority over lines, then

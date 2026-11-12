@@ -69,11 +69,20 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     ['Pillar', layer?.pillar],
     ['Difficulty', properties.difficulty],
     ['Surface', properties.surface_type],
+    ['Roughness', properties.roughness],
+    ['Source segment', properties.source_segment_id],
     ['Source', layer?.source],
   ];
   for (const [label, value] of attributes) {
     const text = featureText(value, label === 'Source' ? 1000 : 200);
     if (text) fields.push({ label, value: text });
+  }
+  if (
+    typeof properties.average_width_in === 'number' &&
+    Number.isFinite(properties.average_width_in) &&
+    properties.average_width_in > 0
+  ) {
+    fields.push({ label: 'Mean tread width', value: `${properties.average_width_in} in` });
   }
   if (
     typeof properties.length_m === 'number' &&

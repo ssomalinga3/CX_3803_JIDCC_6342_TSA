@@ -93,8 +93,11 @@ preserves the incoming shapefile, map PDF, terrain and signal image without
 changing the database or public catalog. Its [ingestion contract](../data/cascade-springs-gis/INGESTION.md)
 defines the next import's UUID-based segment identity, allowlisted raw properties,
 normalized fields with units, publication flags and per-value derivation evidence.
-This is an implementation handoff; runtime validation/type extensions and atomic
-replacement of approximate trails belong to PR 2 of the integration stack.
+PR 2 now implements runtime validation/type extensions and atomic trail replacement;
+see [the supplied-trail integration](../data/cascade-springs-gis/TRAILS.md). Source
+UUID identity, allowlisted raw properties, `average_width_in`, `roughness`,
+geodesic `length_m` and derivation evidence stay in existing JSON properties.
+Unassigned source segments omit `trail_id`; named families use an explicit map.
 No new physical tables, inferred pillars, or empty placeholder layers are added.
 
 The [trail-network contract](design/trail-network.md#storage-and-exchange) defines

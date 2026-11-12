@@ -73,7 +73,17 @@ freshness default removes expired dots/recentering until GPS recovers. See the
 [mobile GPS acceptance checklist](../../mobile/README.md#acceptance-checks) for
 permission, Settings recovery, simulated movement, lifecycle and network cases.
 
-For the approximate-name slice, opening the map after re-import shows named
+The following approximate-name/color checks are historical. For the current
+supplied-trail slice, import the selected sources and verify 36 segments and eight
+landmarks, plus the separate approximate boundary when imported. Check the nine
+named route families and one unnamed legend entry; source names remain distinct
+even where Turkeyfoot and South Utoy share a family. With location off/denied,
+open details and verify width in inches, roughness, source segment and supplied
+notes without inventing missing difficulty. Hide/show trails and confirm counts,
+legend, hit testing and camera remain consistent. See
+[verification and screenshots](../../data/cascade-springs-gis/TRAILS.md#verification-and-limits).
+
+For the historical approximate-name slice, opening the map after re-import showed named
 sections on the existing partial route and an approximate-name notice. Pan/zoom
 reveals labels as room permits; ambiguous connections remain drawn without name
 labels. Permission denial preserves both browsing and the notice. Full-network
