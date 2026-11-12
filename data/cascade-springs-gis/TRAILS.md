@@ -153,10 +153,56 @@ Worker/Metro services were reused and left running.
 
 ## PR 3 handoff
 
-Branch from `gis/02-official-trails`. Preserve segment/layer IDs, source contract
-and shared lock policy. Extract PDF boundary/context and reconcile its landmarks
-against the eight My Maps annotations, coordinating replacement with the combined
-source importer. Do not replace shapefile centerlines with PDF trail strokes.
-Licensing, surveyed alignment, pillars, safety tolerances, PDF difficulty
-precedence (Springs and conditional South Utoy), and raster/signal registration
-remain open under D-05. PR 2 adds no PDF difficulty fallback or durable cache.
+Start from [PR 2 #30](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/30),
+branch `gis/02-official-trails`; implementation baseline is commit `e687b9c`.
+Fetch and inspect its current head before creating `gis/03-pdf-map-layers`.
+If the stack has merged, use the current parent containing PR 2's changes;
+follow the [stack/restacking rules](../../docs/tasks/gis-data-integration-plan.md#2-pr-stack-and-ownership-boundaries)
+instead of assuming original commit hashes survived a squash merge. Do not
+rewrite another contributor's branch or discard a dirty working tree.
+
+Preserve the 36 supplied trail IDs, `cascade-map-trails`, nullable pillars,
+source/derived separation and coordinate precision contract. Source-only import
+has 44 features; the current local map has 45 with the separate guessed boundary.
+New PDF counts must describe reconciled geographic features, not drawing paths.
+
+### Integration traps to resolve before publishing PDF layers
+
+| Area                             | Current code and required follow-through                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Legacy landmark writer           | [source-map.ts](../../backend/src/db/source-map.ts) still filters the archived My Maps points and requires exactly eight. After PDF reconciliation, change the selected source policy here too; otherwise `db:import:source` will restore old landmarks. Update [its tests](../../backend/test/source-map.test.ts), CLI messages, fresh-DB setup and Worker counts together.                                                                             |
+| Legacy boundary writer and locks | [boundary-map.ts](../../backend/src/db/boundary-map.ts) still imports the guessed polygon under lock `(6342, 3)`. Source/trail writers use `(6342, 2)`. Rewire legacy commands to the selected data or fail clearly; shared affected writers must serialize. A combined PDF replacement needs a consistent lock policy/order across boundary and landmark ownership, not a new independent lock. Test mixed concurrent legacy/new commands and rollback. |
+| Mixed geometry within a layer    | [gis-import.ts](../../backend/src/db/gis-import.ts) now takes explicit `{ layer, collection }` replacements, but each `ImportLayerSpec.geometryType` still accepts only one exact geometry type. Deliberately extend validation if a logical layer contains Polygon/MultiPolygon or LineString/MultiLineString; do not drop multipart features or create duplicate logical layers just to satisfy this helper. Preserve holes and disconnected parts.    |
+| Trail key and line styling       | [trail-presentation.ts](../../mobile/src/data/trail-presentation.ts) currently decorates every line and adds unknown lines to “Other trails.” Filter explicit road/water context out of trail presentation, names, casing and legend. Preserve the existing generic/demo trail fallback and test context-only/all-hidden snapshots.                                                                                                                      |
+| Polygon and point styling        | [preserve-map.tsx](../../mobile/src/components/preserve-map.tsx) currently gives all polygons boundary styling and all points landmark styling. Add explicit context-kind styling/order so water, natural areas and buildings remain distinct, with trails legible above them. Preserve selection, switches and camera behavior.                                                                                                                         |
+| Building classification          | [trail-network.ts](../../backend/src/modules/gis/trail-network.ts) has no building feature kind yet. Extend the logical contract and its validation/tests rather than calling buildings landmarks or natural areas. Generic physical GIS tables remain sufficient.                                                                                                                                                                                       |
+
+### Extraction evidence and completion boundary
+
+Use the committed `sources/CSNP Trail Map.pdf` and
+[inspection.json](inspection.json) for the existing `/VP` anchors, WKT and content
+groups. [inspect_sources.py](../../tools/gis/inspect_sources.py) produces the
+full-page `.work/gis-data/map-preview.png`; it does **not** extract PDF geographic
+features or generate an alignment overlay. No PDF converter, registration controls,
+reconciled landmark table or final context counts have been committed yet.
+Create reusable extraction/overlay scripts and durable review evidence for PR 3;
+another agent must not need Downloads, `/tmp`, or this checkout's ignored caches.
+
+The [PR 3 scope and PDF inventory](../../docs/tasks/gis-data-integration-plan.md)
+already describe latitude/longitude anchor order, differing Y origins, repeated
+water passes, legend exclusions and 15 map symbols. Use the PDF skill for visual
+review. Align against supplied centerlines; do not replace them with PDF strokes.
+
+Keep PDF difficulty evidence separate until source precedence is confirmed:
+Springs conflicts with the older sign, and South Utoy's uphill guidance is
+conditional. Until that decision, leave the other 35 segment difficulties absent. Licensing,
+surveyed alignment, pillars, safety tolerances and raster/signal registration also
+remain open under D-05. Terrain and signal integration belong to later PRs.
+
+For acceptance, carry forward the native limits above: Android execution,
+manual permission denial and native feature-sheet tapping remain unverified.
+Existing screenshots establish rendering/toggles with location off, not those
+other paths. Recheck local ports/database overrides before reusing services;
+the earlier running Worker 8788, Metro 8082 and PostGIS 55435 are session evidence,
+not prerequisites. HTTP freshness and session-only snapshots still do not provide
+durable offline restart/retry.

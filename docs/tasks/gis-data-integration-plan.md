@@ -593,7 +593,9 @@ boundary/context and landmark reconciliation for PR 3. Recheck J6-22 ownership.
 
 ## 12. PR 2 completion and PR 3 handoff
 
-Branch: `gis/02-official-trails`, parent `gis/01-source-foundation`
+PR 2: [#30](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/30).
+Implementation baseline: `e687b9c`; use the current branch head, including later
+handoff edits, when starting the next slice. Branch: `gis/02-official-trails`, parent `gis/01-source-foundation`
 ([PR #29](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/29)).
 The [supplied-trail record](../../data/cascade-springs-gis/TRAILS.md) documents
 exact regeneration/import commands, feature IDs, layer IDs, route-family mapping,
@@ -637,3 +639,10 @@ Next: branch PR 3 from `gis/02-official-trails`; extract/reconcile PDF context,
 boundary and landmarks while preserving the supplied trail IDs and shared lock
 policy. Coordinate its landmark replacement with the combined source importer.
 PDF difficulty precedence, licensing and registration questions remain open.
+
+Read the [expanded PR 3 handoff](../../data/cascade-springs-gis/TRAILS.md#pr-3-handoff)
+before editing. It identifies the still-hardcoded eight-landmark writer and
+guessed-boundary importer, lock coordination, the helper's single-geometry-type
+limit, generic renderer/legend behavior, missing building classification, and
+which PDF extraction artifacts do not exist yet. PR 3 must close those integration
+gaps as part of its selected-source replacement; do not assume PR 2 already did.
