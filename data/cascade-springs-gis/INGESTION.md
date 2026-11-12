@@ -33,6 +33,12 @@ landmark evidence in PR 3; PDF trails are reconciliation evidence only. AIG owns
 elevation samples in PR 4. Image observations remain unpositioned until their
 registration is supported. Archive `info/` is supporting data, not a layer.
 
+PR 4's [terrain contract](TERRAIN.md) adds generalized elevation bands and bundled
+relief, with one independently switchable layer per supplied/USGS source. Terrain
+polygons/footprints retain their own identities, source/dataset versions, units
+and hashes. They never replace trail attributes or infer source ascent. Terrain-only
+and combined imports share `(6342, 2)` with the existing selected-source writers.
+
 ## Public trail properties
 
 Keep normalized keys consistent with

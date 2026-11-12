@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Development-only inspection of the preserved Cascade Springs sources"
 requires-python = "==3.12.*"
 dependencies = [
+  "numpy==2.5.4",
   "pillow==13.0.0",
   "pymupdf==2.1",
   "pypdf==7.0.1",

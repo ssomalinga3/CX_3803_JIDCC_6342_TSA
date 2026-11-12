@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "hillshade_pixel_to_3857_affine": [
+    [1.2729390345240477, 0.002266489240357929, -9404944.126207553],
+    [0.004358111041398046, -1.278315957906677, 3991386.131209582]
+  ],
+  "controls": [
+    {
+      "vertex": 151,
+      "pixel": [260, 101],
+      "use": "fit",
+      "target_lon_lat": [-84.4830745139, 33.7199374379],
+      "residual_ground_m": 0.083
+    },
+    {
+      "vertex": 62,
+      "pixel": [881, 91],
+      "use": "fit",
+      "target_lon_lat": [-84.475974577, 33.7200526047],
+      "residual_ground_m": 0.048
+    },
+    {
+      "vertex": 54,
+      "pixel": [1014, 269],
+      "use": "fit",
+      "target_lon_lat": [-84.4744526138, 33.7183627583],
+      "residual_ground_m": 0.666
+    },
+    {
+      "vertex": 42,
+      "pixel": [1010, 526],
+      "use": "fit",
+      "target_lon_lat": [-84.4744888447, 33.7158973581],
+      "residual_ground_m": 0.569
+    },
+    {
+      "vertex": 36,
+      "pixel": [818, 702],
+      "use": "fit",
+      "target_lon_lat": [-84.4766818529, 33.7142133501],
+      "residual_ground_m": 0.18
+    },
+    {
+      "vertex": 35,
+      "pixel": [299, 699],
+      "use": "fit",
+      "target_lon_lat": [-84.4826111932, 33.7142332635],
+      "residual_ground_m": 0.925
+    },
+    {
+      "vertex": 33,
+      "pixel": [209, 670],
+      "use": "fit",
+      "target_lon_lat": [-84.483654959, 33.7144985951],
+      "residual_ground_m": 0.775
+    },
+    {
+      "vertex": 160,
+      "pixel": [182, 300],
+      "use": "fit",
+      "target_lon_lat": [-84.4839616824, 33.718030705],
+      "residual_ground_m": 0.396
+    },
+    {
+      "vertex": 159,
+      "pixel": [288, 315],
+      "use": "validation",
+      "target_lon_lat": [-84.4827509659, 33.7178891648],
+      "residual_ground_m": 0.559
+    },
+    {
+      "vertex": 61,
+      "pixel": [880, 186],
+      "use": "validation",
+      "target_lon_lat": [-84.4759842835, 33.719141491],
+      "residual_ground_m": 0.459
+    },
+    {
+      "vertex": 56,
+      "pixel": [980, 249],
+      "use": "validation",
+      "target_lon_lat": [-84.4748382765, 33.7185387407],
+      "residual_ground_m": 0.936
+    },
+    {
+      "vertex": 40,
+      "pixel": [873, 625],
+      "use": "validation",
+      "target_lon_lat": [-84.4760464047, 33.7149517559],
+      "residual_ground_m": 0.803
+    },
+    {
+      "vertex": 38,
+      "pixel": [819, 624],
+      "use": "validation",
+      "target_lon_lat": [-84.4766611458, 33.7149560614],
+      "residual_ground_m": 1.145
+    },
+    {
+      "vertex": 30,
+      "pixel": [322, 618],
+      "use": "validation",
+      "target_lon_lat": [-84.4823562374, 33.7149953496],
+      "residual_ground_m": 0.642
+    },
+    {
+      "vertex": 32,
+      "pixel": [203, 647],
+      "use": "validation",
+      "target_lon_lat": [-84.4837125505, 33.7147208702],
+      "residual_ground_m": 0.334
+    }
+  ],
+  "registration_limitations": "Same cartographic boundary is not an independent land survey. Boundary fit does not establish DTM horizontal datum. DTM projection uses GRS80 and US survey feet with a ballpark/no-datum-shift assumption; no EPSG datum assigned. Visual terrain/drainage comparison checks gross alignment only.",
+  "dtm_minus_usgs_m": {
+    "common_cells": 155454,
+    "median": 0.024,
+    "p05": -0.207,
+    "p95": 0.327
+  },
+  "comparison_limitations": "Different resolution, acquisition, interpolation and unknown supplied horizontal datum; differences are not measured terrain change or accuracy."
+}

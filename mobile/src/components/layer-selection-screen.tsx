@@ -28,6 +28,7 @@ const descriptions: Record<string, string> = {
   natural_area: 'Natural-area footprints from the supplied map.',
   road: 'Road footprints from the supplied map.',
   building: 'Building footprints from the supplied map.',
+  terrain: 'Elevation bands and shaded relief. Toggle sources separately to compare.',
 };
 
 export function LayerSelectionScreen() {
@@ -136,6 +137,11 @@ export function LayerSelectionScreen() {
                   ? descriptions[layer.layerType]
                   : 'Features available in this layer.'}
               </Text>
+              {layer.layerType === 'terrain' && (
+                <Text style={[styles.description, { color: theme.textSecondary }]}>
+                  {featureText(layer.source, 300)}
+                </Text>
+              )}
               {pillar && (
                 <Text
                   style={[

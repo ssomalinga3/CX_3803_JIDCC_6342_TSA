@@ -1,6 +1,7 @@
 import {
   Camera,
   GeoJSONSource,
+  ImageSource,
   Layer,
   Map,
   type CameraRef,
@@ -16,6 +17,7 @@ import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
 import { trailPresentation } from '@/data/trail-presentation';
+import { terrainAssets, visibleTerrainKeys } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
 
@@ -148,6 +150,33 @@ export default function PreserveMap() {
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
         />
+        {visibleTerrainKeys(snapshot).map((key) => (
+          <ImageSource
+            key={key}
+            id={`terrain-${key}`}
+            testID={`terrain-${key}`}
+            url={
+              key === 'supplied'
+                ? require('../../assets/terrain/supplied-hillshade.png')
+                : require('../../assets/terrain/usgs-hillshade.png')
+            }
+            coordinates={
+              terrainAssets[key].coordinates as [
+                [number, number],
+                [number, number],
+                [number, number],
+                [number, number],
+              ]
+            }
+          >
+            <Layer
+              id={`terrain-${key}-relief`}
+              type="raster"
+              beforeId="gis-elevation-bands"
+              paint={{ 'raster-opacity': 0.35, 'raster-fade-duration': 0 }}
+            />
+          </ImageSource>
+        ))}
         {trails && trails.collection.features.length > 0 && (
           <GeoJSONSource
             id="public-gis"
@@ -163,8 +192,55 @@ export default function PreserveMap() {
             }}
           >
             <Layer
+              id="gis-elevation-bands"
+              type="fill"
+              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+              paint={{
+                'fill-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'elevation_min_ft_us'],
+                  800,
+                  '#dbe7d0',
+                  900,
+                  '#bac797',
+                  1040,
+                  '#a88966',
+                ],
+                'fill-opacity': 0.12,
+              }}
+            />
+            <Layer
+              id="gis-elevation-lines"
+              type="line"
+              afterId="gis-elevation-bands"
+              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+              paint={{ 'line-color': '#7b705a', 'line-opacity': 0.38, 'line-width': 0.7 }}
+            />
+            <Layer
+              id="gis-elevation-labels"
+              type="symbol"
+              afterId="gis-elevation-lines"
+              minzoom={17}
+              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+              layout={{
+                'text-field': [
+                  'concat',
+                  ['to-string', ['get', 'elevation_min_ft_us']],
+                  '–',
+                  ['to-string', ['get', 'elevation_max_ft_us']],
+                  ' ftUS',
+                ],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': 11,
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#605644', 'text-halo-color': '#fff', 'text-halo-width': 1 }}
+            />
+            <Layer
               id="gis-natural-areas"
               type="fill"
+              afterId="gis-elevation-labels"
               filter={[
                 'all',
                 ['==', ['geometry-type'], 'Polygon'],
@@ -582,6 +658,11 @@ export default function PreserveMap() {
                     : null,
                   snapshot.collection.features.some((f) => f.properties.feature_kind === 'building')
                     ? 'Brown buildings'
+                    : null,
+                  snapshot.collection.features.some(
+                    (f) => f.properties.feature_kind === 'elevation_band',
+                  )
+                    ? 'Elevation bands · 20 ftUS'
                     : null,
                 ]
                   .filter(Boolean)

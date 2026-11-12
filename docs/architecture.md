@@ -115,3 +115,21 @@ The native renderer distinguishes context kinds, excludes context lines from the
 trail legend, keeps trail strokes above context/marker circles, and adds closer
 zoom landmark labels. Existing chooser, snapshot, camera, GPS and offline
 architecture remain unchanged.
+
+### Bounded two-source terrain (PR 4)
+
+The [terrain pipeline](../data/cascade-springs-gis/TERRAIN.md) runs only during
+development/CI. It preserves a bounded USGS national GeoTIFF alongside the
+supplied source archive, then generates two independently switchable source
+layers with generalized elevation polygons and versioned bundled hillshade
+images. The API remains GeoJSON-only; image footprints coordinate catalog
+visibility with local assets. Native ImageSource uses an explicit local asset
+allowlist. A mismatched dataset version/hash/placement rejects the snapshot and
+uses the existing error/retry path. No raster URL serving or Worker asset
+binding is introduced. Import commands read committed files outside the request
+runtime; source rasters/GIS libraries are absent from app/Worker bundles.
+
+The combined source importer now replaces all nine selected layers atomically;
+terrain-only replacement shares lock `(6342, 2)` with existing source writers.
+No physical tables, native dependencies, GPS behavior or durable offline cache
+are added. Hosting configuration and deployment ownership are outside this slice.
