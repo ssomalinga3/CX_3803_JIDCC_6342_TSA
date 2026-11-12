@@ -43,6 +43,25 @@ The queue needs persistent submission identity, account/guest ownership context,
 
 With maps preloaded, disable networking and verify pan/zoom, trail visibility, and available GPS navigation. Capture and submit an offline report, restart the app, and verify the report and photos remain pending. Reconnect and interrupt an upload; retry it and verify exactly one observation is accepted. Confirm offline/pending indicators, local safety reference access, and that failed refreshes do not erase usable map data. Measure rendering and storage on the agreed target devices; numeric performance budgets remain open.
 
+## Saved public GIS overlays (J6-35)
+
+On Android and iOS, the app saves a complete, validated public GIS response in
+app-private storage. The cache is scoped to the configured API URL and retains
+feature IDs, source metadata, and demo flags. It alternates between two files,
+each capped at 4 MiB, so a failed or interrupted write can leave the previous
+complete copy available.
+
+On startup the app can show the saved overlays and the save time while it
+refreshes. A failed refresh keeps the saved copy visible and offers Retry. An
+installation with no saved data still needs a successful GIS request.
+
+For device verification, open the map once with the GIS API reachable, fully
+quit the app, make the API unreachable, and reopen. Check the saved-data notice,
+layer visibility, and feature details. Reconnect and use Retry to verify
+replacement. Use a build with embedded JavaScript when testing a cold restart
+with all networking disabled. Basemap tile downloads and coverage remain
+separate work under J6-35.
+
 ## Current development API
 
 The [public GIS handoff](../backend/GIS-HANDOFF.md) provides three synthetic

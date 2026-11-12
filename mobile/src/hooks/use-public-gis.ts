@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 
 import { loadPublicGis, type GisSnapshot } from '@/data/gis';
+import { readPublicGisCache, savePublicGisCache } from '@/data/gis-cache';
 
 export type GisState =
-  | { status: 'unconfigured' | 'loading' | 'error'; snapshot?: never }
-  | { status: 'ready' | 'empty'; snapshot: GisSnapshot };
+  | { status: 'unconfigured' | 'loading' | 'error'; snapshot?: never; savedAt?: never }
+  | { status: 'ready' | 'empty'; snapshot: GisSnapshot; savedAt?: number };
+
+function available(snapshot: GisSnapshot, savedAt?: number): GisState {
+  return { status: snapshot.collection.features.length ? 'ready' : 'empty', snapshot, savedAt };
+}
 
 export function usePublicGis(apiUrl: string | undefined) {
   const [attempt, setAttempt] = useState(0);
@@ -24,20 +29,26 @@ export function usePublicGis(apiUrl: string | undefined) {
   useEffect(() => {
     if (!apiUrl) return;
     const setState = (state: GisState) => setResult({ url: apiUrl, attempt, state });
+    const cached = readPublicGisCache(apiUrl);
+    if (cached) setState(available(cached.snapshot, cached.savedAt));
+    const fallback: GisState = cached
+      ? available(cached.snapshot, cached.savedAt)
+      : { status: 'error' };
     let active = true;
     const controller = new AbortController();
     const timeout = setTimeout(() => {
-      if (active) setState({ status: 'error' });
+      if (active) setState(fallback);
       controller.abort();
     }, 10000);
     loadPublicGis(apiUrl, controller.signal)
       .then((snapshot) => {
         if (active && !controller.signal.aborted) {
-          setState({ status: snapshot.collection.features.length ? 'ready' : 'empty', snapshot });
+          savePublicGisCache(apiUrl, snapshot);
+          setState(available(snapshot));
         }
       })
       .catch(() => {
-        if (active) setState({ status: 'error' });
+        if (active) setState(fallback);
       })
       .finally(() => clearTimeout(timeout));
     return () => {
