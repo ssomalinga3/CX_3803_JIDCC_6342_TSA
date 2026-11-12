@@ -8,8 +8,24 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      // Local-only placeholder. Remote hosting needs a real configuration.
       "id": "00000000000000000000000000000000",
     },
   ],
+  "env": {
+    "production": {
+      "name": "cascade-springs-api",
+      "account_id": "9b52bc25ebc019f660636e493cc8ad51",
+      "workers_dev": true,
+      "preview_urls": false,
+      "observability": {
+        "enabled": false,
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "463ed66cfeaa43179f85b9bb0d3eecbd",
+        },
+      ],
+    },
+  },
 }

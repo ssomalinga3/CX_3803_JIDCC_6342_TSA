@@ -45,10 +45,11 @@ enables PostGIS; the subsequent GIS migration adds generic layers/features and p
 
 Local Workers connect directly to the database through a Hyperdrive local
 connection override; this does not exercise deployed Hyperdrive pooling/caching.
-The [proposed hosting plan](tasks/first-task-implementation-plan.md#8-proposed-hosting-and-hyperdrive-behavior)
-retains managed PostgreSQL/PostGIS behind Hyperdrive. Production provider,
-staging/production bindings, deployment ownership, and cache policy remain open
-under D-10. S3/SES remain baseline; R2/Queues/HTTPS email are later proposals.
+The [initial hosted setup](development/cloudflare-backend-runbook.md) now uses
+Neon PostgreSQL 18/PostGIS in one production database behind cache-disabled
+Hyperdrive. D-10 records the owner's hosting decision and remaining operational
+ownership/recovery work. S3/SES remain baseline; R2/Queues/HTTPS email are later
+proposals.
 
 ## Delivery expectations
 
@@ -167,3 +168,14 @@ provider reconciles preset defaults with explicit visibility overrides; the
 chooser applies presets and switches immediately. Defaults prefer one known terrain
 source. Source identity, backend access, GPS, z order and offline scope remain
 unchanged. Preset changes do not reload GIS or refit the camera.
+
+## Initial hosted backend (November 12, 2026)
+
+The owner selected Neon PostgreSQL 18/PostGIS with one production database and
+Cloudflare Workers in the shared project account. The existing Express adapter
+and `pg`/Drizzle repository code connect through a cache-disabled Hyperdrive
+binding using a read-only runtime login. Migration/import credentials remain
+separate in private root Neon environment configuration. Local Docker and CI
+continue to use their existing databases; hosted commands are explicit. See the
+[operational runbook](development/cloudflare-backend-runbook.md) for actual
+resources, completed end-to-end checks, prepared CD and remaining recovery work.
