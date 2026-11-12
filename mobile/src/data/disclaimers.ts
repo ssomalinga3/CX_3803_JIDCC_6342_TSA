@@ -14,6 +14,16 @@ export type Disclaimer = {
 
 export const disclaimers: readonly Disclaimer[] = [
   {
+    id: 'supplied-terrain',
+    title: 'Elevation · supplied DTM',
+    body: 'The supplied csnp_dtm_2015 grid uses NAVD88 heights in US survey feet (ftUS). The filename suggests 2015; acquisition date and horizontal datum are unconfirmed. Its GRS80 projection is displayed with a no-datum-shift assumption. Boundary registration and terrain comparison support approximate orientation, not survey accuracy. Relief is regenerated from the grid; the original hillshade is retained as alignment evidence. Bands span 20 ftUS and are resampled and simplified. They are not measured trail ascent or current conditions.',
+  },
+  {
+    id: 'national-terrain',
+    title: 'Elevation · USGS 3DEP',
+    body: 'USGS National Map 3DEP provides this separate public national elevation option. A fixed service subset is reprojected and resampled for display; its export date is not its acquisition date. Source heights are NAVD88 meters, converted to US survey feet (ftUS) for 20 ftUS bands. The service combines resolutions and source vintages; small terrain features may be omitted. Differences from the supplied DTM do not establish terrain change or either dataset’s accuracy. Toggle the two elevation sources separately to compare; neither is a land survey or navigation guarantee.',
+  },
+  {
     id: 'trail-names',
     title: 'Supplied trail data',
     body: 'Trails use the supplied GIS export from April 9, 2026. One segment has no source name, and most segments have no supplied difficulty. Colors follow the app’s park-sign palette; source colors may differ. Notes describe source observations, not live alerts. Check park signs and current conditions on site.',

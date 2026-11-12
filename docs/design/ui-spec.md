@@ -198,3 +198,17 @@ tab explains cartographic positions and the unresolved spring identity. No pilla
 assignments or PDF difficulty defaults are added. The Figma chooser frame was
 reviewed for structure; this does not claim complete visual matching. See the
 [extraction and evidence record](../../data/cascade-springs-gis/PDF-MAP.md).
+
+## Two-source terrain progress — November 12, 2026
+
+The owner authorized approximate supplied terrain and requested a separately
+attributed national public elevation option. The existing chooser now exposes
+Elevation · supplied DTM and Elevation · USGS 3DEP. Each switch controls its
+source's generalized 20 ftUS bands, labels and regenerated relief together.
+Both follow the existing default-visible policy; disable one to compare.
+Chooser source text and band details identify provenance and vertical reference;
+source limitations remain in two Disclaimers entries. Terrain renders below
+context/trails, never enters the trail key, and cannot take priority over a
+trail/landmark hit. Bands are labeled at zoom 17; camera/GPS semantics are unchanged.
+The live Figma chooser frame `32:40` was reviewed for screen structure. See the
+[terrain evidence](../../data/cascade-springs-gis/TERRAIN.md); no 3D view is added.

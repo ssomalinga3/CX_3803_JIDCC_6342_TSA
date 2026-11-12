@@ -99,12 +99,27 @@ try {
         ['cascade-map-natural-areas', 2],
         ['cascade-map-roads', 3],
         ['cascade-map-buildings', 3],
+        ['cascade-terrain-supplied', 29],
+        ['cascade-terrain-usgs', 33],
       ]) {
         const response = await fetch(`${base}/api/v1/layers/${id}/features`);
         assert.equal(response.status, 200);
         const collection = await response.json();
         assert.equal(collection.features.length, count);
         assert.ok(collection.features.every((feature) => feature.properties.isDemo === false));
+        if (id.startsWith('cascade-terrain-')) {
+          assert.equal(
+            collection.features.filter((f) => f.properties.feature_kind === 'hillshade').length,
+            1,
+          );
+          assert.ok(
+            collection.features.some((f) => f.properties.feature_kind === 'elevation_band'),
+          );
+          assert.equal(
+            new Set(collection.features.map((f) => f.properties.dataset_version)).size,
+            1,
+          );
+        }
         if (id === 'cascade-map-trails') {
           assert.equal(
             new Set(

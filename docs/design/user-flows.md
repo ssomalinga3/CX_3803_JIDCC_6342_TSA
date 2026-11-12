@@ -110,3 +110,16 @@ are readable. Waterfall must have one marker retaining its My Maps note; Spring
 remains explicitly unmatched. Hide/show each context layer with Done: its features,
 hits and key entries change without refitting the map or adding trail-key entries.
 Difficulty stays unchanged. See [PR 3 evidence](../../data/cascade-springs-gis/PDF-MAP.md#verification-and-limits).
+
+For PR 4, import the selected sources and verify nine layers/131 features.
+Inspect both terrain source descriptions and their separate Disclaimers entries.
+At detail zoom, select elevation bands and confirm a 20 ftUS range, NAVD88
+reference and correct source. Trails/POIs take priority where hits overlap.
+Hide/show each terrain option repeatedly: its bands/labels and relief change
+together, without duplicate images, altered trail key, GPS changes or camera
+refitting. Compare one source at a time, then both; trails must remain above
+relief. Hide all layers and retain basemap/location controls. Retry after an API
+failure; an asset/version mismatch must be unavailable, not successful empty
+terrain. Nodata/outside-preserve pixels are transparent. Bundle checks and existing
+iOS execution are separate from Android/native-build/field-accuracy evidence;
+see [PR 4 verification](../../data/cascade-springs-gis/TERRAIN.md#verification-and-handoff).

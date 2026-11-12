@@ -51,6 +51,21 @@ export type TrailNetworkProperties = CommonProperties &
     | { feature_kind: 'boundary'; boundary_kind: 'preserve' | 'protective' }
     | { feature_kind: 'water'; water_kind: 'stream' | 'water_body' }
     | { feature_kind: 'natural_area' | 'road' | 'building' }
+    | {
+        feature_kind: 'elevation_band';
+        source_dataset: string;
+        dataset_version: string;
+        elevation_min_ft_us: number;
+        elevation_max_ft_us: number;
+        vertical_datum: string;
+      }
+    | {
+        feature_kind: 'hillshade';
+        source_dataset: string;
+        dataset_version: string;
+        raster_key: 'supplied' | 'usgs';
+        raster_sha256: string;
+      }
   );
 
 /** Rendering/import contract; spatial validity is still checked by GIS ingestion/PostGIS. */
@@ -62,4 +77,6 @@ export const trailNetworkGeometryTypes = {
   natural_area: ['Polygon', 'MultiPolygon'],
   road: ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'],
   building: ['Polygon', 'MultiPolygon'],
+  elevation_band: ['Polygon'],
+  hillshade: ['Polygon'],
 } as const;
