@@ -58,6 +58,8 @@ Static export routing must be distinguished from `/{id}` if these paths are adop
 
 ## Proposed report payload and processing
 
+The [guest reporting contract proposal](reporting-contract.md) collects the decisions for J6-27 and provides request and receipt examples for team review.
+
 Use a JSON `metadata` multipart field containing `client_submission_id`, `category_id`, a GeoJSON Point `location`, capture time `captured_at`, `delivery_mode` (`park` or `custom`), and optional `note`, plus one or more `images` parts. Custom mode additionally requires a nonempty `custom_recipients` list. Field names are proposed; guest support and exclusion of custom reports from park administrators are confirmed by S8. These additions extend the source ER model and need migrations. Server receipt time and capture time must remain distinct when sending queued reports.
 
 1. Accept guest or signed-in submissions. Validate category, coordinates, text, delivery mode, recipients, and image content/size. Derive account identity from the authenticated context when present; guests use a separate ownership mechanism, not a fabricated account or trusted client `user_id`.
