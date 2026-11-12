@@ -1,6 +1,6 @@
 # Two-source 2D terrain (PR 4)
 
-PR 4 follows [PR 3 #31](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/31)
+[PR 4 #32](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/32) follows [PR 3 #31](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/31)
 and the [integration plan](../../docs/tasks/gis-data-integration-plan.md#8-pr-4-elevation-and-hillshade).
 On November 12, 2026 the owner authorized approximate supplied terrain with its
 uncertainty disclosed and requested a separate national public elevation option.
