@@ -40,7 +40,11 @@ export function featureText(value: unknown, limit = 4000): string {
 
 function priority(feature: GisFeature): number {
   const type = feature.geometry.type;
-  return type.includes('Point') ? 0 : type.includes('Line') ? 1 : 2;
+  if (type.includes('Point')) return 0;
+  if (type.includes('Line') || feature.properties.feature_kind === 'trail') return 1;
+  // Specific context footprints should be selectable inside large preserve/natural areas.
+  const kind = feature.properties.feature_kind;
+  return kind === 'boundary' ? 4 : kind === 'natural_area' ? 3 : 2;
 }
 
 // Resolve only IDs from the native hit-test; all displayed data comes from the
@@ -70,6 +74,8 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     ['Difficulty', properties.difficulty],
     ['Surface', properties.surface_type],
     ['Roughness', properties.roughness],
+    ['Symbol type', properties.landmark_kind],
+    ['Source annotation', properties.source_name],
     ['Source segment', properties.source_segment_id],
     ['Source', layer?.source],
   ];
@@ -90,6 +96,19 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     properties.length_m >= 0
   ) {
     fields.push({ label: 'Length', value: `${properties.length_m} m` });
+  }
+  if (Array.isArray(properties.source_annotations)) {
+    for (const annotation of properties.source_annotations.slice(0, 8)) {
+      const p = annotation && typeof annotation === 'object' ? annotation.properties : undefined;
+      if (!p || typeof p !== 'object') continue;
+      const name = featureText(p.name, 200);
+      const text = featureText(p.description_html, 2000);
+      if (name || text)
+        fields.push({
+          label: 'My Maps annotation',
+          value: [name, text].filter(Boolean).join(' · '),
+        });
+    }
   }
   return {
     title: featureText(properties.name, 200) || 'Map feature',

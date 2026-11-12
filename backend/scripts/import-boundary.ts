@@ -11,7 +11,9 @@ try {
     ),
   );
   await importBoundaryMap(localDatabaseUrl(), data);
-  console.log('Cascade Springs approximate boundary imported (1 layer, 1 polygon; safe to rerun).');
+  console.log(
+    'Cascade Springs selected PDF layers imported (legacy boundary command; safe to rerun).',
+  );
 } catch {
   console.error('Boundary import failed. Check the snapshot, PostGIS and migrations.');
   process.exitCode = 1;

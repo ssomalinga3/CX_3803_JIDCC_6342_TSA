@@ -101,3 +101,12 @@ render safely as solid gray. Check legend scrolling, text scaling and browsing
 with location denied on iOS and supported Android targets. Retry after a failed
 GIS read must repopulate the legend from the recovered data; this change adds no
 durable offline restart/retry behavior.
+
+For PR 3, import the selected source collection and verify seven layers/69
+features. With location off/denied, browse context and open details. Confirm
+blue water/green natural areas/gray roads/brown buildings and a single purple
+boundary; trails remain legible. At detail zoom, named POIs and source annotations
+are readable. Waterfall must have one marker retaining its My Maps note; Spring
+remains explicitly unmatched. Hide/show each context layer with Done: its features,
+hits and key entries change without refitting the map or adding trail-key entries.
+Difficulty stays unchanged. See [PR 3 evidence](../../data/cascade-springs-gis/PDF-MAP.md#verification-and-limits).

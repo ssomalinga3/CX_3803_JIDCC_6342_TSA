@@ -163,26 +163,114 @@ export default function PreserveMap() {
             }}
           >
             <Layer
+              id="gis-natural-areas"
+              type="fill"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'natural_area'],
+              ]}
+              paint={{ 'fill-color': '#65994c', 'fill-opacity': 0.16 }}
+            />
+            <Layer
+              id="gis-water"
+              type="fill"
+              afterId="gis-natural-areas"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'water'],
+              ]}
+              paint={{
+                'fill-color': '#459fd1',
+                'fill-outline-color': '#277bb2',
+                'fill-opacity': 0.7,
+              }}
+            />
+            <Layer
+              id="gis-roads"
+              type="fill"
+              afterId="gis-water"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'road'],
+              ]}
+              paint={{ 'fill-color': '#9b9b94', 'fill-opacity': 0.65 }}
+            />
+            <Layer
+              id="gis-buildings"
+              type="fill"
+              afterId="gis-roads"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'building'],
+              ]}
+              paint={{
+                'fill-color': '#b08766',
+                'fill-outline-color': '#6d503a',
+                'fill-opacity': 0.75,
+              }}
+            />
+            <Layer
               id="gis-boundary-fill"
               type="fill"
-              filter={['==', ['geometry-type'], 'Polygon']}
-              paint={{ 'fill-color': '#8754c8', 'fill-opacity': 0.12 }}
+              afterId="gis-buildings"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                [
+                  'any',
+                  ['==', ['get', 'feature_kind'], 'boundary'],
+                  ['!', ['has', 'feature_kind']],
+                ],
+              ]}
+              paint={{ 'fill-color': '#8754c8', 'fill-opacity': 0.04 }}
             />
             <Layer
               id="gis-boundary-outline"
               type="line"
               afterId="gis-boundary-fill"
-              filter={['==', ['geometry-type'], 'Polygon']}
-              paint={{ 'line-color': '#7442b5', 'line-width': 3, 'line-dasharray': [3, 2] }}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                [
+                  'any',
+                  ['==', ['get', 'feature_kind'], 'boundary'],
+                  ['!', ['has', 'feature_kind']],
+                ],
+              ]}
+              paint={{ 'line-color': '#7442b5', 'line-width': 2, 'line-dasharray': [3, 2] }}
+            />
+            <Layer
+              id="gis-context-lines"
+              type="line"
+              afterId="gis-boundary-outline"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['in', ['get', 'feature_kind'], ['literal', ['water', 'road']]],
+              ]}
+              paint={{
+                'line-color': ['match', ['get', 'feature_kind'], 'water', '#277bb2', '#9b9b94'],
+                'line-width': 2,
+              }}
             />
             <Layer
               id="gis-landmarks"
               type="circle"
-              afterId="gis-boundary-outline"
+              afterId="gis-context-lines"
               filter={['==', ['geometry-type'], 'Point']}
               paint={{
-                'circle-color': '#007aff',
-                'circle-radius': 7,
+                'circle-color': [
+                  'match',
+                  ['get', 'landmark_kind'],
+                  'source_annotation',
+                  '#60646c',
+                  '#007aff',
+                ],
+                'circle-radius': 6,
                 'circle-stroke-color': '#fff',
                 'circle-stroke-width': 2,
               }}
@@ -191,7 +279,11 @@ export default function PreserveMap() {
               id="gis-trail-casing"
               type="line"
               afterId="gis-landmarks"
-              filter={['==', ['geometry-type'], 'LineString']}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+              ]}
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
               paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
             />
@@ -202,6 +294,7 @@ export default function PreserveMap() {
               filter={[
                 'all',
                 ['==', ['geometry-type'], 'LineString'],
+                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
                 ['==', ['get', '_display_trail_dashed'], false],
               ]}
               layout={{ 'line-cap': 'round', 'line-join': 'round' }}
@@ -214,6 +307,7 @@ export default function PreserveMap() {
               filter={[
                 'all',
                 ['==', ['geometry-type'], 'LineString'],
+                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
                 ['==', ['get', '_display_trail_dashed'], true],
               ]}
               layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
@@ -244,6 +338,27 @@ export default function PreserveMap() {
                 'text-offset': [0, -0.8],
                 'text-rotation-alignment': 'viewport',
                 'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
+            />
+            <Layer
+              id="gis-landmark-names"
+              type="symbol"
+              afterId="gis-trail-names"
+              minzoom={16}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Point'],
+                ['==', ['typeof', ['get', 'name']], 'string'],
+              ]}
+              layout={{
+                'text-field': ['get', 'name'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': 12,
+                'text-offset': [0, 1.2],
+                'text-anchor': 'top',
+                'text-allow-overlap': false,
+                'text-max-width': 12,
               }}
               paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
             />
@@ -444,15 +559,29 @@ export default function PreserveMap() {
               </Text>
               <Text style={styles.note}>
                 {[
-                  snapshot.collection.features.some((feature) =>
-                    feature.geometry.type.includes('Polygon'),
+                  snapshot.collection.features.some(
+                    (f) =>
+                      f.properties.feature_kind === 'boundary' ||
+                      (!f.properties.feature_kind && f.geometry.type.includes('Polygon')),
                   )
                     ? 'Purple boundary'
                     : null,
-                  snapshot.collection.features.some((feature) =>
-                    feature.geometry.type.includes('Point'),
+                  snapshot.collection.features.some((f) => f.geometry.type.includes('Point'))
+                    ? 'Blue landmarks / gray annotations'
+                    : null,
+                  snapshot.collection.features.some((f) => f.properties.feature_kind === 'water')
+                    ? 'Blue water'
+                    : null,
+                  snapshot.collection.features.some(
+                    (f) => f.properties.feature_kind === 'natural_area',
                   )
-                    ? 'Blue landmarks'
+                    ? 'Green areas'
+                    : null,
+                  snapshot.collection.features.some((f) => f.properties.feature_kind === 'road')
+                    ? 'Gray roads'
+                    : null,
+                  snapshot.collection.features.some((f) => f.properties.feature_kind === 'building')
+                    ? 'Brown buildings'
                     : null,
                 ]
                   .filter(Boolean)

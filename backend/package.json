@@ -32,7 +32,8 @@
     "db:import:source": "tsx --env-file-if-exists=.env scripts/import-source-map.ts",
     "db:import:trails": "tsx --env-file-if-exists=.env scripts/import-official-trails.ts",
     "db:import:boundary": "tsx --env-file-if-exists=.env scripts/import-boundary.ts",
-    "data:convert": "python3 scripts/convert-source-map.py"
+    "data:convert": "python3 scripts/convert-source-map.py",
+    "db:import:pdf": "tsx --env-file-if-exists=.env scripts/import-pdf-map.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

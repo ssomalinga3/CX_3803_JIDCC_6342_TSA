@@ -106,7 +106,7 @@ production transport remains required; local HTTP is development only.
 This is the historical November 4 behavior, superseded by the supplied-trail
 selection below. The KML snapshot and section mapping remain archival evidence.
 
-Re-importing the source map now publishes ten derived LineStrings and eight
+The historical approximate import published ten derived LineStrings and eight
 landmark Points through the same endpoints and stable layer IDs. Seven trail
 identities are approximate sign matches. Named sections include `feature_kind:
 trail`, shared `trail_id`, `name_assignment: approximate`, and `name_source`.
@@ -123,11 +123,27 @@ source description/provenance fields remain intact. See the
 GlobalID-based IDs, replacing approximate sections. Endpoints, visibility, bbox
 semantics and cache headers remain unchanged. GeoJSON serialization now uses
 up to 15 decimal places so converted vertices survive the PostGIS/API round trip.
-The eight `cascade-map-landmarks` records remain from My Maps; PDF reconciliation
-and boundary replacement belong to PR 3.
+PR 3 supersedes the old eight-landmark/boundary handoff as described below.
 
 Properties distinguish allowlisted `source_properties` from normalized values
 and `derived_values` provenance. They include source segment/UUID identity,
 surface, roughness, available width in inches and geodesic `length_m`. Only one
 segment supplies difficulty; blank/zero placeholders do not become measurements.
 See the [implemented field, publication and import contract](../data/cascade-springs-gis/TRAILS.md).
+
+## Supplied PDF context selection (PR 3)
+
+The [selected layer/identity contract](../data/cascade-springs-gis/PDF-MAP.md#layer-and-identity-handoff)
+adds water, natural-area, road and building polygons, replaces the guessed boundary,
+and returns 22 reconciled landmark/source-annotation points. The complete selected
+map has seven layers/69 features. Routes, public access, bbox intersection and cache
+headers use the existing endpoints unchanged. `building` is a new logical feature
+kind; `road` also supports polygon footprints.
+
+PDF properties retain `source_dataset`, `source_file`, `source_sha256`,
+`source_group`, `source_paths` or `source_symbol`/page anchor/bbox, and positioning
+limits. Waterfall retains the complete old My Maps feature in inert
+`source_annotations`. Unmatched annotations keep original IDs, coordinates and
+HTML with explicit source labels. Clients must render descriptions as text and
+never execute source markup or fetch linked media. Difficulty remains unchanged
+by owner decision; no PDF fallback or safety semantics are added.

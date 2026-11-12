@@ -1,22 +1,10 @@
 import type { FeatureCollection } from '../modules/gis/types.js';
 import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
 import { officialTrailLayer, readOfficialTrails } from './official-trails.js';
+import { pdfMapLayers, pdfMapReplacements, readPdfMap } from './pdf-map.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
-const sourceMapDescription =
-  'User-supplied Google My Maps landmarks, retrieved 2026-11-04. Preserved until reconciliation with the supplied PDF map.';
-export const sourceMapLayers: readonly ImportLayerSpec[] = [
-  officialTrailLayer,
-  {
-    layerId: 'cascade-map-landmarks',
-    name: 'Cascade Springs landmarks (source map)',
-    layerType: 'landmark',
-    geometryType: 'Point',
-    description: sourceMapDescription,
-    source: sourceMapUrl,
-    isDemo: false,
-  },
-] as const;
+export const sourceMapLayers: readonly ImportLayerSpec[] = [officialTrailLayer, ...pdfMapLayers];
 
 /** Validate the dataset-specific ingestion contract before opening a transaction. */
 export function validateSourceMap(value: unknown): FeatureCollection {
@@ -73,20 +61,11 @@ export function validateSourceMap(value: unknown): FeatureCollection {
   return collection;
 }
 
-/** Replace only this source's two layers atomically; unrelated and demo data stay intact. */
+/** Replace all selected source layers atomically; unrelated and demo data stay intact. */
 export async function importSourceMap(connectionString: string, value: unknown): Promise<void> {
-  const source = validateSourceMap(value);
-  // The legacy command deliberately selects the supplied snapshot. It must never
-  // restore the KML's approximate trail sections, even on a fresh database.
-  const trails = readOfficialTrails();
-  const landmarks: FeatureCollection = {
-    type: 'FeatureCollection',
-    features: source.features.filter((f) => f.geometry.type === 'Point'),
-  };
-  if (landmarks.features.length !== 8)
-    throw new Error('Expected the eight preserved source landmarks');
+  validateSourceMap(value); // Archive validation only; legacy values cannot downgrade selected data.
   await replaceLayers(connectionString, 2, [
-    { layer: sourceMapLayers[0]!, collection: trails },
-    { layer: sourceMapLayers[1]!, collection: landmarks },
+    { layer: officialTrailLayer, collection: readOfficialTrails() },
+    ...pdfMapReplacements(readPdfMap()),
   ]);
 }

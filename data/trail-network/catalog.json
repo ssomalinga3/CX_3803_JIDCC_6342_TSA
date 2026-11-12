@@ -1,7 +1,7 @@
 {
   "reference": "../../docs/design/references/cascade-springs-trail-network.png",
-  "status": "trails-integrated-context-pending",
-  "note": "Park-sign transcription retained as reference. Supplied shapefile segments now provide trail geometry and names. Sign difficulty labels remain reference evidence; they are not defaults for missing segment difficulty. Context layers await PDF extraction and reconciliation.",
+  "status": "trails-and-pdf-context-integrated",
+  "note": "Park-sign transcription retained as reference. Supplied shapefile provides trails; georeferenced PDF provides context and symbols. Difficulty stays unchanged by owner decision; no route-level PDF fallback. Terrain and cell-signal integration remain pending.",
   "trails": [
     {
       "trail_id": "springs",
@@ -94,27 +94,32 @@
     {
       "layer_type": "boundary",
       "geometry_types": ["Polygon", "MultiPolygon"],
-      "status": "awaiting-gis"
+      "status": "pdf-extracted"
     },
     {
       "layer_type": "landmark",
       "geometry_types": ["Point", "MultiPoint"],
-      "status": "awaiting-gis"
+      "status": "pdf-extracted"
     },
     {
       "layer_type": "water",
       "geometry_types": ["LineString", "MultiLineString", "Polygon", "MultiPolygon"],
-      "status": "awaiting-gis"
+      "status": "pdf-extracted"
     },
     {
       "layer_type": "natural_area",
       "geometry_types": ["Polygon", "MultiPolygon"],
-      "status": "awaiting-gis"
+      "status": "pdf-extracted"
     },
     {
       "layer_type": "road",
-      "geometry_types": ["LineString", "MultiLineString"],
-      "status": "awaiting-gis"
+      "geometry_types": ["LineString", "MultiLineString", "Polygon", "MultiPolygon"],
+      "status": "pdf-extracted"
+    },
+    {
+      "layer_type": "building",
+      "geometry_types": ["Polygon", "MultiPolygon"],
+      "status": "pdf-extracted"
     }
   ],
   "landmark_kinds": [
@@ -130,7 +135,8 @@
     "waterfall",
     "trailhead",
     "junction",
-    "spring"
+    "spring",
+    "source_annotation"
   ],
   "unnamed_segments": 1
 }
