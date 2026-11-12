@@ -59,8 +59,40 @@ For device verification, open the map once with the GIS API reachable, fully
 quit the app, make the API unreachable, and reopen. Check the saved-data notice,
 layer visibility, and feature details. Reconnect and use Retry to verify
 replacement. Use a build with embedded JavaScript when testing a cold restart
-with all networking disabled. Basemap tile downloads and coverage remain
-separate work under J6-35.
+with all networking disabled.
+
+## Basemap download prototype
+
+An Android or iOS test build can set `EXPO_PUBLIC_OFFLINE_MAP_STYLE_URL` to an
+HTTPS style on a self-hosted or explicitly approved service. Confirm permission
+for every source referenced by the style, including tile sets, sprites and
+fonts. Use a versioned URL without credentials. The map and offline pack use
+the same style. With no configured style, the existing public basemap is used
+for online browsing and no download action is shown.
+
+[OpenFreeMap's public service](https://openfreemap.org/tos/) sets a per-download
+tile or byte limit, requires at most four parallel requests, and requires an
+app-specific User-Agent. The pinned MapLibre React Native offline manager
+doesn't expose parallelism or User-Agent controls in its pack API. Keep the
+prototype pointed at authorized test infrastructure.
+
+The prototype saves a single rectangular preserve-area pack at zoom levels
+13–16. The box is a test viewport, and coverage, storage budget and refresh
+policy still need review. The pinned MapLibre dependency already exposes the
+offline manager on Android and iOS. Use a compatible development build for
+online setup and a build with embedded JavaScript for a fully offline restart.
+
+1. With the public GIS API and approved style reachable, load the Map screen.
+2. Open **Choose GIS Layers** and use **Download preserve basemap**. Wait for
+   the saved message. Interrupt a second trial and check that **Resume download**
+   reuses the same pack.
+3. Disable networking, force quit, and reopen the build. Check that the
+   preserve basemap and saved GIS overlays are visible within the downloaded
+   region, that feature details still open, and that the saved-data notice
+   remains visible. Verify a clean installation separately.
+4. Repeat on Android and iOS. Record device/build, download duration, tile and
+   resource counts, storage before and after, and out-of-coverage behavior.
+   Use **Remove saved basemap** to release the test pack when finished.
 
 ## Current development API
 
