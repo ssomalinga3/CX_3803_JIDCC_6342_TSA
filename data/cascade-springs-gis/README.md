@@ -163,8 +163,11 @@ Owner authorization to integrate these files does not settle those questions.
 
 ## Foundation verification
 
-The source verifier, extraction regression tests, and locked inspector with
-`--check` pass on macOS. Original inputs are byte-for-byte copies; no converter,
-database import, native build or device check is part of this foundation.
+The source verifier, all eight extraction/integrity regression tests, and locked
+inspector with `--check` pass on macOS. An offline inspection also passed from
+a clean export of committed files with a fresh environment and cached locked
+dependencies. `pnpm verify` passed, including 57 backend tests, 91 mobile tests,
+and both platform JavaScript exports. Original inputs are byte-for-byte copies;
+no converter, database import, native build or device check is part of this foundation.
 The PR completion record in the [stack plan](../../docs/tasks/gis-data-integration-plan.md)
 records the full final checks and next starting task.

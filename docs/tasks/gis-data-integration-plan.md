@@ -521,3 +521,69 @@ Relevant existing tracking: [J6-22 trail geometry](https://gatech-team-f1s41wh9.
 J6-22 was In Progress and assigned to Theodore Halpern when inspected; reread
 Jira for current ownership. Terrain/signal work may need separate tracking;
 do not invent issue keys or mark existing items complete from this plan alone.
+
+## 11. PR 1 completion and next-agent handoff — November 11, 2026
+
+Branch: `gis/01-source-foundation`, based on `main` (`45a4ccd`). This PR also
+includes the owner's existing `AGENTS.md` engineering-ownership addition and
+this integration plan. Parent is `main`; PR 2 has not been created.
+
+Committed originals are under `data/cascade-springs-gis/sources/`:
+`CSNP_GISfiles.zip`, `CSNP Trail Map.pdf`, and `Cell Signal Strength.png`.
+The [dataset README](../../data/cascade-springs-gis/README.md) documents all paths,
+source relationships, evidence, environment setup, refresh policy and limits.
+[Manifest schema version 1](../../data/cascade-springs-gis/manifest.json) records
+original/member hashes, sizes, raw ZIP timestamps, source versus inferred dates,
+CRS/units, publication flags and extraction limits. The 20 archived files remain
+inside the original ZIP; only ignored intermediates contain an extracted copy.
+
+[Inspection evidence](../../data/cascade-springs-gis/inspection.json) confirms
+36 trail segments, 1,901 vertices, 36 public flags, unique GlobalID/SEGMENT_ID
+values, and a 4,098.856 m geodesic segment sum. It also records PDF anchors/groups,
+terrain dimensions/range/nodata/projection evidence and image dimensions. No
+features, layers, placeholder catalog entries, migrations or runtime changes
+are introduced. Existing approximate data and import commands are unchanged.
+
+[The ingestion contract](../../data/cascade-springs-gis/INGESTION.md) selects
+UUID-based feature IDs, raw-property allowlisting, missing-value handling,
+unit-bearing normalized keys, derivation evidence, explicit geometry ownership,
+publication filtering and future atomic replacement/legacy-writer requirements.
+These are implementation contracts, not resolutions of the open licensing,
+alignment, safety, pillar, PDF difficulty or raster/signal registration questions.
+
+Working inspection command from the repository root:
+
+```sh
+uv run --locked --project tools/gis python tools/gis/inspect_sources.py --check
+```
+
+Python 3.12.13 and all direct/transitive inspection dependencies are pinned in
+`tools/gis/`; uv 0.11.32 was used. Outputs are under ignored `.work/gis-data/`.
+Source hash verification and extraction tests need only Python 3.9+ standard
+library; CI now runs both independently of application checks.
+
+Verification completed:
+
+- All three preserved inputs and all 23 ZIP entries verified against the
+  manifest; all eight integrity/extraction regression tests passed.
+- Locked inspection with `--check` passed, including an offline run from a clean
+  export of committed files with a newly created environment using cached
+  dependencies. It did not read Downloads or any uncommitted source input.
+- `pnpm verify` passed: formatting, lint, typecheck, 57 backend tests, 91 mobile
+  tests, and both iOS/Android JavaScript exports. Sixteen database cases were
+  skipped by the ordinary unit suite; no database import was run for this PR.
+- Changed Markdown rendered through a CommonMark/table parser; relative file
+  links verified. The generated full-page map preview was visually inspected.
+- Final diff reviewed against the parent; `git diff --check` passed.
+
+Native compilation, iOS/Android device execution, Linux/Windows GIS dependency
+execution, field alignment, raster/signal registration, DB replacement and
+durable offline behavior were not verified by this foundation. Device/runtime
+work belongs to the corresponding later slices; the new CI job checks source
+integrity on Linux when the PR runs.
+
+Next agent: branch PR 2 from `gis/01-source-foundation`, read the dataset README
+and ingestion contract, then implement only supplied-trail conversion/import,
+legacy-command protections, related details/tests and its documented screenshots.
+Retain `cascade-map-trails` and all eight existing My Maps landmarks; leave PDF
+boundary/context and landmark reconciliation for PR 3. Recheck J6-22 ownership.
