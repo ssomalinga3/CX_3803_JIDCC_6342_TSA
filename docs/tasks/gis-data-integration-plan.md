@@ -711,6 +711,7 @@ response; do not add PDF route fallbacks in later slices without a new decision.
 
 ## PR 4 completion record
 
+PR 4: [#32](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/32) (draft).
 Branch `gis/04-terrain`, based on `gis/03-pdf-map-layers` at `7fd3a3e`, stacked on
 [PR 3 #31](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/31).
 The [terrain handoff](../../data/cascade-springs-gis/TERRAIN.md) documents source
