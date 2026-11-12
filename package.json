@@ -24,9 +24,20 @@
     "format:check": "prettier --check .",
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm bundle:check",
     "backend:setup": "pnpm --dir backend local:setup",
-    "backend:check": "pnpm --dir backend db:check && pnpm --dir backend build:worker && pnpm --dir backend test:worker"
+    "backend:check": "pnpm --dir backend db:check && pnpm --dir backend build:worker && pnpm --dir backend test:worker",
+    "build": "pnpm --dir backend cf:typegen && pnpm backend:build && pnpm --dir backend build:worker",
+    "backend:hosted:migrate": "node backend/scripts/hosted.mjs db:migrate",
+    "backend:hosted:check": "node backend/scripts/hosted.mjs db:check",
+    "backend:hosted:import": "node backend/scripts/hosted.mjs db:import:source",
+    "backend:hosted:dev": "node backend/scripts/hosted.mjs dev",
+    "backend:hosted:smoke": "node backend/scripts/check-hosted.mjs",
+    "backend:deploy": "pnpm --dir backend exec wrangler deploy --env production"
   },
   "devDependencies": {
     "prettier": "^3.9.10"
+  },
+  "dependencies": {
+    "@neon/config": "^1.14.0",
+    "@neon/env": "^2.1.3"
   }
 }
