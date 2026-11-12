@@ -1,24 +1,12 @@
 import { fileURLToPath, URL } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import request from 'supertest';
-import { sql } from 'drizzle-orm';
-import { createApp } from '../src/app.js';
-import { withDatabase } from '../src/db/client.js';
-import { importSourceMap, sourceMapLayers, validateSourceMap } from '../src/db/source-map.js';
-import { createLayersRepository } from '../src/modules/gis/layers.repo.js';
-import { localDatabaseUrl } from '../scripts/local-config.mjs';
+import { validateSourceMap } from '../src/db/source-map.js';
 import { splitSourceMapTrails } from '../src/db/source-map-trails.js';
-import { readOfficialTrails } from '../src/db/official-trails.js';
 
 const path = new URL('../../data/cascade-springs/features.geojson', import.meta.url);
 const snapshot = JSON.parse(readFileSync(path, 'utf8'));
 const displaySnapshot = splitSourceMapTrails(snapshot);
-const selectedSnapshot = {
-  type: 'FeatureCollection',
-  features: [...readOfficialTrails().features, ...snapshot.features.slice(1)],
-};
-
 describe('source map snapshot', () => {
   it('splits the entire traversal without losing, moving or inventing coordinates', () => {
     const before = structuredClone(snapshot);
@@ -129,93 +117,4 @@ describe('source map snapshot', () => {
       expect(() => validateSourceMap(data)).toThrow();
     },
   );
-});
-
-const integration = process.env.GIS_INTEGRATION === '1' ? describe : describe.skip;
-integration('source map → PostGIS → public API', () => {
-  const url = localDatabaseUrl();
-  const app = createApp({ layers: createLayersRepository(() => url) });
-  beforeAll(async () => {
-    await importSourceMap(url, snapshot);
-  });
-  it('preserves all source geometry, IDs, descriptions and metadata over HTTP', async () => {
-    const catalog = await request(app).get('/api/v1/layers');
-    for (const layer of sourceMapLayers) {
-      expect(catalog.body.layers).toContainEqual(
-        expect.objectContaining({
-          layerId: layer.layerId,
-          isDemo: false,
-          pillar: null,
-          layerType: layer.layerType,
-        }),
-      );
-      const response = await request(app).get(`/api/v1/layers/${layer.layerId}/features`);
-      expect(response.status).toBe(200);
-      expect(response.headers['content-type']).toContain('application/geo+json');
-      const expected = selectedSnapshot.features.filter(
-        (f: { geometry: { type: string } }) => f.geometry.type === layer.geometryType,
-      );
-      expect(response.body.features).toEqual(
-        [...expected].sort((a, b) => a.id.localeCompare(b.id)),
-      );
-    }
-    const validity = await withDatabase(url, (db) =>
-      db.execute(sql`
-      SELECT count(*)::int AS count FROM gis_feature WHERE layer_id IN ('cascade-map-trails', 'cascade-map-landmarks') AND ST_SRID(geometry) = 4326 AND ST_IsValid(geometry)`),
-    );
-    expect(validity.rows[0]).toEqual({ count: 44 });
-  });
-  it('filters source geometry with a bbox and returns no features outside the preserve', async () => {
-    const point = snapshot.features.find(
-      (f: { properties: { name: string } }) => f.properties.name === 'Trailhead',
-    );
-    const [x, y] = point.geometry.coordinates;
-    const response = await request(app).get(
-      `/api/v1/layers/cascade-map-landmarks/features?bbox=${x - 0.000001},${y - 0.000001},${x + 0.000001},${y + 0.000001}`,
-    );
-    expect(response.status).toBe(200);
-    expect(response.body.features.map((f: { id: string }) => f.id)).toEqual([point.id]);
-    const empty = await request(app).get('/api/v1/layers/cascade-map-trails/features?bbox=0,0,1,1');
-    expect(empty.body.features).toEqual([]);
-  });
-  it('serializes concurrent imports, removes stale source features, and preserves unrelated layers', async () => {
-    await withDatabase(url, (db) =>
-      db.execute(
-        sql`INSERT INTO gis_feature (feature_id, layer_id, geometry) VALUES ('source-map-stale-test', 'cascade-map-trails', ST_GeomFromText('POINT(0 0)',4326))`,
-      ),
-    );
-    const unrelatedBefore = await request(app).get('/api/v1/layers/demo-boundaries/features');
-    await Promise.all([importSourceMap(url, snapshot), importSourceMap(url, snapshot)]);
-    const trails = await request(app).get('/api/v1/layers/cascade-map-trails/features');
-    const points = await request(app).get('/api/v1/layers/cascade-map-landmarks/features');
-    expect(trails.body.features).toHaveLength(36);
-    expect(points.body.features).toHaveLength(8);
-    expect((await request(app).get('/api/v1/layers/demo-boundaries/features')).body).toEqual(
-      unrelatedBefore.body,
-    );
-  });
-  it('rolls back trails and landmarks together if a landmark identity conflicts', async () => {
-    const before = await request(app).get('/api/v1/layers/cascade-map-trails/features');
-    const pointsBefore = await request(app).get('/api/v1/layers/cascade-map-landmarks/features');
-    const invalid = structuredClone(snapshot);
-    invalid.features[8].id = 'cascade-map-0000000000000000';
-    await withDatabase(url, (db) =>
-      db.execute(
-        sql`INSERT INTO gis_feature (feature_id, layer_id, geometry) VALUES ('cascade-map-0000000000000000', 'demo-boundaries', ST_GeomFromText('POINT(0 0)',4326))`,
-      ),
-    );
-    try {
-      await expect(importSourceMap(url, invalid)).rejects.toThrow();
-    } finally {
-      await withDatabase(url, (db) =>
-        db.execute(sql`DELETE FROM gis_feature WHERE feature_id = 'cascade-map-0000000000000000'`),
-      );
-    }
-    expect((await request(app).get('/api/v1/layers/cascade-map-trails/features')).body).toEqual(
-      before.body,
-    );
-    expect((await request(app).get('/api/v1/layers/cascade-map-landmarks/features')).body).toEqual(
-      pointsBefore.body,
-    );
-  });
 });

@@ -1,21 +1,8 @@
 import type { FeatureCollection } from '../modules/gis/types.js';
-import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
+import { importPdfMap, pdfMapLayers, readPdfMap } from './pdf-map.js';
 
-// The hand-drawn boundary remains approximate until the PDF slice replaces it.
-// Supplied trail geometry does not upgrade this polygon's accuracy.
-export const boundaryMapSource = 'Hand-drawn estimate by the project team';
-export const boundaryMapLayers: readonly ImportLayerSpec[] = [
-  {
-    layerId: 'cascade-map-boundary',
-    name: 'Cascade Springs boundary (approximate)',
-    layerType: 'boundary',
-    geometryType: 'Polygon',
-    description:
-      'Hand-drawn approximate preserve outline supplied by the project team. Not surveyed, field-verified, or approved for navigation or property determinations. Awaiting supplied PDF boundary extraction.',
-    source: boundaryMapSource,
-    isDemo: false,
-  },
-] as const;
+// Retain legacy validation for archived inputs; publication always selects the PDF.
+export const boundaryMapLayers = pdfMapLayers.filter((layer) => layer.layerType === 'boundary');
 
 /** Validate the dataset-specific ingestion contract before opening a transaction. */
 export function validateBoundaryMap(value: unknown): FeatureCollection {
@@ -70,8 +57,8 @@ export function validateBoundaryMap(value: unknown): FeatureCollection {
   return collection;
 }
 
-/** Replace only this source's boundary layer atomically; unrelated data stays intact. */
+/** Legacy entry point selects all PDF context layers; it cannot restore the guessed boundary. */
 export async function importBoundaryMap(connectionString: string, value: unknown): Promise<void> {
-  const collection = validateBoundaryMap(value);
-  await replaceLayers(connectionString, 3, [{ layer: boundaryMapLayers[0]!, collection }]);
+  validateBoundaryMap(value);
+  await importPdfMap(connectionString, readPdfMap());
 }

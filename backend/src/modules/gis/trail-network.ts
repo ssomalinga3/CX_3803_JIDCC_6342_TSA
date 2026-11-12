@@ -15,7 +15,8 @@ export type LandmarkKind =
   | 'waterfall'
   | 'trailhead'
   | 'junction'
-  | 'spring';
+  | 'spring'
+  | 'source_annotation';
 
 interface CommonProperties {
   name: string;
@@ -49,7 +50,7 @@ export type TrailNetworkProperties = CommonProperties &
     | { feature_kind: 'landmark'; landmark_kind: LandmarkKind }
     | { feature_kind: 'boundary'; boundary_kind: 'preserve' | 'protective' }
     | { feature_kind: 'water'; water_kind: 'stream' | 'water_body' }
-    | { feature_kind: 'natural_area' | 'road' }
+    | { feature_kind: 'natural_area' | 'road' | 'building' }
   );
 
 /** Rendering/import contract; spatial validity is still checked by GIS ingestion/PostGIS. */
@@ -59,5 +60,6 @@ export const trailNetworkGeometryTypes = {
   boundary: ['Polygon', 'MultiPolygon'],
   water: ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'],
   natural_area: ['Polygon', 'MultiPolygon'],
-  road: ['LineString', 'MultiLineString'],
+  road: ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'],
+  building: ['Polygon', 'MultiPolygon'],
 } as const;

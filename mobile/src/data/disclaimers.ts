@@ -20,8 +20,8 @@ export const disclaimers: readonly Disclaimer[] = [
   },
   {
     id: 'preserve-boundary',
-    title: 'Approximate preserve boundary',
-    body: 'The preserve boundary shown on the map is a hand-drawn guess, not a surveyed or official boundary. Do not rely on it to determine property lines, access, or whether you are inside the preserve.',
+    title: 'Supplied map context and landmarks',
+    body: 'Boundary, water, natural areas, roads, buildings and landmark symbols are recovered from the supplied April 2026 map. Rounded geographic anchors and cartographic symbol placement limit positioning. The boundary is not a property survey. My Maps annotations retain their original positions; the Spring annotation has not been matched to the PDF’s Frog Pond / Spring. These may describe the same place. Route notes are historical source observations, not current navigation guidance.',
   },
   {
     id: 'not-for-navigation',

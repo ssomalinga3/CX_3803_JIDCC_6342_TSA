@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "coordinate_space": "PyMuPDF page points, upper-left origin; anchors are symbol bounding-box centers",
+  "symbols": [
+    {
+      "symbol": "wildlife-frog-pond",
+      "image_index": 0,
+      "kind": "wildlife_viewing_area",
+      "name": "Frog Pond / Spring",
+      "label": "Frog Pond / Spring; map symbol: Wildlife Viewing Area"
+    },
+    {
+      "symbol": "picnic",
+      "image_index": 1,
+      "kind": "picnic_area",
+      "name": "Picnic area"
+    },
+    {
+      "symbol": "quarry",
+      "image_index": 2,
+      "kind": "historical_site",
+      "name": "Quarry",
+      "label": "Quarry"
+    },
+    {
+      "symbol": "boilerhouse",
+      "image_index": 3,
+      "kind": "historical_site",
+      "name": "Boilerhouse and Greenhouse Ruins",
+      "label": "Boilerhouse and Greenhouse Ruins"
+    },
+    {
+      "symbol": "classroom-west",
+      "image_index": 4,
+      "kind": "outdoor_classroom",
+      "name": "Outdoor classroom (west)",
+      "label": "Outdoor Classroom"
+    },
+    {
+      "symbol": "specimen-tree",
+      "image_index": 5,
+      "kind": "specimen_tree",
+      "name": "Specimen tree"
+    },
+    {
+      "symbol": "rock-west",
+      "image_index": 6,
+      "kind": "rock_outcrop",
+      "name": "Rock outcrop (west)"
+    },
+    {
+      "symbol": "rock-east",
+      "image_index": 7,
+      "kind": "rock_outcrop",
+      "name": "Rock outcrop (east)"
+    },
+    {
+      "symbol": "rock-south",
+      "image_index": 8,
+      "kind": "rock_outcrop",
+      "name": "Rock outcrop (south)"
+    },
+    {
+      "symbol": "bailey-art",
+      "image_index": 9,
+      "kind": "cultural_feature",
+      "name": "Bailey Art Plaza",
+      "label": "Bailey Art Plaza"
+    },
+    {
+      "symbol": "waterfall",
+      "image_index": 10,
+      "kind": "waterfall",
+      "name": "Waterfall"
+    },
+    {
+      "symbol": "old-building",
+      "image_index": 11,
+      "kind": "historical_site",
+      "name": "Old Building",
+      "label": "Old Building"
+    },
+    {
+      "symbol": "parking",
+      "image_index": 12,
+      "kind": "parking",
+      "name": "Parking lot",
+      "label": "Parking Lot"
+    },
+    {
+      "symbol": "classroom-east",
+      "image_index": 13,
+      "kind": "outdoor_classroom",
+      "name": "Outdoor classroom (east)",
+      "label": "Outdoor Classroom"
+    },
+    {
+      "symbol": "bridge",
+      "kind": "bridge",
+      "name": "Bridge",
+      "vector_group": "Points of Interest"
+    }
+  ],
+  "legacy_matches": {
+    "cascade-map-d27710cc59aba83e": null,
+    "cascade-map-8d43bad44cfa5fc6": null,
+    "cascade-map-cda787c193937bd9": null,
+    "cascade-map-f7087c4bcce5c2a6": null,
+    "cascade-map-8845ea7bb151b987": null,
+    "cascade-map-6f880ce21f4df6fe": null,
+    "cascade-map-c29f2546522756cd": "waterfall",
+    "cascade-map-a5fbda05ca7ec64e": null
+  },
+  "reconciliation_notes": {
+    "cascade-map-c29f2546522756cd": "Same named waterfall, nearby coordinates; retain full My Maps feature as inert annotation on the PDF marker.",
+    "cascade-map-a5fbda05ca7ec64e": "Spring annotation is displaced from Frog Pond / Spring by over 100m. Physical identity is unresolved; retain as a source annotation explicitly labelled My Maps rather than infer a match.",
+    "unmatched": "Trailhead, junction/direction and fence observations are not the PDF's physical POI symbols; retain original IDs and coordinates. Do not promote route instructions to current navigation guidance."
+  },
+  "difficulty_policy": "No PDF fallback. Source precedence remains open; Springs is Easy on PDF vs Moderate in old sign transcription. South Utoy changes from Easy to Difficult uphill toward Battle Ridge. Do not assign this condition universally.",
+  "color_policy": "Keep PR 2 display palette and raw trail source colors; PDF context uses distinct app styles.",
+  "context_names": {
+    "csnp-pdf-water-001": {
+      "name": "South Utoy Creek",
+      "source_label_group": "ATL_Streams w name and source - Label Class 1"
+    },
+    "csnp-pdf-water-002": {
+      "name": "Turkeyfoot Creek",
+      "source_label_group": "ATL_Streams w name and source - Label Class 1"
+    }
+  }
+}

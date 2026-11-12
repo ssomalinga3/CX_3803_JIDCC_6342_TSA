@@ -35,6 +35,9 @@ try {
     'db:import:trails',
     'db:import:trails',
     'db:import:source',
+    'db:import:pdf',
+    'db:import:boundary',
+    'db:import:source',
     'test:integration',
     'test:worker',
   ]) {
