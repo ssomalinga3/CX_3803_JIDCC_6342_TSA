@@ -418,9 +418,13 @@ export default function PreserveMap() {
             <Text style={styles.note}>GIS API not configured. Basemap only.</Text>
           )}
           {gis.status === 'loading' && <Text style={styles.note}>Loading GIS layers…</Text>}
-          {gis.status === 'error' && (
+          {(gis.status === 'error' || gis.savedAt !== undefined) && (
             <View style={styles.status}>
-              <Text style={styles.note}>GIS layers unavailable. Basemap browsing still works.</Text>
+              <Text style={styles.note}>
+                {gis.savedAt !== undefined
+                  ? `Saved GIS data · ${new Date(gis.savedAt).toLocaleString()}`
+                  : 'GIS layers unavailable. Basemap browsing still works.'}
+              </Text>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Retry GIS layers"
