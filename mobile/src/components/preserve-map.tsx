@@ -15,6 +15,7 @@ import { TrailLegend } from '@/components/trail-legend';
 import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
+import { OFFLINE_STYLE } from '@/data/offline-basemap';
 import { trailPresentation } from '@/data/trail-presentation';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
@@ -24,7 +25,7 @@ const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
 const INITIAL_ZOOM = 15;
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 19;
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const MAP_STYLE = OFFLINE_STYLE ?? 'https://tiles.openfreemap.org/styles/liberty';
 type LoadState = 'loading' | 'ready' | 'unavailable';
 
 export default function PreserveMap() {
