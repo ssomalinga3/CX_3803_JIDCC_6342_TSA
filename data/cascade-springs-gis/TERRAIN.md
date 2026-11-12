@@ -146,6 +146,13 @@ Missing values/neighbors are transparent. Bands use valid cells only, polygonize
 components smaller than 16 projected square metres. Holes remain holes. These
 are generalized display bands, not exact contour lines or point measurements.
 
+Projected sampling bounds are canonicalized to one micrometre before hashing or
+warping, avoiding platform floating-point changes to the dataset identity.
+Reproduction checks require exact geometry, properties, placement and decoded
+RGBA pixels. PNG compression bytes can differ across platforms; the committed
+PNG must still match its exact published hash/size. An x86 Linux container with
+the same locked GIS libraries reproduces the macOS geometry and pixels exactly.
+
 The two PNGs and [descriptor](../../mobile/assets/terrain/terrain-assets.json)
 are bundled in mobile. GeoJSON `hillshade` polygons are non-painted image
 footprints. Their dataset version, key, image hash and exact ordered corner
@@ -162,11 +169,11 @@ network-loaded, switches stay session-only and no durable cache is introduced.
 Worker and Node runtime builds do not contain source rasters or GIS libraries;
 the import CLI reads committed files during data preparation.
 
-Current assets: terrain GeoJSON 473,766 bytes formatted / 327,743 bytes compact;
-PNGs 161,015 + 126,350 bytes (287,365 total); decoded RGBA 1,572,864 bytes total.
+Current assets: terrain GeoJSON 469,759 bytes formatted / 324,996 bytes compact;
+PNGs 161,015 + 126,348 bytes (287,363 total); decoded RGBA 1,572,864 bytes total.
 The converter rejects more than 600 KB serialized compact-style data or 300 KB
 combined PNG bytes. Node 24.21.0 measured approximately 0.7–0.8 ms median parse
-and 736 KB immediate heap allocation on this workstation. This excludes native
+and 730 KB immediate heap allocation on this workstation. This excludes native
 geometry copies, textures and rendering; it is not a device performance budget.
 
 ## Verification and handoff

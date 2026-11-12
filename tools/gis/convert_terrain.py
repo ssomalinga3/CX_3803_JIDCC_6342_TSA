@@ -189,7 +189,9 @@ def convert():
             raise ValueError("Unexpected national elevation subset")
     preserve = transform(shape(boundary()), lambda xy: [FORWARD.transform(x, y) for x, y in xy])
     minx, miny, maxx, maxy = preserve.bounds
-    bounds = (minx-8, miny-8, maxx+8, maxy+8)
+    # Canonical micrometre projected bounds prevent platform libm noise from
+    # changing the dataset identity or the GDAL sampling grid.
+    bounds = tuple(round(v, 6) for v in (minx-8, miny-8, maxx+8, maxy+8))
     review = json.loads(CONTROLS.read_text())
     matrix, residuals = fit_controls(review, boundary()["coordinates"][0])
     version_input = {
@@ -238,6 +240,53 @@ def convert():
     return json.loads(json.dumps(result, allow_nan=False)), assets
 
 
+def compare_pixels(actual, expected):
+    """Compare decoded content exactly, independent of PNG compression bytes."""
+    if actual.shape != expected.shape or actual.ndim != 3 or actual.shape[2] != 4:
+        raise ValueError("Terrain image dimensions changed")
+    if not np.array_equal(actual[:, :, 3], expected[:, :, 3]):
+        raise ValueError("Terrain image transparency changed")
+    if not np.array_equal(actual[:, :, :3], expected[:, :, :3]):
+        raise ValueError("Terrain shading changed")
+
+
+def verify_snapshot(data, assets):
+    """Validate semantic reproduction separately from immutable published bytes.
+
+    PNG compression differs by platform. Committed image bytes must still match
+    their exact published hash; candidate decoded pixels must match exactly.
+    Geometry, properties, source identity, versions and corners also remain exact.
+    """
+    expected_assets = json.loads((ASSETS / "terrain-assets.json").read_text())
+    for key in KINDS:
+        expected = expected_assets[key]
+        if file_record(ASSETS / f"{key}-hillshade.png") != {k: expected[k] for k in ("bytes", "sha256")}:
+            raise ValueError(f"Published {key} image bytes do not match their descriptor")
+        if {k: v for k, v in assets[key].items() if k not in ("bytes", "sha256")} != {
+            k: v for k, v in expected.items() if k not in ("bytes", "sha256")
+        }:
+            raise ValueError(f"Terrain {key} source/version/placement changed")
+        with Image.open(WORK / f"{key}-hillshade.png") as candidate, Image.open(ASSETS / f"{key}-hillshade.png") as published:
+            compare_pixels(np.asarray(candidate.convert("RGBA")), np.asarray(published.convert("RGBA")))
+    expected_data = json.loads(OUTPUT.read_text())
+    if len(data["features"]) != len(expected_data["features"]):
+        raise ValueError("Terrain feature count changed")
+    for actual, expected in zip(data["features"], expected_data["features"]):
+        props = actual["properties"].copy()
+        if props["feature_kind"] == "hillshade":
+            key = props["raster_key"]
+            if props["raster_sha256"] != assets[key]["sha256"]:
+                raise ValueError("Candidate image hash does not match its properties")
+            props["raster_sha256"] = expected_assets[key]["sha256"]
+            if actual["geometry"] != expected["geometry"]:
+                raise ValueError("Terrain image footprint changed")
+        else:
+            if actual["geometry"] != expected["geometry"]:
+                raise ValueError("Terrain band geometry changed")
+        if actual["id"] != expected["id"] or actual["type"] != expected["type"] or props != expected["properties"]:
+            raise ValueError("Terrain identity/properties changed")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -247,11 +296,7 @@ def main():
         data, assets = convert()
         descriptor = ASSETS / "terrain-assets.json"
         if args.check:
-            if data != json.loads(OUTPUT.read_text()) or assets != json.loads(descriptor.read_text()):
-                raise ValueError("Terrain snapshot differs; regenerate and review")
-            for key in KINDS:
-                if file_record(ASSETS / f"{key}-hillshade.png") != file_record(WORK / f"{key}-hillshade.png"):
-                    raise ValueError(f"Bundled {key} hillshade differs")
+            verify_snapshot(data, assets)
         else:
             ASSETS.mkdir(parents=True, exist_ok=True)
             OUTPUT.write_text(json.dumps(data, indent=2) + "\n")
