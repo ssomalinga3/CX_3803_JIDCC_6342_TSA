@@ -51,6 +51,14 @@ The ER table above remains a transcription of S1. The implementation schema must
 
 These are confirmed behavior/schema requirements, while column names, recipient relations, and guest access credentials remain implementation choices under D-01/D-03/D-07.
 
+The J6-28 persistence draft uses a unique client submission UUID, an account
+identifier or report-scoped guest digest, a request digest, and ordered private
+object references. The accepted row keeps the effective routing mode and
+recipient addresses together. The internal repository records the report and
+its image references in one transaction, and returns only receipt fields on a
+matching authorized replay. No report routes are registered. J6-27 approval
+still governs the guest credential and replay contract before API integration.
+
 The diagram does not define all nullability, lengths, deletion rules, timestamp timezone semantics, or indexes. Proposed constraints are foreign-key integrity, controlled pillar/status values, valid spatial geometries, and spatial indexes for viewport queries. Record the final constraints in migrations and shared contracts.
 
 S3 introduces requirements not fully modeled in S1: duplicate-safe submission identity, durable notification delivery, history/safety content, and report exports. S4 additionally requests report follow-ups and multiple/custom recipients. Do not imply that the nine-table diagram already supports these. D-03, D-05, and D-07 track the needed schema decisions; no additional entity is approved by this document alone.
