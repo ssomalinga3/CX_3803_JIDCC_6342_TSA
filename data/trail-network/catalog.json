@@ -1,77 +1,95 @@
 {
   "reference": "../../docs/design/references/cascade-springs-trail-network.png",
-  "status": "awaiting-gis",
-  "note": "Photo transcription for planning. Names, difficulty labels and approximate color names require reconciliation with incoming GIS. No coordinates or measured lengths are supplied. The sign includes an asterisk for Turkeyfoot/Utoy Creek Trail and a reroute note; verify current routing and conditions with the provider.",
+  "status": "trails-integrated-context-pending",
+  "note": "Park-sign transcription retained as reference. Supplied shapefile segments now provide trail geometry and names. Sign difficulty labels remain reference evidence; they are not defaults for missing segment difficulty. Context layers await PDF extraction and reconciliation.",
   "trails": [
     {
       "trail_id": "springs",
       "name": "Springs Trail",
       "sign_difficulty": "moderate",
       "sign_color": "orange",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 1
     },
     {
       "trail_id": "white-oak",
       "name": "White Oak Trail",
       "sign_difficulty": "moderate",
       "sign_color": "light-blue",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 5
     },
     {
       "trail_id": "bigleaf-magnolia",
       "name": "Bigleaf Magnolia Trail",
       "sign_difficulty": "moderate",
       "sign_color": "dark-green",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 1
     },
     {
       "trail_id": "turkeyfoot-utoy-creek",
       "name": "Turkeyfoot/Utoy Creek Trail",
       "sign_difficulty": "easy",
       "sign_color": "blue",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 11
     },
     {
       "trail_id": "battle-ridge",
       "name": "Battle Ridge Trail",
       "sign_difficulty": "moderate",
       "sign_color": "pink",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 5
     },
     {
       "trail_id": "west",
       "name": "West Trail",
       "sign_difficulty": "difficult",
       "sign_color": "red",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 6
     },
     {
       "trail_id": "terrace",
       "name": "Terrace Trail",
       "sign_difficulty": "moderate",
       "sign_color": "purple",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 2
     },
     {
       "trail_id": "gateway",
       "name": "Gateway Trail",
       "sign_difficulty": "easy",
       "sign_color": "white",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 3
     },
     {
       "trail_id": "spur",
       "name": "Spur Trails",
       "sign_difficulty": null,
       "sign_color": "black",
-      "status": "awaiting-gis"
+      "status": "supplied-gis",
+      "source_dataset": "csnp-official-trails",
+      "segment_count": 1
     }
   ],
   "layers": [
     {
       "layer_type": "trail",
       "geometry_types": ["LineString", "MultiLineString"],
-      "status": "awaiting-gis"
+      "status": "supplied-gis"
     },
     {
       "layer_type": "boundary",
@@ -113,5 +131,6 @@
     "trailhead",
     "junction",
     "spring"
-  ]
+  ],
+  "unnamed_segments": 1
 }

@@ -1,5 +1,9 @@
 # Supplied Cascade Springs GIS sources
 
+**Current integration:** [PR 2 supplied trails](TRAILS.md) now replaces active
+approximate trail geometry. The preservation notes below describe PR 1; original
+inputs and their manifest remain unchanged.
+
 PR 1 of the [integration stack](../../docs/tasks/gis-data-integration-plan.md).
 The project owner authorized integration of the supplied files on November 11, 2026. This package preserves evidence and defines the ingestion handoff; it does
 not import data, publish layers, change the API, or change the mobile map.
@@ -66,7 +70,7 @@ Python 3.9+ and its standard library:
 
 ```sh
 python3 tools/gis/source_package.py verify
-python3 -m unittest discover -s tools/gis -p 'test_*.py'
+python3 -m unittest discover -s tools/gis -p 'test_source_package.py'
 python3 tools/gis/source_package.py extract
 ```
 

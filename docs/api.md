@@ -103,6 +103,9 @@ production transport remains required; local HTTP is development only.
 
 ## Approximate source trail names
 
+This is the historical November 4 behavior, superseded by the supplied-trail
+selection below. The KML snapshot and section mapping remain archival evidence.
+
 Re-importing the source map now publishes ten derived LineStrings and eight
 landmark Points through the same endpoints and stable layer IDs. Seven trail
 identities are approximate sign matches. Named sections include `feature_kind:
@@ -113,3 +116,18 @@ Unassigned connections have `name_assignment: unassigned` and no `trail_id`;
 clients must not infer missing names, difficulty or route completeness. Existing
 source description/provenance fields remain intact. See the
 [review table](../data/cascade-springs/README.md#approximate-trail-sections).
+
+## Supplied trail selection (PR 2)
+
+`cascade-map-trails` now returns 36 supplied shapefile segments under stable
+GlobalID-based IDs, replacing approximate sections. Endpoints, visibility, bbox
+semantics and cache headers remain unchanged. GeoJSON serialization now uses
+up to 15 decimal places so converted vertices survive the PostGIS/API round trip.
+The eight `cascade-map-landmarks` records remain from My Maps; PDF reconciliation
+and boundary replacement belong to PR 3.
+
+Properties distinguish allowlisted `source_properties` from normalized values
+and `derived_values` provenance. They include source segment/UUID identity,
+surface, roughness, available width in inches and geodesic `length_m`. Only one
+segment supplies difficulty; blank/zero placeholders do not become measurements.
+See the [implemented field, publication and import contract](../data/cascade-springs-gis/TRAILS.md).

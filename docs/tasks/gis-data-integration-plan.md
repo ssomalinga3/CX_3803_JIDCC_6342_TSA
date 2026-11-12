@@ -1,7 +1,8 @@
 # Supplied GIS data integration: stacked PR plan
 
-Prepared November 11, 2026. Status: **PR 1 source foundation implemented; PRs 2–5 planned**.
-No datasets have been imported by this work. This document is the handoff for
+Prepared November 11, 2026. Status: **PRs 1–2 implemented; PRs 3–5 planned**.
+PR 2 imports supplied trail segments; the original source-preservation slice
+did not import datasets. This document is the handoff for
 fresh agents implementing the stack; it is not evidence that the proposed
 behavior or verification is already complete.
 
@@ -326,7 +327,9 @@ the later converters simply to make the foundation appear complete.
 ## 6. PR 2: supplied trails
 
 **Deliverable:** official-source trail segments replace approximate route geometry
-through PostGIS, API, and the existing map.
+through PostGIS, API, and the existing map. Implemented in
+[the supplied-trail record](../../data/cascade-springs-gis/TRAILS.md); scope and
+acceptance below retain the original planned requirements.
 
 - Convert all published segments from EPSG:3857 to 4326, preserving vertices and
   source identity. Avoid snapping, merging, or simplifying away topology without
@@ -587,3 +590,50 @@ and ingestion contract, then implement only supplied-trail conversion/import,
 legacy-command protections, related details/tests and its documented screenshots.
 Retain `cascade-map-trails` and all eight existing My Maps landmarks; leave PDF
 boundary/context and landmark reconciliation for PR 3. Recheck J6-22 ownership.
+
+## 12. PR 2 completion and PR 3 handoff
+
+Branch: `gis/02-official-trails`, parent `gis/01-source-foundation`
+([PR #29](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/29)).
+The [supplied-trail record](../../data/cascade-springs-gis/TRAILS.md) documents
+exact regeneration/import commands, feature IDs, layer IDs, route-family mapping,
+source attributes/units, legacy replacement policy, verification and screenshots.
+
+Committed output: `data/cascade-springs-gis/trails.geojson`; shared mapping/raw-field
+contract: `trail-contract.json` in the same directory. Conversion lives in
+`tools/gis/convert_trails.py`, using PR 1's pinned environment and verified archive.
+All 36 source segments/1,901 vertices are retained; nine named app families and
+one unnamed segment share the existing trail renderer. GeoJSON API serialization
+uses 15 decimal places to preserve the transformed coordinates. Raw source fields
+remain separate from unit-bearing normalized values and derived length/mapping.
+
+The combined `db:import:source` now selects supplied trails plus eight My Maps
+landmarks; `db:import:trails` replaces only trails. Both serialize on `(6342, 2)`.
+The shared helper requires explicit per-layer collections and rejects duplicate
+assignments/unsupported geometry. Fresh-DB setup and CI exercise both entry
+points; KML conversion/approximate section code remain archive-only. The boundary
+and its lock `(6342, 3)` remain separate for PR 3.
+
+Fourteen Python tests and conversion reproducibility passed on macOS; the source
+and conversion suite also passed on Linux with Python 3.12.12 and the same locked
+GIS dependencies. Converted coordinates use 12 decimal degrees with a `2e-12`
+degree reproducibility tolerance for platform math; all other values match exactly.
+Disposable PostGIS
+checks passed 96 backend tests and real Worker HTTP/failure checks, including
+mixed concurrent replay, stale cleanup, rollback, bbox and public access. All
+97 mobile tests, lint/typecheck, backend/Worker builds passed. Existing iPhone 16
+Plus / iOS 18.6 displayed 45 features (36 trails + eight landmarks + boundary),
+source labels, palette/Gateway casing and hide/show with camera preservation.
+See the dataset record for screenshots, workspace verification and final checks.
+
+Android native execution, new native compilation, manual permission denial,
+native feature-sheet tapping, field alignment and durable offline restart/retry
+remain unverified. Coordinate taps were blocked by the computer-use service's
+`noWindowsAvailable` error; accessibility controls and automated selection tests
+worked. No PDF difficulty fallback, new pillar mapping or safety approval is
+introduced. J6-22 was still assigned to Theodore Halpern and In Progress.
+
+Next: branch PR 3 from `gis/02-official-trails`; extract/reconcile PDF context,
+boundary and landmarks while preserving the supplied trail IDs and shared lock
+policy. Coordinate its landmark replacement with the combined source importer.
+PDF difficulty precedence, licensing and registration questions remain open.

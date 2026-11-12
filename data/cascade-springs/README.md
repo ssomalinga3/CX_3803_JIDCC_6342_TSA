@@ -1,5 +1,11 @@
 # Cascade Springs source map
 
+**Current selection (PR 2):** `db:import:source` publishes 36 supplied shapefile
+segments plus these eight unchanged My Maps landmarks. It cannot restore the
+approximate sections described in this historical record. See
+[current commands and replacement policy](../cascade-springs-gis/TRAILS.md).
+The original KML/GeoJSON and approximate-section helper remain archival evidence.
+
 Snapshot supplied for this project by the project owner on November 4, 2026.
 Related work: [J6-22](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-22),
 [J6-13](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-13), and

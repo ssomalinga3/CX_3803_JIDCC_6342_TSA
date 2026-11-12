@@ -21,7 +21,14 @@ jobs:
       - name: Verify original GIS source bytes and archive inventory
         run: python3 tools/gis/source_package.py verify
       - name: Source integrity and safe extraction regression checks
-        run: python3 -m unittest discover -s tools/gis -p 'test_*.py'
+        run: python3 -m unittest discover -s tools/gis -p 'test_source_package.py'
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.11.32'
+      - name: Supplied trail conversion regression and reproducibility checks
+        run: |
+          uv run --locked --project tools/gis python -m unittest discover -s tools/gis -p 'test_convert_trails.py'
+          uv run --locked --project tools/gis python tools/gis/convert_trails.py --check
 
   verify:
     runs-on: ubuntu-latest
@@ -95,6 +102,8 @@ jobs:
         run: pnpm --dir backend db:seed && pnpm --dir backend db:seed
       - name: Import source map (twice to verify repeatability)
         run: pnpm --dir backend db:import:source && pnpm --dir backend db:import:source
+      - name: Replay supplied trails and verify legacy command selects them
+        run: pnpm --dir backend db:import:trails && pnpm --dir backend db:import:source
       - name: Jest integration against PostGIS
         run: pnpm --dir backend test:integration
       - name: Build and test the Worker against PostGIS
