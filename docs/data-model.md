@@ -88,6 +88,15 @@ are inferred.
 
 ## Future full trail-network attributes
 
+The [November 11 supplied-source foundation](../data/cascade-springs-gis/README.md)
+preserves the incoming shapefile, map PDF, terrain and signal image without
+changing the database or public catalog. Its [ingestion contract](../data/cascade-springs-gis/INGESTION.md)
+defines the next import's UUID-based segment identity, allowlisted raw properties,
+normalized fields with units, publication flags and per-value derivation evidence.
+This is an implementation handoff; runtime validation/type extensions and atomic
+replacement of approximate trails belong to PR 2 of the integration stack.
+No new physical tables, inferred pillars, or empty placeholder layers are added.
+
 The [trail-network contract](design/trail-network.md#storage-and-exchange) defines
 shared typed properties for named route segments, difficulty, color, landmarks,
 preserve/protective boundaries, water, natural areas and roads. These fit the

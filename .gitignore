@@ -30,6 +30,11 @@ credentials.json
 *.log
 .DS_Store
 
+# Reproducible GIS inspection environment and intermediates
+/.work/gis-data/
+/tools/gis/.venv/
+__pycache__/
+
 # Workers local state and secret overrides
 .wrangler/
 .dev.vars
