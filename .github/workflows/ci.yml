@@ -13,6 +13,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  gis-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify original GIS source bytes and archive inventory
+        run: python3 tools/gis/source_package.py verify
+      - name: Source integrity and safe extraction regression checks
+        run: python3 -m unittest discover -s tools/gis -p 'test_*.py'
+
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20

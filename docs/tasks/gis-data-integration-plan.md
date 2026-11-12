@@ -1,0 +1,523 @@
+# Supplied GIS data integration: stacked PR plan
+
+Prepared November 11, 2026. Status: **PR 1 source foundation implemented; PRs 2–5 planned**.
+No datasets have been imported by this work. This document is the handoff for
+fresh agents implementing the stack; it is not evidence that the proposed
+behavior or verification is already complete.
+
+The project owner requested integration of all data in
+`/Users/theohalpern/Downloads/GIS-Data`, explicitly allowing creative extraction,
+then requested a data review and this plan before implementation. Use five
+stacked draft PRs. Preserve source evidence and distinguish direct GIS data from
+derived or approximately aligned content throughout ingestion and presentation.
+
+## 1. Start here for every fresh agent
+
+1. Read repository [AGENTS.md](../../AGENTS.md), run `git status --short`, and
+   inspect the intended parent branch. Preserve unrelated edits. The owner
+   explicitly included the existing `AGENTS.md` engineering-ownership addition
+   in PR 1.
+2. Read the [specification index](../README.md), [architecture](../architecture.md),
+   [data model](../data-model.md), [API](../api.md), [security](../security.md),
+   [offline GIS](../offline-gis.md), [UI specification](../design/ui-spec.md),
+   [user flows](../design/user-flows.md), and [decisions](../decisions.md).
+   For mobile edits also read [mobile/AGENTS.md](../../mobile/AGENTS.md).
+3. Read this plan, your PR section, and the preceding PR's final handoff. Check
+   actual code rather than assuming the historical plans describe current code.
+4. Consult the relevant Jira items for current scope/ownership and Figma for UI
+   changes. Do not broadly repeat the source investigation or search unrelated
+   systems. Follow focused documentation when a library/API requires it.
+5. Outline your implementation, affected contracts, and checks before editing.
+   Implement only the assigned slice, including its tests and documentation.
+
+Use the pinned Node and pnpm versions from `.nvmrc` and root `package.json`
+(24.21.0 and 10.26.2 at inspection). Keep one root pnpm lockfile. Extraction
+dependencies belong in development tooling, not the mobile runtime. No new
+physical GIS tables are expected: D-12 already selects generic GIS tables.
+
+### Reusable scripts and working files
+
+The project owner prefers reusable, maintainable scripts over one-off commands
+for repeatable work. Commit extraction, conversion, validation, and diagnostic
+overlay generation as named scripts with documented inputs, outputs, and useful
+failure messages. Support reruns and fixes without reconstructing inline shell
+or Python from conversation history. Keep narrow exploratory commands lightweight;
+do not build a general framework for a single inspection.
+
+Use a documented, repository-local working directory (for example,
+`.work/gis-data/`, with an appropriate ignore rule) for regenerable intermediates.
+Keep source artifacts, final derived datasets, registration controls, and review
+evidence in durable, documented locations as specified by each PR. Do not put
+handoff dependencies or work that should survive interruption in `/tmp`. Reserve
+system temporary directories for truly ephemeral files, such as a disposable
+Markdown-render preview or a library scratch file; no subsequent task should
+depend on their survival. Add cleanup behavior only for outputs owned by the tool.
+
+## 2. PR stack and ownership boundaries
+
+Use a linear stack so each agent has one explicit parent and each PR diff covers
+only its own change. Names below are proposed branch names, not existing branches.
+
+| Order | Proposed branch            | PR title                                                | Base           |
+| ----- | -------------------------- | ------------------------------------------------------- | -------------- |
+| 1     | `gis/01-source-foundation` | Preserve supplied GIS sources and ingestion contracts   | Current `main` |
+| 2     | `gis/02-official-trails`   | Replace approximate trails with supplied trail segments | PR 1 branch    |
+| 3     | `gis/03-pdf-map-layers`    | Extract and integrate georeferenced map layers          | PR 2 branch    |
+| 4     | `gis/04-terrain`           | Integrate elevation and aligned hillshade               | PR 3 branch    |
+| 5     | `gis/05-cell-signal`       | Recover approximate cell-signal observations            | PR 4 branch    |
+
+Create new PRs as drafts, targeting their immediate parent branch. Each body
+links its parent and this plan, the relevant J6 issues, changed behavior, checks,
+remaining uncertainties, and UI screenshots where applicable. Tests ship with
+the behavior they verify; there is no separate final testing PR.
+
+Merge from the bottom of the stack upward. After a parent lands, restack the
+remaining branches onto the resulting commits, retarget the next PR, and inspect
+its diff for accidentally included ancestor changes. Account for squash merges;
+do not assume ancestor commit hashes survived. Do not rewrite another agent's
+active branch or force-push without coordinating ownership. Keep small rebase
+fixes in the existing PR; substantial scope changes should return it to draft.
+
+PRs 4 and 5 are logically independent after PR 3. If a terrain decision blocks
+PR 4, PR 5 can be deliberately rebased onto PR 3 and its dependency updated;
+uncertain raster work need not block the vector-data improvements.
+
+## 3. Source inventory already inspected
+
+Original folder:
+
+```text
+/Users/theohalpern/Downloads/GIS-Data/
+  CSNP_GISfiles.zip
+  CSNP Trail Map.pdf
+  Cell Signal Strength.png
+  CSNP/
+    OfficialTrailsCSNP.{shp,shx,dbf,prj,cpg,sbn,sbx,shp.xml}
+    HillshadeCSNP.png
+    csnp_dtm_2015/*.adf
+    info/*
+```
+
+All 20 files in the ZIP were compared with the extracted directory and were
+byte-for-byte identical. The ZIP is about 20.4 MB; its contents are about 33.3 MB.
+The two loose PDF/signal files are additional inputs. Do not commit both the ZIP
+and its complete extracted duplicate. Preserve the original inputs unchanged;
+compute hashes in PR 1 rather than inventing hashes from this plan. Future agents
+must not depend on this user's Downloads directory once the source PR lands.
+
+### Official trails
+
+- Shapefile export metadata: April 9, 2026; CRS **EPSG:3857**, confirmed by both
+  `.prj` and XML metadata. Reproject to longitude/latitude, SRID 4326.
+- **36 single-part polylines, 1,901 vertices**. Geometry-derived geodesic total
+  length is approximately **4,098.86 m**; this is a sum of segments, not a named
+  hiking itinerary or surveyed mileage.
+- Approximate WGS84 bounds: west `-84.4832749214`, south `33.7152277945`,
+  east `-84.4755936870`, north `33.7197267975`.
+
+| Source `TRL_NM`        | Segment count |
+| ---------------------- | ------------: |
+| Turkeyfoot Creek Trail |             6 |
+| West Trail             |             6 |
+| White Oak Trail        |             5 |
+| Battle Ridge Trail     |             5 |
+| South Utoy Creek Trail |             5 |
+| Gateway Trail          |             3 |
+| Terrace Trail          |             2 |
+| Bigleaf Magnolia Trail |             1 |
+| Springs Trail          |             1 |
+| Big Beech Spur         |             1 |
+| Blank name             |             1 |
+
+Useful fields: `TRL_NM`, `TrailColor`, `AVG_WIDTH`, `PARK_ID`, `TRL_ID`,
+`SEGMENT_ID`, `GlobalID`, `SURFACE`, `ROUGHNESS`, `NOTES`, `Difficulty`,
+`PublishTra`, and source length/grade/date fields. All 36 `PublishTra` values are
+`TRUE`; the XML aliases this field as “Show Trail on Public Map?”. Preserve the
+flag and validate it; future non-public rows must not leak into public imports.
+
+- `SEGMENT_ID` and `GlobalID` identify segments. `TRL_ID` is not a reliable
+  named-route grouping: Bigleaf Magnolia and some White Oak segments reuse the
+  Springs ID; other named trails also share IDs. Preserve exact source IDs and
+  names separately from any normalized app route/color family.
+- Surfaces: 29 Bare Soil, 4 Asphalt, 2 Organic Litter, 1 Concrete.
+- Roughness: 26 Intermediate, 5 Rough, 5 Smooth. Do not equate roughness with
+  difficulty.
+- `AVG_WIDTH` is mean tread width in **inches**, per the XML export field alias;
+  33 segments have nonzero values. Three zero values need missing-value handling.
+- Fourteen segments have notes about boardwalks, crossings, erosion, paving,
+  drainage, or other conditions. These are source observations, not live alerts.
+- Only Big Beech Spur has `Difficulty: Easy`, nonzero `GRADE`, and nonzero
+  `LENGTH_MI`. The other 35 difficulty values are blank. `ELEV_GAIN`,
+  `AvgSegment`, and `Shape__L_1` are zero throughout; `USE_LEVEL` is blank.
+  Do not publish placeholders as established measurements.
+- Source color codes include BLUE, TGRE, PURP, WHIT, GOLD, AQUA, MAG, ORAN, BLAC.
+  West Trail is ORAN; our existing mobile token is red. Keep source values even
+  if the display palette initially remains unchanged.
+
+### Georeferenced PDF
+
+`CSNP Trail Map.pdf` is a one-page PDF created by ArcGIS Pro on April 14, 2026,
+with a 1,584 by 2,448 point page. It contains optional-content groups and vector
+drawing commands, plus raster landmark icons and terrain imagery. It is not a
+flattened scan, so start with embedded georeferencing and paths instead of OCR
+or manual tracing.
+
+Named content includes `Park Boundaries`, `Natural Areas`, `Bodies of Water`,
+`Roads`, `Buildings`, `Trails`, `Points of Interest`, and labels. Inspection found
+one boundary drawing, five natural-area drawings, 32 road drawings, four building
+drawings, and duplicated water drawing passes. **Drawing counts are not final
+GIS feature counts**: paths may contain multiple rings, holes, or repeated strokes.
+
+Georeferencing evidence from the page's `/VP` entry:
+
+```text
+/BBox: [0.000000002, 281.286115, 1584, 1931.2693]
+/Measure /Subtype: /GEO
+/LPTS: [0, 0, 0, 1, 1, 1, 1, 0]
+/GPTS: [33.71163, -84.48437,
+        33.72051, -84.48437,
+        33.72051, -84.47412,
+        33.71163, -84.47412]
+```
+
+The geographic pairs here are **latitude then longitude**. PDF page coordinates
+and PyMuPDF drawing coordinates have different vertical origins. Read the
+embedded projected WKT, handle the coordinate spaces explicitly, and verify
+registration against the shapefile; do not blindly interpolate latitude as if it
+were projected northing. Rounded geographic anchors limit registration precision.
+
+The map shows 15 landmark symbols: one parking, one bridge, one picnic area,
+two outdoor classrooms, three historical sites, one cultural feature, three rock
+outcrops, one specimen tree, one wildlife-viewing area, and one waterfall.
+Fourteen symbols are raster placements; the bridge is composed of vector pieces.
+Named labels include Bailey Art Plaza, Boilerhouse and Greenhouse Ruins, Quarry,
+Old Building, and Frog Pond / Spring. Symbols have cartographic size and potential
+displacement; their recovered anchor is not automatically a surveyed point.
+
+Important extraction traps:
+
+- The same icon images appear in the legend. Legends overlap the geographic
+  viewport, so a viewport-only filter will not exclude every legend symbol.
+  Respect content groups and inspect a diagnostic overlay.
+- Preserve polygon holes and disconnected parts. Deduplicate fill/outline and
+  repeated water passes; do not count each paint command as a new feature.
+- Clip geographic content appropriately and exclude decorative page furniture.
+  Flatten curves only with a documented error tolerance.
+- PDF trail paths duplicate the shapefile's subject matter. Prefer the
+  shapefile for trail geometry; use the PDF as context and reconciliation evidence.
+- The PDF labels Springs Trail **Easy**, while the earlier sign transcription in
+  this repository says Moderate. Turkeyfoot/Utoy is Easy with an uphill exception
+  to Difficult on South Utoy toward Battle Ridge. Do not flatten that condition
+  into a universal difficulty default.
+
+### Elevation and hillshade
+
+`csnp_dtm_2015` is a readable Esri Arc/Info binary grid (GDAL AIG driver):
+
+- 3,369 columns by 2,178 rows; 7,337,682 valid float32 cells in the inspected grid.
+- Approximately 2-foot horizontal cell spacing; elevation range **809.32–1,037.27
+  feet**. Source vertical reference says NAVD88 height in US survey feet.
+- Horizontal projection is Transverse Mercator, GRS80 ellipsoid, central meridian
+  `-84°10′`, latitude of origin `30°`, scale `0.9999`, false easting `700000 m`,
+  with grid coordinates in US survey feet. The horizontal datum is not fully
+  identified. Do not silently assign an EPSG datum or certify a ballpark transform.
+- Filename suggests 2015; no independent acquisition-date evidence was found.
+- The `info` directory is supporting Esri data, not another map layer. Keep the
+  original grid/supporting files together when extracting the archive.
+
+`HillshadeCSNP.png` is 1,156 by 776 pixels with colored relief and a preserve
+outline. Its PNG metadata has color/DPI information, but no geographic transform;
+no world file was supplied. Do not stretch it to the DTM bounds merely because
+both depict the preserve. Registration against shared boundary/terrain evidence
+needs explicit controls and a diagnostic overlay.
+
+### Cell-signal screenshot
+
+`Cell Signal Strength.png` is 932 by 662 pixels, without embedded georeferencing.
+It contains colored point observations and landmark annotations. Legend classes:
+`< -120`, `-120–-117`, `-117–-113`, `-113–-108`, `> -108`.
+
+There are no raw coordinates, exact readings, explicit measurement units,
+carrier, device, or survey date. Do not assert dBm, interpolate a precise coverage
+surface, or infer current connectivity from the image. Recoverable point counts
+have not been established. Marker overlap/occlusion limits extraction completeness.
+
+## 4. Existing implementation and files to use
+
+| Location                                                                                                                                                       | What matters for this stack                                                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| [GIS schema](../../backend/src/db/schema.ts)                                                                                                                   | Generic layers/features; text IDs, JSON properties, valid nonempty SRID 4326 geometry, spatial index.                                          |
+| [Shared public types](../../backend/src/modules/gis/types.ts)                                                                                                  | Catalog and GeoJSON contract; keep mobile imports type-only.                                                                                   |
+| [Trail-network properties](../../backend/src/modules/gis/trail-network.ts)                                                                                     | Existing feature families and optional route attributes; extend deliberately if needed.                                                        |
+| [Shared importer](../../backend/src/db/gis-import.ts)                                                                                                          | `replaceLayers` transaction and advisory locks; currently selects features by geometry type alone.                                             |
+| [Legacy source importer](../../backend/src/db/source-map.ts) and [section mapping](../../backend/src/db/source-map-trails.ts)                                  | `cascade-map-trails`: ten approximate sections; `cascade-map-landmarks`: eight original My Maps points.                                        |
+| [Boundary importer](../../backend/src/db/boundary-map.ts)                                                                                                      | `cascade-map-boundary`: hand-drawn provisional polygon; separate from synthetic demo data.                                                     |
+| [Demo seed](../../backend/src/db/demo-seed.ts)                                                                                                                 | Explicit synthetic `demo-boundaries` layer; preserve its test role and keep source-only setup separate.                                        |
+| [Layers repository](../../backend/src/modules/gis/layers.repo.ts)                                                                                              | Public-only reads and `ST_Intersects` bbox filtering; spatial SQL stays here/data access.                                                      |
+| [Source inventory](../../data/cascade-springs/README.md)                                                                                                       | Old KML provenance, approximate section derivation, prior checks. Retain historical source artifacts.                                          |
+| [Planning catalog](../../data/trail-network/catalog.json) and [trail reference](../design/trail-network.md)                                                    | Currently marked awaiting GIS; update arrival status without claiming missing families are delivered.                                          |
+| [Mobile GIS loader](../../mobile/src/data/gis.ts)                                                                                                              | Runtime validation, same-origin feature paths, combined feature IDs, full in-memory snapshot and bounds.                                       |
+| [Map state](../../mobile/src/hooks/map-gis-context.tsx) and [visibility filtering](../../mobile/src/data/layer-visibility.ts)                                  | Shared snapshot; draft switches apply with Done; visibility is session-only; new IDs currently default visible.                                |
+| [Native map](../../mobile/src/components/preserve-map.tsx)                                                                                                     | Currently paints all polygons as purple boundaries, points blue, and lines as trails. Must distinguish new feature families.                   |
+| [Trail presentation](../../mobile/src/data/trail-presentation.ts) and [palette](../../mobile/src/constants/trail-colors.ts)                                    | All line geometries currently contribute to trail styling/legend; known route IDs determine tokens.                                            |
+| [Feature details](../../mobile/src/data/feature-details.ts)                                                                                                    | Allowlisted plain text, inert HTML conversion; currently shows difficulty, surface, length, provenance.                                        |
+| [Layer chooser](../../mobile/src/components/layer-selection-screen.tsx)                                                                                        | Existing type descriptions cover only trail/boundary/landmark. Extend for incoming families.                                                   |
+| [Disclaimers](../../mobile/src/data/disclaimers.ts)                                                                                                            | Caveats are consolidated in the Disclaimers tab per existing UI policy.                                                                        |
+| [CI](../../.github/workflows/ci.yml), [fresh DB runner](../../backend/scripts/test-fresh-database.mjs), [Worker checks](../../backend/scripts/test-worker.mjs) | Currently replay legacy imports and expect ten trail sections/eight landmarks with seven approximate identities. Update alongside replacement. |
+
+Important design constraints:
+
+- `replaceLayers` cannot safely import roads, water, and trails from one mixed
+  collection using geometry type alone: several layers share geometry types.
+  Give each layer an explicit feature selection/collection, reject omissions and
+  accidental duplicate assignment, and keep related replacement atomic. Avoid
+  unnecessary framework construction.
+- Existing lock keys are `(6342, 1)` demo, `(6342, 2)` source map, and `(6342, 3)`
+  boundary. Coordinate locks/ownership when new and legacy commands touch the
+  same layers; distinct advisory locks do not serialize conflicting writers.
+- Favor retaining `cascade-map-trails` and `cascade-map-boundary` IDs when replacing
+  those datasets. Feature IDs should follow source identity. Any different choice
+  needs explicit supersession handling, not two overlapping public networks.
+- Updating imports alone is insufficient: old commands, fresh-DB setup, or CI
+  must not silently downgrade supplied data back to approximations. Define and
+  test the selected-source/legacy-command behavior in PRs 2 and 3.
+- No persistent offline GIS cache is implemented. Bundled assets or HTTP freshness
+  headers do not establish offline layer snapshots, first-launch map coverage,
+  report retries, or restart behavior. Do not expand into that separate project.
+- Pillars remain nullable pending D-05. Do not invent assignments or public
+  protective buffers. Source filenames and `isDemo: false` do not certify safety,
+  surveyed accuracy, or redistribution rights.
+
+## 5. PR 1: source foundation
+
+**Deliverable:** a reproducible source package and ingestion contract, with no
+database or mobile behavior change. Implemented in
+[the source package](../../data/cascade-springs-gis/README.md); see the completion
+record below for the exact handoff. The bullets retain the original planned scope.
+
+- Suggested directory: `data/cascade-springs-gis/`, with a README, source archive,
+  loose PDF/signal image, and machine-readable manifest. This is a proposed new
+  path; it does not exist when this plan is written.
+- Record hashes, sizes, source dates versus inferred dates, input relationships,
+  projections, units, publication flags, missing attributes, and extraction limits.
+  Use repository-relative paths in committed tools and metadata.
+- Establish a documented extraction environment with pinned dependencies and
+  repository-local intermediate output separate from original source inputs.
+  During inspection, Python
+  `pyshp`, `pyproj`, `rasterio`, `pymupdf`, `pypdf`, and Pillow read the relevant
+  files successfully via `uv run --no-project --with ...`. System `gdalinfo`,
+  `ogr2ogr`, `pdftotext`, and `pdftoppm` were unavailable. No package versions are
+  pinned by this observation; select and record them in the implementation.
+- Preserve ZIP structure, validate archive paths before extraction, exclude
+  `.DS_Store`, and avoid carrying creator/editor workstation details into public
+  GIS properties unnecessarily. Keep full originals as evidence.
+- Define property names, source-ID rules, geometry ownership, derived-value
+  provenance, missing-value treatment, and expected replacement behavior for PR 2.
+  Keep raw fields distinguishable from normalized/derived fields.
+
+**Acceptance:** another checkout can verify the original inputs and run the
+documented inspection without access to Downloads or proprietary ArcGIS. The
+manifest matches the source bytes. No layers or empty placeholders are published.
+
+**Handoff:** record exact committed source paths, dependency setup, manifest
+schema, decisions made, and one working inspection command. Do not implement
+the later converters simply to make the foundation appear complete.
+
+## 6. PR 2: supplied trails
+
+**Deliverable:** official-source trail segments replace approximate route geometry
+through PostGIS, API, and the existing map.
+
+- Convert all published segments from EPSG:3857 to 4326, preserving vertices and
+  source identity. Avoid snapping, merging, or simplifying away topology without
+  an explicit reason. Preserve the unnamed segment without guessing its identity.
+- Preserve source names, color codes, segment/route IDs, surface, roughness,
+  documented width units, and notes. Normalize known difficulty only where
+  supplied; leave missing difficulty absent in this PR. Calculate lengths
+  geodesically or in a suitable measured CRS, not raw Web Mercator distances.
+- Map app route/color families explicitly, retaining distinctions between source
+  trail names even when the legend groups them. Existing Bigleaf/Spur palette
+  entries already exist. Preserve current display tokens initially unless a
+  confirmed decision changes them; raw source colors remain available.
+- Import transactionally with runtime validation, stable globally unique feature
+  IDs, stale-feature removal, and conflict-safe replay. Preserve the existing
+  eight My Maps landmarks until PR 3 reconciles them.
+- Resolve legacy import/setup behavior so rerunning documented commands cannot
+  silently restore approximate trails. Update dataset docs, fresh-DB/Worker
+  assertions, CI inputs, arrival status, and trail-name disclaimers together.
+- Show useful supplied attributes through the existing detail allowlist; numeric
+  fields must retain their units. Keep labels/legend readable and Gateway cased.
+
+**Acceptance:** 36 source segments round-trip without invented attributes or
+duplicate approximate routes. Test repeat/concurrent import, rollback, stale
+cleanup, legacy-command behavior, public/private access and bbox reads. Verify
+new route families, unnamed styling, details, toggles, camera preservation, and
+location-denied browsing. Include an iOS map screenshot and report Android status.
+
+**Handoff:** final feature/layer IDs, route-family map, commands, expected counts,
+legacy replacement policy, tests, screenshots, and unresolved source questions.
+
+## 7. PR 3: PDF geographic layers
+
+**Deliverable:** extracted map context and landmarks replace the guessed boundary
+and integrate with the supplied trail network.
+
+- Recover georeferencing and named geographic content; produce reproducible
+  conversions and a visual overlay against the trail shapefile. Inspect the PDF
+  visually using the PDF skill when implementing extraction.
+- Publish actual boundary, water, natural-area, road, and building content with
+  explicit per-layer membership. Buildings can use a documented new logical
+  feature kind in the generic schema; do not misclassify them as landmarks or
+  natural areas just to fit the existing TypeScript union.
+- Extract/reconcile the 15 map symbols and their labels. Record symbol type,
+  source location, and positional limitations. Compare with the eight My Maps
+  annotations; retain source-specific information without showing duplicate
+  physical landmarks or silently discarding unmatched annotations.
+- Supersede the hand-drawn boundary atomically and resolve its legacy importer
+  behavior. Do not delete unrelated layers or synthetic fixtures globally.
+- Distinguish water, natural areas, buildings, roads and boundaries in rendering.
+  Context lines must not enter the trail legend. Keep trails legible above
+  context and landmarks/labels usable. Update chooser descriptions and details.
+- Reconcile PDF difficulty evidence separately from segment-level fields. Record
+  confirmed source precedence and the conditional South Utoy guidance before
+  adding route-level difficulty fallbacks. Do not silently promote this plan's
+  source observations into product approval.
+
+**Acceptance:** valid polygons/rings and sensible bounds; no duplicated paint
+passes or legend symbols imported; alignment evidence; no duplicate old/new
+boundary; idempotent and atomic imports; correct per-layer membership, details,
+legend exclusion, overlap styling, switches and camera behavior. Preserve existing
+map/GPS/access tests and add UI screenshots.
+
+**Handoff:** layer IDs/counts, georeferencing method and residual/alignment
+evidence, landmark reconciliation table, difficulty/color decisions, and remaining
+positioning uncertainty. Counts must describe extracted features, not PDF paths.
+
+## 8. PR 4: elevation and hillshade
+
+**Deliverable:** a bounded 2D terrain integration with documented units/alignment.
+3D terrain, historical temperature, and live sensor features are outside scope.
+
+- Read the AIG grid using existing GIS libraries rather than hand-writing a
+  binary decoder. Retain nodata behavior and provenance; do not put all 7.34
+  million samples into a GeoJSON response or JavaScript object graph.
+- Resolve/document horizontal datum uncertainty and US-survey-foot conversion
+  before relying on exact alignment. Keep derived elevation properties separate
+  from zero-filled source `ELEV_GAIN`; do not invent a measured ascent value.
+- Choose and document portable assets: for example, a bounded raster overlay,
+  contours, and/or sampled segment elevation. Measure byte size, startup, memory,
+  and rendering implications before extending the API or bundling large assets.
+- The current API is GeoJSON-only. If raster assets require serving, define
+  ownership, same-origin/path validation, cache policy, versioning, and Worker
+  asset handling; update API/architecture docs. Do not assume a URL under `data/`
+  is publicly served. A bundled asset still needs explicit catalog visibility
+  integration and coordinated asset/metadata versioning.
+- Register the supplied hillshade using documented controls, not guessed DTM
+  bounds. Compare it with terrain-derived shading. Preserve the original even
+  if a regenerated overlay is more reliable; explicitly inventory how both
+  sources are used. Put uncertainty in the established disclaimer surface.
+
+**Acceptance:** validated units/transform assumptions, diagnostic alignment,
+nodata transparency, bounded asset size, readable trails, independent visibility,
+and correct elevation labels/details. Report actual iOS/Android native results
+separately from bundle/build checks. If alignment cannot be established, document
+the concrete unresolved evidence and complete independent work without presenting
+guessed positioning as established geography.
+
+**Handoff:** asset pipeline/paths, bounds/controls, unit/datum decisions, sizes,
+performance observations, serving contract if added, screenshots, and limits.
+
+## 9. PR 5: approximate cell-signal observations
+
+**Deliverable:** a reproducible, explicitly approximate layer of recoverable
+source observation classes, independent of live device connectivity.
+
+- Establish image-to-map control points from identifiable shared evidence;
+  record pixel positions, geographic positions, model, residuals, and validation
+  points independent of the fit where possible. Do not assume screenshot extent
+  equals preserve/PDF extent or use a single-point scale guess.
+- Extract colored circular observations, excluding the legend, stars, text,
+  basemap colors and decoration. Document handling of overlapping/occluded dots.
+  Publish recovered observations rather than claiming complete recovery.
+- Preserve source pixel coordinates and the five literal legend classes.
+  Use stable IDs derived from the source/extraction scheme. Keep exact values,
+  units, carrier and survey date absent unless new evidence supplies them.
+- Retain classification and registration uncertainty in metadata/details and the
+  consolidated disclaimers. Do not turn classes into continuous heatmaps, promise
+  service, or add device signal/location collection.
+- Use distinguishable point styling without confusing samples with landmarks
+  or device GPS. Fit this into the existing chooser and snapshot lifecycle.
+  Current new-layer visibility defaults to on; a default-off policy is a behavior
+  decision to record, not an assumed existing capability.
+
+**Acceptance:** source-vs-extracted image overlay, reproducible counts/classes,
+control-point evidence, false-positive/legend exclusions, valid WGS84 positions,
+repeat import and rollback, readable overlap, details and toggles. If registration
+is not defensible, preserve the image as reference content and document the gap;
+do not silently publish arbitrary point positions to satisfy a feature count.
+
+**Handoff:** controls, class dictionary, recovered counts and known omissions,
+reproduction/import commands, screenshots, and remaining survey limitations.
+
+## 10. Verification commands and completion record
+
+Commands below exist at plan-writing time; inspect manifests again on your
+parent branch. New conversion/import commands must be added and documented by
+the PR introducing them. Old `data:convert` converts the legacy KML only.
+
+```sh
+pnpm exec prettier --check docs/tasks/gis-data-integration-plan.md
+pnpm lint
+pnpm typecheck
+pnpm test:ci
+pnpm backend:build
+pnpm --dir backend build:worker
+pnpm bundle:check
+git diff --check
+```
+
+Run applicable checks for your slice: PR 1 documentation/source work does not
+require native builds. For database changes, use a disposable database via
+`pnpm --dir backend test:fresh` after configuring an already running local
+PostGIS instance. That runner currently migrates/seeds/imports twice and runs
+Jest plus real Worker HTTP checks, then removes only its temporary database.
+Extend it as each new import becomes active; do not run destructive resets on a
+shared development database. `pnpm --dir backend test:integration` and
+`pnpm backend:check` operate against the configured target and expect fixtures.
+
+Local observation on November 11: Docker container `cascade-source-import-db-1`
+was healthy on loopback port **55435**. The default tooling port is **55432**;
+`CASCADE_DB_PORT` selects another port and `DATABASE_URL` overrides the derived
+URL. This is session-specific context, not a prerequisite or guarantee that the
+container will still exist. Recheck before use and do not print secrets. Consult
+[local startup](../development/local-startup.md) and
+[Windows/Android startup](../development/windows-android.md) for device workflows.
+
+For mobile changes, verify affected acceptance paths: source load, feature
+selection, hide/show, all-hidden state, camera preservation, location denial,
+API failure/retry, and public/private access where affected. Confirm a failed
+load does not appear to be successful empty data. Do not claim durable offline
+restart/retry when no persistent cache was implemented. A new native dependency
+or configuration requires a development-client rebuild; JavaScript export,
+native compilation and device smoke checks are different evidence.
+
+Every PR should finish by updating its dataset README and affected specifications,
+checking relative links/Markdown rendering, reviewing its own diff against its
+actual parent, and recording:
+
+- Committed source/derived paths and exact regeneration/import commands.
+- Final layer IDs, feature counts, supersession behavior and shared contracts.
+- Decisions confirmed versus still open, with source evidence and D-05 updates.
+- Checks run and outcomes; device/screenshots; explicit unverified behavior.
+- Parent/child PR links and the next agent's starting task.
+
+Relevant existing tracking: [J6-22 trail geometry](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-22),
+[J6-13 GIS API](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-13),
+[J6-19 layer selection](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-19),
+[J6-20 feature details](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-20),
+[J6-23 trail styling](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-23),
+[J6-21 layer tests](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-21), and
+[J6-26 geometry verification](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-26).
+J6-22 was In Progress and assigned to Theodore Halpern when inspected; reread
+Jira for current ownership. Terrain/signal work may need separate tracking;
+do not invent issue keys or mark existing items complete from this plan alone.

@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "dependencies": {
+    "pillow": "13.0.0",
+    "pymupdf": "2.1",
+    "pypdf": "7.0.1",
+    "pyproj": "3.8.0",
+    "pyshp": "3.1.8",
+    "rasterio": "1.5.2"
+  },
+  "trails": {
+    "source": "CSNP/OfficialTrailsCSNP.shp",
+    "crs": "EPSG:3857",
+    "source_coordinate_unit": "metre",
+    "shape_type": "POLYLINE",
+    "segments": 36,
+    "parts_per_segment": {
+      "1": 36
+    },
+    "vertices": 1901,
+    "wgs84_bounds": [-84.4832749214, 33.7152277945, -84.475593687, 33.7197267975],
+    "geodesic_segment_sum_m": 4098.856,
+    "dbf_fields": [
+      ["TRL_NM", "C", 254, 0],
+      ["TrailColor", "C", 254, 0],
+      ["AVG_WIDTH", "F", 19, 11],
+      ["PARK_ID", "C", 254, 0],
+      ["TRL_ID", "C", 254, 0],
+      ["SEGMENT_ID", "C", 254, 0],
+      ["USE_LEVEL", "C", 254, 0],
+      ["GRADE", "F", 19, 11],
+      ["ELEV_GAIN", "F", 19, 11],
+      ["LENGTH_MI", "F", 19, 11],
+      ["SURFACE", "C", 254, 0],
+      ["ROUGHNESS", "C", 254, 0],
+      ["NOTES", "C", 254, 0],
+      ["CREATOR", "C", 254, 0],
+      ["CREATEDATE", "D", 8, 0],
+      ["EDITOR", "C", 254, 0],
+      ["EDITDATE", "D", 8, 0],
+      ["GlobalID", "C", 38, 0],
+      ["Shape__Len", "F", 19, 11],
+      ["AvgSegment", "F", 19, 11],
+      ["Shape__L_1", "F", 19, 11],
+      ["Difficulty", "C", 254, 0],
+      ["PublishTra", "C", 254, 0]
+    ],
+    "values": {
+      "TRL_NM": {
+        "": 1,
+        "Battle Ridge Trail": 5,
+        "Big Beech Spur": 1,
+        "Bigleaf Magnolia Trail": 1,
+        "Gateway Trail": 3,
+        "South Utoy Creek Trail": 5,
+        "Springs Trail": 1,
+        "Terrace Trail": 2,
+        "Turkeyfoot Creek Trail": 6,
+        "West Trail": 6,
+        "White Oak Trail": 5
+      },
+      "TrailColor": {
+        "AQUA": 5,
+        "BLAC": 1,
+        "BLUE": 11,
+        "GOLD": 2,
+        "MAG": 5,
+        "ORAN": 6,
+        "PURP": 2,
+        "TGRE": 1,
+        "WHIT": 3
+      },
+      "SURFACE": {
+        "Asphalt": 4,
+        "Bare Soil": 29,
+        "Concrete": 1,
+        "Organic Litter": 2
+      },
+      "ROUGHNESS": {
+        "Intermediate": 26,
+        "Rough": 5,
+        "Smooth": 5
+      },
+      "Difficulty": {
+        "": 35,
+        "Easy": 1
+      },
+      "PublishTra": {
+        "TRUE": 36
+      }
+    },
+    "identity": {
+      "SEGMENT_ID": {
+        "missing": 0,
+        "distinct": 36
+      },
+      "GlobalID": {
+        "missing": 0,
+        "distinct": 36
+      },
+      "TRL_ID": {
+        "missing": 0,
+        "distinct": 7
+      }
+    },
+    "missing_or_placeholder": {
+      "AVG_WIDTH": {
+        "blank": 0,
+        "zero": 3
+      },
+      "ELEV_GAIN": {
+        "blank": 0,
+        "zero": 36
+      },
+      "GRADE": {
+        "blank": 0,
+        "zero": 35
+      },
+      "LENGTH_MI": {
+        "blank": 0,
+        "zero": 35
+      },
+      "AvgSegment": {
+        "blank": 0,
+        "zero": 36
+      },
+      "Shape__L_1": {
+        "blank": 0,
+        "zero": 36
+      },
+      "USE_LEVEL": {
+        "blank": 36,
+        "zero": 0
+      }
+    },
+    "notes_present": 14
+  },
+  "pdf": {
+    "source": "data/cascade-springs-gis/sources/CSNP Trail Map.pdf",
+    "pages": 1,
+    "page_size_points": [1584.0, 2448.0],
+    "creation_date_metadata": "D:20260414163216",
+    "creator_application": "Esri ArcGISPro 3.5.2.57366",
+    "optional_content_groups": [
+      "",
+      "ATL_Streams w name and source - Label Class 1",
+      "Bodies of Water",
+      "Bodies of Water",
+      "Buildings",
+      "Centerline_ATLDOT",
+      "Centerline_ATLDOT - Class 1",
+      "Data Source Attribution",
+      "Labels",
+      "Legend",
+      "Legend 1",
+      "Map Frame",
+      "Natural Areas",
+      "New Group Layer",
+      "New Group Layer",
+      "New Group Layer",
+      "North Arrow",
+      "Park Boundaries",
+      "ParksDTM_5ft",
+      "Picture",
+      "Picture 1",
+      "Picture 2",
+      "Picture 3",
+      "Picture 4",
+      "Points of Interest",
+      "Points of Interest - Class 1",
+      "Rectangle",
+      "Rectangle 1",
+      "Rectangle 2",
+      "Rectangle 3",
+      "Roads",
+      "Roads",
+      "Scale Bar",
+      "Text",
+      "Text 1",
+      "Text 2",
+      "Text 3",
+      "Text 4",
+      "Trail Map Template",
+      "Trails",
+      "Trails - Class 1",
+      "World Terrain Base"
+    ],
+    "viewports": [
+      {
+        "bbox_pdf_points": [2e-9, 281.28611465, 1584.0, 1931.269299363],
+        "subtype": "/GEO",
+        "lpts": [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0],
+        "gpts_lat_lon": [
+          33.71163, -84.48437, 33.72051, -84.48437, 33.72051, -84.47412, 33.71163, -84.47412
+        ],
+        "projected_wkt": "PROJCS[\"WGS_1984_Web_Mercator\",GEOGCS[\"GCS_WGS_1984_Major_AuxSphere\",DATUM[\"D_WGS_1984_Major_AuxSphere\",SPHEROID[\"WGS_1984\",6378137.0,0.0]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Mercator\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",0.0],PARAMETER[\"Standard_Parallel_1\",0.0],UNIT[\"Meter\",1.0]]"
+      }
+    ]
+  },
+  "terrain": {
+    "source": "CSNP/csnp_dtm_2015/",
+    "driver": "AIG",
+    "size_cells": [3369, 2178],
+    "dtype": "float32",
+    "valid_cells": 7337682,
+    "nodata_cells": 0,
+    "nodata": -3.4028234663852886e38,
+    "range_source_units": [809.320007, 1037.27002],
+    "transform": [
+      1.999999999575, 0.0, 2198199.9999956056, 0.0, -1.999999999586, 1354690.0000124748
+    ],
+    "bounds_source_units": [
+      2198199.9999956056, 1350334.0000133766, 2204937.9999941736, 1354690.0000124748
+    ],
+    "gdal_interpreted_wkt": "PROJCS[\"unnamed\",GEOGCS[\"Unknown datum based upon the GRS 1980 ellipsoid (deprecated)\",DATUM[\"Not_specified_based_on_GRS_1980_ellipsoid\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6019\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4019\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-84.1666666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",2296583.33333333],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.304800609601219],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+    "projection_evidence": "Projection    TRANSVERSE\nSpheroid      GRS80\nUnits         FEET\nZunits        FEET /* NAVD88_height_(ftUS) - VCS# =   6360\nXshift        0.0\nYshift        0.0\nParameters    \n0.9999 /* scale factor at central meridian\n -84 10  0.0 /* longitude of central meridian\n  30  0  0.0 /* latitude of origin\n700000.0 /* false easting (meters)\n0.0 /* false northing (meters)\n",
+    "horizontal_datum_confirmed": false
+  },
+  "hillshade": {
+    "source": "CSNP/HillshadeCSNP.png",
+    "size_pixels": [1156, 776],
+    "mode": "RGBA",
+    "embedded_geographic_transform": false
+  },
+  "cell_signal": {
+    "source": "data/cascade-springs-gis/sources/Cell Signal Strength.png",
+    "size_pixels": [932, 662],
+    "mode": "RGBA",
+    "embedded_geographic_transform": false
+  }
+}
