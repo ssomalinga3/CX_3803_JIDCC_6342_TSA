@@ -65,9 +65,12 @@ def fit_controls(review):
         if error > review["maximum_residual_ground_m"][c["use"]]:
             raise ValueError(f"Signal registration exceeds reviewed tolerance at {c['id']}: {error:.2f}m")
         residuals.append({**c, "residual_ground_m": round(error, 3), "predicted_pixel": [round(v, 3) for v in pixel(*c["geographic"])]})
+    # BLAS implementations differ at ~1e-12 m/pixel. Canonicalize review-only
+    # coefficients to 1e-9 m/pixel (<1 micrometre over this image); geographic
+    # conversion above retains the full fitted precision and exact snapshot check.
     affine = [
-        [round(float(sx), 12), 0, round(float(tx + origin[0]), 6)],
-        [0, round(float(sy), 12), round(float(ty + origin[1]), 6)],
+        [round(float(sx), 9), 0, round(float(tx + origin[0]), 6)],
+        [0, round(float(sy), 9), round(float(ty + origin[1]), 6)],
     ]
     return geographic, pixel, residuals, affine
 

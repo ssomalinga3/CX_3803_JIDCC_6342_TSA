@@ -1,8 +1,8 @@
 {
   "model": "North-up axis-aligned affine in EPSG:3857; separate x/y scales; least squares; pixel origin upper left; WGS84 output.",
   "pixel_to_epsg3857_affine": [
-    [0.915328308859, 0, -9404480.324351],
-    [0, -1.126109702935, 3991332.556022]
+    [0.915328309, 0, -9404480.324351],
+    [0, -1.126109703, 3991332.556022]
   ],
   "extraction": "RGB max-channel difference <=18; 4-connected cores; 7\u201336 core pixels; width/height 3\u20137px; bounding-box half-pixel centers; exclusion-touching cores rejected",
   "controls": [

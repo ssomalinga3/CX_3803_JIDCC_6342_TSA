@@ -17,6 +17,7 @@ class SignalTests(unittest.TestCase):
 
     def test_exact_snapshot_and_class_counts_are_reproducible(self):
         self.assertEqual(self.data, json.loads(OUTPUT.read_text()))
+        self.assertEqual(self.report, json.loads((OUTPUT.parent / "review/signal-extraction.json").read_text()))
         self.assertEqual(self.report["counts_by_class"], dict(zip(CLASSES, [217, 90, 116, 92, 162])))
         self.assertEqual(len(self.data["features"]), 677)
         self.assertEqual(len({f["id"] for f in self.data["features"]}), 677)

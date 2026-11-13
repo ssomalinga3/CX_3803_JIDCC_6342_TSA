@@ -31,6 +31,10 @@ are regenerated under ignored `.work/gis-data/`; `--evidence` refreshes the two
 committed overlays and JSON report under `review/`. `--check` compares parsed
 GeoJSON and the numeric extraction/registration report exactly, independently of
 JSON whitespace. It does not assert PNG byte equality across encoders.
+Review-only affine slopes are rounded to `1e-9` m/pixel (less than one micrometre
+over the image), offsets to one micrometre and residuals to one millimetre to
+avoid BLAS/platform last-bit differences. WGS84 conversion retains full fitted
+precision; feature geometry/properties and the canonical report still compare exactly.
 
 ## Registration and limits
 
@@ -146,7 +150,8 @@ Screenshots: [chooser](../../docs/images/ios26-signal-chooser.png),
 [samples](../../docs/images/ios26-signal-map.png).
 
 The GIS suite passes all 32 tests, including five signal regression tests and exact
-signal reproduction. All 148 backend tests pass in a disposable PostGIS database,
+signal reproduction, also verified on x86 Linux with Python 3.12.12 and the same
+locked GIS libraries. All 148 backend tests pass in a disposable PostGIS database,
 including concurrent writers, stale cleanup, signal-only/full-source rollback,
 bbox/privacy and real Worker HTTP/database-failure checks. Integration tests have
 a 30-second allowance for repeated full-dataset imports; unit tests retain five
