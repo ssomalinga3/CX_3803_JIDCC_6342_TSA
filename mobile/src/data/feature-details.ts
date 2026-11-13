@@ -39,7 +39,7 @@ export function featureText(value: unknown, limit = 4000): string {
 }
 
 function priority(feature: GisFeature): number {
-  if (feature.properties.feature_kind === 'signal_observation') return 0.5;
+  if (feature.properties.feature_kind === 'signal_observation') return 1.5;
   if (feature.properties.feature_kind === 'elevation_band') return 3;
   if (feature.properties.feature_kind === 'hillshade') return 6;
   const type = feature.geometry.type;

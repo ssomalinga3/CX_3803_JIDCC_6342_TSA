@@ -201,3 +201,13 @@ verification and screenshots; the existing `Cascade iOS 26` device is an iPhone 
 on iOS 26.3. Older runtime checks supplement this target and must retain their
 actual runtime labels. This does not certify physical devices or replace Android
 checks, JavaScript exports or native compilation evidence.
+
+## November 13, 2026 — D-08 natural rendering order
+
+The owner requested a stacked PR for natural GIS z ordering. The selected
+[paint order](development/map-layer-order.md) puts ground and analytical overlays
+below route strokes, place markers and labels above strokes, and GPS above GIS.
+This refines the older J6-19 “trails always on top” title for marker legibility;
+it does not change Jira ownership, palette, geometry, visibility defaults or access.
+Stable empty terrain slots and explicit native placement remove mount-order
+dependence. Hit priority follows landmark → trail → observation for crowded hits.
