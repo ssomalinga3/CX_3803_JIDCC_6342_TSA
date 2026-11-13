@@ -840,7 +840,9 @@ class colors beneath trails and landmarks, excludes samples from landmark labels
 and the trail key, and adds a separate class key, details, chooser row and
 Disclaimers entry. Default visibility and session-only choices follow the parent.
 
-Verification: all 32 GIS tests and exact signal conversion/evidence checks pass.
+Verification: all 32 GIS tests and exact signal conversion/evidence checks pass. Review-only affine coefficients are
+canonicalized below micrometre image-scale precision; exact geometry/properties
+and report checks also pass on x86 Linux with the same locked GIS libraries.
 `pnpm verify` passes formatting, lint, typechecks, 122 backend unit tests (26 DB
 cases skipped), 118 mobile tests and both iOS/Android JavaScript exports. All 148
 backend tests pass against disposable PostGIS, followed by real Worker HTTP and
