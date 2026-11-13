@@ -6,6 +6,7 @@ import type {
   LayerCatalog,
 } from '../../../backend/src/modules/gis/types';
 import { validateTerrainAssets } from '@/data/terrain';
+import { validateSignalFeatures } from '@/data/signal';
 
 export type GisSnapshot = {
   layers: Layer[];
@@ -204,6 +205,7 @@ export function assembleGisSnapshot(
     ),
   };
   validateTerrainAssets(layers, collection.features);
+  validateSignalFeatures(layers, collection.features);
   return {
     layers,
     collection,

@@ -52,6 +52,15 @@ export type TrailNetworkProperties = CommonProperties &
     | { feature_kind: 'water'; water_kind: 'stream' | 'water_body' }
     | { feature_kind: 'natural_area' | 'road' | 'building' }
     | {
+        feature_kind: 'signal_observation';
+        signal_class: '< -120' | '-120–-117' | '-117–-113' | '-113–-108' | '> -108';
+        source_pixel: [number, number];
+        source_dataset: string;
+        source_sha256: string;
+        extraction_version: number;
+        positioning: string;
+      }
+    | {
         feature_kind: 'elevation_band';
         source_dataset: string;
         dataset_version: string;
@@ -79,4 +88,5 @@ export const trailNetworkGeometryTypes = {
   building: ['Polygon', 'MultiPolygon'],
   elevation_band: ['Polygon'],
   hillshade: ['Polygon'],
+  signal_observation: ['Point'],
 } as const;

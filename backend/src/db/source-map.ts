@@ -3,12 +3,14 @@ import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
 import { officialTrailLayer, readOfficialTrails } from './official-trails.js';
 import { pdfMapLayers, pdfMapReplacements, readPdfMap } from './pdf-map.js';
 import { terrainLayers, terrainReplacements, readTerrainMap } from './terrain-map.js';
+import { signalLayer, readSignalMap } from './signal-map.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
 export const sourceMapLayers: readonly ImportLayerSpec[] = [
   officialTrailLayer,
   ...pdfMapLayers,
   ...terrainLayers,
+  signalLayer,
 ];
 
 /** Validate the dataset-specific ingestion contract before opening a transaction. */
@@ -73,5 +75,6 @@ export async function importSourceMap(connectionString: string, value: unknown):
     { layer: officialTrailLayer, collection: readOfficialTrails() },
     ...pdfMapReplacements(readPdfMap()),
     ...terrainReplacements(readTerrainMap()),
+    { layer: signalLayer, collection: readSignalMap() },
   ]);
 }

@@ -138,6 +138,13 @@ when adding public data.
 
 ## 4. Native iOS client: first time only
 
+Use **iOS 26 as the primary simulator runtime** for development and acceptance.
+The existing `Cascade iOS 26` simulator is an iPhone 17 on iOS 26.3. Choose its
+UDID from the device list below; when several simulators are booted, pass the
+specific iOS 26 UDID instead of `booted` to install/open/screenshot commands.
+Older runtime checks supplement this target. Historical results in this runbook
+retain their original device/runtime labels.
+
 Skip cloud compilation if a development client matching this checkout's native
 dependencies/configuration is already installed. Inspect available simulators:
 

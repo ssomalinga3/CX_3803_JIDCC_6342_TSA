@@ -136,3 +136,14 @@ All conflicting writers use `(6342, 2)`. Every My Maps record remains recoverabl
 Waterfall is nested on the PDF marker and seven unmatched annotations retain
 original geometry. Buildings use their own logical kind and roads accept polygon
 footprints. Original inputs and generic physical tables remain unchanged.
+
+## Signal screenshot ownership (PR 5)
+
+[signal-contract.json](signal-contract.json) owns `cascade-cell-signal`: 677
+`signal_observation` Points with five transcribed classes, source pixels, hash and
+extraction version. Backend and mobile reject invented measurement/context fields
+and incomplete class sets. Pixel-derived IDs do not imply surveyed positioning.
+Combined and signal-only replacement share `(6342, 2)` with all selected-source
+writers; late identity conflicts roll back the transaction. Preserve this layer
+when replaying trail/PDF/terrain-only commands. See [SIGNAL.md](SIGNAL.md) for exact
+commands, registration/omission evidence and future source/version handling.

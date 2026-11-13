@@ -222,3 +222,19 @@ Terrain renders below context/trails, never enters the trail key, and cannot tak
 priority over a trail/landmark hit. Bands are labeled at zoom 17; camera/GPS semantics are unchanged.
 The live Figma chooser frame `32:40` was reviewed for screen structure. See the
 [terrain evidence](../../data/cascade-springs-gis/TERRAIN.md); no 3D view is added.
+
+## Cell-signal observations (PR 5)
+
+A normal chooser row controls the recovered screenshot layer, with the existing
+new-layer-visible, draft/Done/Back and session-only behavior. Small dark-outlined
+red/orange/yellow/light-green/dark-green samples render below trail strokes and
+landmarks. Samples are excluded from blue landmark styling, landmark names and
+the trail legend; a horizontally scrollable five-class key appears only while the
+layer is visible. Details show the transcribed class, source pixel and source
+positioning metadata, as required by the signal integration plan. Standing
+uncertainty and unknown units/carrier/date remain in the Disclaimers tab. No
+heatmap, current-connectivity claim or device signal collection is added.
+See [evidence and screenshots](../../data/cascade-springs-gis/SIGNAL.md).
+
+Use iOS 26 as the primary simulator for acceptance and visual review, per the
+owner's November 13 instruction. Earlier runtime screenshots remain dated evidence.

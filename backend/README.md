@@ -1,11 +1,12 @@
 # Backend: local Workers + PostGIS
 
 Current GIS selection: `pnpm --dir backend db:import:source` atomically imports
-36 supplied trail segments plus 33 PDF/context and reconciled landmark features
-in seven layers. `db:import:trails` changes only trails; `db:import:pdf` changes the
-six context/landmark layers. The legacy `db:import:boundary` selects those same PDF
-layers. All use lock `(6342, 2)` and cannot restore approximate trails/boundaries.
-See [conversion, registration, counts and verification](../data/cascade-springs-gis/PDF-MAP.md).
+36 supplied trails, 33 PDF/context features, 62 terrain features and 677 approximate
+signal samples across ten layers. `db:import:trails`, `db:import:pdf`,
+`db:import:terrain` and `db:import:signal` replace their own layers only; legacy
+`db:import:boundary` selects the six PDF/context layers. All writers share the
+selected-source advisory lock. See the [signal handoff](../data/cascade-springs-gis/SIGNAL.md)
+for extraction, class limits, import commands and verification.
 
 The API runs locally in Cloudflare Workers through Wrangler, using Express 5,
 TypeScript, Drizzle, and PostgreSQL 16/PostGIS. No Cloudflare account, cloud
