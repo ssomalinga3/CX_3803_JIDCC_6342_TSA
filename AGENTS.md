@@ -36,7 +36,7 @@ Discover commands from package manifests, repository scripts, and setup document
 
 Treat JavaScript bundle checks, native compilation, and device smoke tests as separate evidence; passing one does not establish the others.
 
-Verify affected acceptance paths from `docs/design/user-flows.md`, including permission denial, offline restart/retry, duplicate prevention, and access restrictions. Check mobile changes on iOS and supported Android targets as appropriate.
+Verify affected acceptance paths from `docs/design/user-flows.md`, including permission denial, offline restart/retry, duplicate prevention, and access restrictions. Use an iOS 26 simulator as the primary iOS verification target, alongside supported Android targets as appropriate. Older iOS simulator results are supplemental and must identify their runtime; they do not substitute for iOS 26 verification.
 
 Run `git diff --check` and review the final diff. Report checks performed, outcomes, and anything unverified.
 

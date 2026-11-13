@@ -39,6 +39,7 @@ export function featureText(value: unknown, limit = 4000): string {
 }
 
 function priority(feature: GisFeature): number {
+  if (feature.properties.feature_kind === 'signal_observation') return 0.5;
   if (feature.properties.feature_kind === 'elevation_band') return 3;
   if (feature.properties.feature_kind === 'hillshade') return 6;
   const type = feature.geometry.type;
@@ -82,10 +83,23 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     ['Source', layer?.source],
     ['Elevation source', properties.source],
     ['Vertical reference', properties.vertical_datum],
+    ['Signal class', properties.signal_class],
+    [
+      'Positioning',
+      properties.feature_kind === 'signal_observation' ? properties.positioning : undefined,
+    ],
   ];
   for (const [label, value] of attributes) {
     const text = featureText(value, label === 'Source' ? 1000 : 200);
     if (text) fields.push({ label, value: text });
+  }
+  if (
+    properties.feature_kind === 'signal_observation' &&
+    Array.isArray(properties.source_pixel) &&
+    properties.source_pixel.length === 2 &&
+    properties.source_pixel.every((n) => typeof n === 'number' && Number.isFinite(n))
+  ) {
+    fields.push({ label: 'Source pixel', value: properties.source_pixel.join(', ') });
   }
   if (
     typeof properties.elevation_min_ft_us === 'number' &&

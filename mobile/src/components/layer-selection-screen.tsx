@@ -31,6 +31,7 @@ const descriptions: Record<string, string> = {
   road: 'Road footprints from the supplied map.',
   building: 'Building footprints from the supplied map.',
   terrain: 'Elevation bands and shaded relief.',
+  cell_signal: 'Recovered signal classes from the supplied screenshot.',
 };
 
 export function LayerSelectionScreen() {

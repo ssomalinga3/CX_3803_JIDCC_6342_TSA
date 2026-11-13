@@ -8,6 +8,11 @@ The iOS instructions and verification below remain available for macOS teammates
 
 ## First-time iOS Simulator setup
 
+**Primary verification target: iOS 26.** Choose an iPhone running iOS 26 for daily
+development and acceptance checks. The existing `Cascade iOS 26` device runs
+iOS 26.3 on an iPhone 17. Older iOS runtimes are supplemental compatibility checks;
+the dated iOS 18.6 results below remain historical evidence, not the default target.
+
 Use EAS cloud compilation and a local iOS Simulator. Local JavaScript development uses Metro; a macOS upgrade is not part of this workflow. MapLibre requires a development client and cannot run in Expo Go.
 
 Install Xcode and an iOS Simulator runtime supported by your installed Xcode. Open Xcode once to complete its setup and accept its license. In Xcode Settings → Locations, select the installed Xcode under Command Line Tools. If you prefer a shell-only selection instead of changing the system setting:

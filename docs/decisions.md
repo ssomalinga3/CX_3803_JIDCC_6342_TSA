@@ -181,3 +181,23 @@ annotations retain explicit source labels. Spring vs Frog Pond / Spring physical
 identity remains unresolved. Generic `building` and polygon `road` kinds extend
 the logical contract without new tables. Pillars, licensing, safety tolerances,
 field accuracy and terrain/signal registration remain open.
+
+## November 13, 2026 — D-05 approximate cell-signal recovery (PR 5)
+
+The owner's request to implement the fifth stacked GIS slice authorizes a
+reproducible approximate source-observation layer. The [signal record](../data/cascade-springs-gis/SIGNAL.md)
+preserves 677 recoverable categorical samples, manual controls, fit/withheld
+residuals, rejected components, exclusion masks and source pixels. It explicitly
+retains the basemap boundary mismatch, extrapolation and unknown source GPS/class
+accuracy. This is not approval of a unit such as dBm, an exact reading, carrier,
+survey date, current connectivity, interpolation, field accuracy or safety use.
+Pillar assignment, licensing and raw survey provenance remain open.
+
+## November 13, 2026 — D-10 primary iOS simulator
+
+The owner explicitly requested iOS 26 as the primary simulator target and asked
+that development documentation reflect it. Use an iOS 26 iPhone for daily native
+verification and screenshots; the existing `Cascade iOS 26` device is an iPhone 17
+on iOS 26.3. Older runtime checks supplement this target and must retain their
+actual runtime labels. This does not certify physical devices or replace Android
+checks, JavaScript exports or native compilation evidence.

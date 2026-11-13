@@ -1,6 +1,6 @@
 # Supplied GIS data integration: stacked PR plan
 
-Prepared November 11, 2026. Status: **PRs 1–4 implemented; PR 5 planned**.
+Prepared November 11, 2026. Status: **PRs 1–5 implemented**.
 PRs 2–3 import supplied trails and PDF geographic context; the original source-preservation slice
 did not import datasets. This document is the handoff for
 fresh agents implementing the stack; it is not evidence that the proposed
@@ -803,3 +803,62 @@ that file was left unchanged and the test Worker used its configured port.
 Production hosting files were not changed. PR 5 starts from this branch, retains
 the nine selected layers and shared import lock, and registers signal-image
 observations against its own evidence rather than borrowing terrain image bounds.
+
+## PR 5 completion record — November 13, 2026
+
+Branch `gis/05-cell-signal`, based on PR 4 `gis/04-terrain` at `49c3211`,
+stacked on [PR 4 #32](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/32).
+The [signal handoff](../../data/cascade-springs-gis/SIGNAL.md) documents commands,
+class/source contract, manual controls, affine/residuals, omissions and screenshots.
+The original checkout's uncommitted terrain chooser work is preserved separately.
+
+Committed `signal.geojson` adds 677 approximate Point observations in
+`cascade-cell-signal` (`layerType: cell_signal`, pillar unset). Counts in the five
+transcribed legend classes are 217 / 90 / 116 / 92 / 162, in increasing source-class
+order. Original source bytes remain unchanged. Pixel-derived IDs and source/hash/
+version metadata preserve extraction identity independently of registration. Full
+selected data is ten layers / 808 features. No raw reading, unit, carrier, device,
+survey date, current connectivity or complete-recovery claim is invented.
+
+Six fit controls use a road intersection and eastern boundary corners; four
+withheld basemap controls reach a maximum residual of 27.353 m (fit maximum
+4.256 m). Two annotation checks differ by up to 30.760 m and are not fitted
+controls or survey evidence. A north-up affine uses independent x/y scales; the
+screenshot's northern boundary cutout differs from the supplied map. Controls,
+exclusion masks, rejected components and source/extracted/registration overlays
+are committed. Samples outside the control area and unknown source GPS drift
+remain explicit limitations; no terrain-image bounds are borrowed.
+
+The signal-only and combined-source importers validate counts/classes, pixels,
+identity, source/version, allowed fields and geometry before connecting. Both
+share `(6342, 2)` with every selected-source writer. Repeat/concurrent imports
+remove stale samples, preserve other layers and roll back completely on late
+signal identity conflict. Existing API bbox/privacy/cache behavior remains.
+Mobile rejects incomplete/unsupported signal data visibly, uses five dark-outlined
+class colors beneath trails and landmarks, excludes samples from landmark labels
+and the trail key, and adds a separate class key, details, chooser row and
+Disclaimers entry. Default visibility and session-only choices follow the parent.
+
+Verification: all 32 GIS tests and exact signal conversion/evidence checks pass.
+`pnpm verify` passes formatting, lint, typechecks, 122 backend unit tests (26 DB
+cases skipped), 118 mobile tests and both iOS/Android JavaScript exports. All 148
+backend tests pass against disposable PostGIS, followed by real Worker HTTP and
+database-failure checks. Backend and Worker production builds pass. Integration
+checks allow 30 seconds for repeated full-dataset imports; ordinary unit tests
+retain five seconds. Sandbox-blocked loopback checks were rerun with host access.
+
+Per the owner's instruction, iOS 26 is now the primary simulator in `AGENTS.md`,
+the mobile README and local startup runbook; older evidence retains its runtime.
+Primary native verification used the existing `Cascade iOS 26` iPhone 17 /
+iOS 26.3 client, Metro 8087, Worker 8792 and isolated PostGIS 55435. Close zoom
+showed distinct samples/landmarks with trails on top. Signal off changed 808→131
+and removed its key; on restored exactly 808, preserving the camera and location
+off. Screenshots: [map](../images/ios26-signal-map.png),
+[chooser](../images/ios26-signal-chooser.png), [hidden](../images/ios26-signal-hidden.png).
+
+Native coordinate sample tapping still fails with Computer Use `noWindowsAvailable`;
+automated hit/detail checks pass. Manual permission denial, Android native execution,
+new native compilation, quantified device performance, field alignment and durable
+offline restart/retry remain unverified. No new native dependency, physical table,
+endpoint, device signal/location collection, heatmap or safety approval is introduced.
+Pillars, raw survey context, source licensing and field accuracy remain open.

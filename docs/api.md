@@ -165,3 +165,14 @@ contract must match dataset version, source/image hashes and exact footprint to
 their bundled descriptor before rendering. Arbitrary image URLs are not supported.
 Metadata and app assets must be released together. The API does not serve files
 under `data/` or turn bundled image availability into an offline catalog.
+
+## Approximate cell-signal selection (PR 5)
+
+The catalog adds `cascade-cell-signal` (`layerType: cell_signal`), with 677 public
+Point observations of kind `signal_observation`. Five categorical `signal_class`
+values and `source_pixel`, source/version and `positioning` metadata follow the
+[signal contract](../data/cascade-springs-gis/SIGNAL.md). No exact reading or unit
+is supplied. Full selected source data totals ten layers / 808 features. Existing
+GeoJSON endpoints, bbox filtering, public/private restrictions and caching remain
+unchanged; no new endpoint or live connectivity API is introduced. Failed or
+incomplete signal snapshots use mobile's visible GIS error/retry path.

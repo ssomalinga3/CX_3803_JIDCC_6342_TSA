@@ -25,6 +25,7 @@ Cascade Springs Nature Conservancy Smart GIS: Mapping Atlanta's Ecological Core.
 | [Supplied GIS source package](../data/cascade-springs-gis/README.md) | Preserved originals, hash manifest, pinned inspection environment, and incoming property/replacement contract |
 | [Supplied PDF map integration](../data/cascade-springs-gis/PDF-MAP.md) | PR 3 extraction, registration evidence, landmark reconciliation and selected import policy |
 | [Two-source terrain integration](../data/cascade-springs-gis/TERRAIN.md) | PR 4 supplied/USGS elevation options, registration, bounded assets, import/version contract and limitations |
+| [Approximate cell-signal integration](../data/cascade-springs-gis/SIGNAL.md) | PR 5 source-image registration, recovered classes, atomic import, limitations and iOS 26 evidence |
 | [Supplied trail integration](../data/cascade-springs-gis/TRAILS.md) | PR 2 conversion/import commands, exact source/route mapping, supersession, verification and screenshots |
 
 ## How to interpret these specifications

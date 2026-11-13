@@ -17,7 +17,7 @@ it('keeps the sign inventory separate from published GIS and covers every geomet
   const catalog = JSON.parse(
     readFileSync(new URL('../../data/trail-network/catalog.json', import.meta.url), 'utf8'),
   );
-  expect(catalog.status).toBe('trails-context-and-terrain-integrated');
+  expect(catalog.status).toBe('supplied-gis-integrated');
   expect(catalog.trails).toHaveLength(9);
   expect(new Set(catalog.trails.map((trail: { trail_id: string }) => trail.trail_id)).size).toBe(9);
   for (const trail of catalog.trails) {
