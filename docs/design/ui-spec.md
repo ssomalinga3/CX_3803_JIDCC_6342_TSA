@@ -238,3 +238,14 @@ See [evidence and screenshots](../../data/cascade-springs-gis/SIGNAL.md).
 
 Use iOS 26 as the primary simulator for acceptance and visual review, per the
 owner's November 13 instruction. Earlier runtime screenshots remain dated evidence.
+
+## Natural rendering order — November 13, 2026
+
+The owner requested natural z ordering after signal integration. Ground relief
+and area fills sit below water/roads/buildings, boundary edges, signal samples
+and trail strokes. Landmark markers sit above strokes; elevation, trail and
+landmark labels form the text tier, with device position above GIS. This refines
+J6-19's older “trails above other layers” wording so route overlays cannot be
+covered by analytical data and place markers are not cut by route casing.
+Crowded taps follow landmark → trail → sample priority. See the
+[ordering policy and verification](../development/map-layer-order.md).

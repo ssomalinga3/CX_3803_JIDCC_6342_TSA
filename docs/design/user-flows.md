@@ -52,7 +52,7 @@ remains separate from public feature details.
    key. Re-enable repeatedly without duplicate geometry or legend entries.
    With everything off, show the all-hidden explanation and retain basemap,
    zoom, return-to-preserve and independent location controls.
-4. Keep trails above other GIS overlays. The device position is unaffected by
+4. Keep trails above ground/context/analytical overlays, with place markers and labels above routes. The device position is unaffected by
    public layer switches. The existing location lifecycle still pauses GPS while
    Map is blurred and resumes an enabled session without an automatic prompt.
 5. Without a catalog, keep Map return available and Done disabled; distinguish
@@ -148,3 +148,15 @@ missing, reclassified or incompatible signal snapshot must fail visibly. Choice
 persistence across a process restart is not implemented. Check the dedicated
 Disclaimers entry; no wording should promise service. Record device and automated
 evidence separately in the [signal handoff](../../data/cascade-springs-gis/SIGNAL.md).
+
+## Map order acceptance
+
+On iOS 26, review all ten source layers together at overview and close zoom.
+Relief/area fills must stay below physical context, observations and routes;
+landmark markers must remain intact above route casing. Labels remain readable
+and device position stays above GIS. Hide both terrain sources, restore them
+in either order, hide all GIS, then restore: relative order and the zoomed camera
+must remain stable. Repeat after GIS retry and map-style retry. Feature selection
+prefers a landmark over a coincident trail/sample and a trail over a sample;
+device position never becomes a public detail sheet. Record native, automated
+and unverified paths separately in the [ordering record](../development/map-layer-order.md).
