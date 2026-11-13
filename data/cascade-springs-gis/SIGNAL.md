@@ -1,5 +1,8 @@
 # Approximate cell-signal observations (PR 5)
 
+[Draft PR #38](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/38)
+is stacked on [PR 4 #32](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/32).
+
 The preserved [Cell Signal Strength.png](<sources/Cell Signal Strength.png>) is a
 932 × 662 screenshot with colored observations and annotations, without embedded
 georeferencing. [signal.geojson](signal.geojson) contains **677 recoverable points**

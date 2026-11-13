@@ -806,6 +806,7 @@ observations against its own evidence rather than borrowing terrain image bounds
 
 ## PR 5 completion record — November 13, 2026
 
+PR 5: [#38](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/38) (draft).
 Branch `gis/05-cell-signal`, based on PR 4 `gis/04-terrain` at `49c3211`,
 stacked on [PR 4 #32](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/32).
 The [signal handoff](../../data/cascade-springs-gis/SIGNAL.md) documents commands,
