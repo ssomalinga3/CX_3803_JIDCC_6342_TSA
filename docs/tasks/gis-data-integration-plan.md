@@ -720,12 +720,14 @@ asset versioning and remaining limits. The owner's existing Markdown edits to
 this plan and `AGENTS.md` are included. Concurrent hosting work/configuration is
 outside this PR and was not reverted.
 
-Two independently switchable layers: `cascade-terrain-supplied` has 28 elevation
+Two source layers: `cascade-terrain-supplied` has 28 elevation
 band polygons plus one bundled hillshade footprint; `cascade-terrain-usgs` has
 32 bands plus one footprint. Combined selection is nine layers/131 features.
 Each option includes generalized 20 ftUS bands, close-zoom labels, source/reference
-details and regenerated gray relief. Both default visible under the existing
-new-layer policy. Chooser source descriptions and separate Disclaimers entries
+details and regenerated gray relief. The final UI groups them under one Elevation
+switch and source dropdown, defaults to USGS and renders one source at a time.
+The expanded dropdown explains their similar appearance and source limits;
+the original detailed source caveats remain in Disclaimers. Source descriptions
 make attribution/limits explicit. No pillars, ascent, difficulty, GPS or durable
 offline semantics are inferred.
 
@@ -751,7 +753,8 @@ atomic, share `(6342, 2)` and preserve unrelated layers.
 Verification completed on macOS with Node 24.21.0/pnpm 10.26.2 and the locked GIS
 environment: 27 GIS regression tests and reproducible conversion checks;
 `pnpm verify` (formatting, lint, typechecks, 105 backend unit tests with 22 DB
-cases skipped, 107 mobile tests, iOS/Android JavaScript exports); backend/Worker
+cases skipped, 109 mobile tests after the grouped-source update, iOS/Android
+JavaScript exports); backend/Worker
 builds; fresh disposable PostGIS with all 127 tests, repeated/concurrent imports,
 stale cleanup, complete rollback, bbox/private reads and real Worker HTTP/failure
 checks. Final diff/`git diff --check` passed. Sandbox loopback/cache restrictions
@@ -762,12 +765,26 @@ require exact geometry/properties and decoded RGBA pixels while still validating
 the published PNG byte hashes exactly. All eight terrain tests also passed in
 an x86 Linux container (Python 3.12.12; same locked GIS libraries).
 
-The existing iPhone 16 Plus/iOS 18.6 development client was restarted and showed
+The initial two-switch iPhone 16 Plus/iOS 18.6 verification showed
 9 layers/131 features with location off, readable trails above terrain, source
 descriptions and independent terrain switches. Disabling supplied terrain
 left the national option and changed the count to 8 layers/102 features without
 moving the camera. Screenshots: [both sources](../images/ios-terrain-both.png),
 [USGS only](../images/ios-terrain-usgs.png), [source chooser](../images/ios-terrain-chooser.png).
+
+The final grouped UI was verified November 13 on Cascade iOS 26/iOS 26.3 with
+this branch's Metro bundle. One Elevation switch opens a source dropdown with
+both limitations and the similarity note. Applying Supplied DTM showed eight
+layers/98 features, disabling Elevation showed seven/69, and selecting USGS
+restored eight/102. The disabled chooser remembered Supplied DTM; changing
+sources did not refit the map. The shared local API also contained a separately
+developed cell-signal layer, which was hidden for this check without changing
+its data. Location stayed off. Screenshots: [source dropdown](../images/ios26-terrain-source-dropdown.png),
+[supplied terrain](../images/ios26-terrain-supplied.png),
+[USGS terrain](../images/ios26-terrain-usgs.png). The 109 mobile tests include
+draft cancellation, disabled-source memory, refresh retention and fallback
+when a source is no longer public.
+
 Native coordinate scrolling/tapping still encounters `noWindowsAvailable` in
 computer use; accessibility switch actions work. Native band-detail tapping,
 close-zoom elevation-label review, manual permission denial, Android execution,

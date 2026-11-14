@@ -19,11 +19,21 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
+  the source-similarity explanation inside the dropdown and suggested grouping
+  both datasets under one toggle. The chooser now has one Elevation switch and
+  a source dropdown; only the selected source renders. USGS is the default,
+  falling back to supplied DTM if unavailable. Switching off remembers the
+  source, and Done/Back/retry keep the established draft/session behavior.
+  The dropdown contains the short similarity and source-limit notes, a specific
+  owner-requested exception to the general consolidated-disclaimer policy.
+  Existing detailed source caveats remain in Disclaimers; no new note is added there.
+
 - **November 12, 2026 — D-05 approximate two-source terrain:** The project
   owner authorized publishing the supplied DTM with its missing horizontal
   datum explicitly disclosed, and requested a separate national public elevation
-  option with source/limitations clear for each. PR 4 implements independently
-  switchable supplied-DTM and USGS 3DEP layers, each combining 20 ftUS bands and
+  option with source/limitations clear for each. PR 4 implements separately
+  attributed supplied-DTM and USGS 3DEP layers, each combining 20 ftUS bands and
   regenerated 2D relief. Source attribution appears in chooser/details and
   standing caveats remain in Disclaimers. The supplied GRS80 projection uses a
   ballpark/no-datum-shift assumption; this does not confirm a horizontal datum,
