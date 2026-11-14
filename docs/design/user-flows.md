@@ -115,7 +115,9 @@ For PR 4, verify the API catalog contains nine layers/131 features. The default
 map shows eight layers/102 features with USGS terrain. The chooser has eight
 switches, including one Elevation switch and a source dropdown. Expand it to
 read the similarity note and both sources' concise limitations; detailed source
-caveats remain in Disclaimers. Choose Supplied DTM and Done: the map changes to
+caveats remain in Disclaimers. Choosing a source updates its radio selection
+and leaves both descriptions and the similarity note open. Tap the source button
+to collapse it. Choose Supplied DTM and Done: the map changes to
 eight layers/98 features with only that source's bands/relief. Back cancels drafts.
 At detail zoom, select elevation bands and confirm a 20 ftUS range, NAVD88
 reference and correct source. Trails/POIs take priority where hits overlap.

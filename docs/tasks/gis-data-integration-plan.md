@@ -787,6 +787,9 @@ when a source is no longer public.
 The dropdown uses one rotated chevron from the existing `expo-symbols` library
 so its expanded/collapsed shapes and stroke weights match. Both states were
 visually checked on iOS 26; [collapsed source button](../images/ios26-terrain-source-collapsed.png).
+Selecting either source now keeps the menu expanded so both source descriptions
+and the similarity note remain available. Only the source button collapses it;
+this interaction was verified on iOS 26 and in the terrain regression suite.
 
 Native coordinate scrolling/tapping still encounters `noWindowsAvailable` in
 computer use; accessibility switch actions work. Native band-detail tapping,

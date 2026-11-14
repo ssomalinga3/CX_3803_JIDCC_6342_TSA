@@ -215,7 +215,8 @@ relief renders at a time. Switching elevation off remembers the source; Done
 applies the draft and Back cancels it. An unavailable source falls back to the
 remaining public option. Expanding the dropdown reveals source limitations and
 “Why they look similar”: sampled differences are small relative to the bands,
-and shared survey origins remain unconfirmed. This explanation is in the dropdown;
+and shared survey origins remain unconfirmed. Choosing a source leaves the
+dropdown open; tap the source button to collapse it. This explanation is in the dropdown;
 the original two detailed source caveats remain in Disclaimers.
 Terrain renders below context/trails, never enters the trail key, and cannot take
 priority over a trail/landmark hit. Bands are labeled at zoom 17; camera/GPS semantics are unchanged.

@@ -119,6 +119,14 @@ test('one Elevation toggle selects one source, applies drafts on Done and preser
   ).toBeOnTheScreen();
   expect(screen.getByRole('radio', { name: 'Use USGS 3DEP elevation' })).toBeChecked();
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
+  expect(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' })).toBeChecked();
+  expect(screen.getByRole('radio', { name: 'Use USGS 3DEP elevation' })).not.toBeChecked();
+  expect(screen.getByText('Why they look similar')).toBeOnTheScreen();
+  expect(screen.getByRole('button', { name: 'Choose elevation source' })).toBeExpanded();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
+  expect(screen.queryByText('Why they look similar')).not.toBeOnTheScreen();
+  expect(screen.getByRole('button', { name: 'Choose elevation source' })).toBeCollapsed();
+  expect(screen.getByText('Source: Supplied DTM')).toBeOnTheScreen();
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
   await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
@@ -189,6 +197,6 @@ test('refresh retains the chosen source and safely falls back when it is no long
   await view.rerender(tree());
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.getByText('Source: USGS 3DEP')).toBeOnTheScreen();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
+  expect(screen.getByRole('radio', { name: 'Use USGS 3DEP elevation' })).toBeChecked();
   expect(screen.queryByRole('radio', { name: 'Use Supplied DTM elevation' })).not.toBeOnTheScreen();
 });
