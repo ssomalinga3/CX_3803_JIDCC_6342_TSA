@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen, userEvent, userEvent } from '@testing-library/react-native';
 import NativePreserveMap from '@/components/preserve-map';
 import { LayerSelectionScreen } from '@/components/layer-selection-screen';
 import { pressedFeatureId } from '@/data/feature-details';
@@ -100,26 +100,26 @@ test('raster slots survive hide/show and all-hidden while retaining the camera',
     ]);
     expect(a.props.paint['fill-opacity']).toBe(0);
   }
-  for (const key of ['usgs', 'supplied']) {
-    await fireEvent(
-      screen.getByRole('switch', { name: `Show Elevation ${key}` }),
-      'valueChange',
-      false,
-    );
-    await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
-  }
+  const applyDraft = async () => {
+    const done = screen.queryByRole('button', { name: 'Apply GIS layers' });
+    if (done) await userEvent.setup().press(done);
+  };
+  await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', false);
   for (const name of ['Preserve trails', 'Landmarks', 'Preserve outline'])
     await fireEvent(screen.getByRole('switch', { name: `Show ${name}` }), 'valueChange', false);
   await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
+  await applyDraft();
   expect(screen.getByTestId('public-gis-source').props.data.features).toEqual([]);
   expect(anchors()).toHaveLength(2);
-  for (const key of ['usgs', 'supplied']) {
-    await fireEvent(
-      screen.getByRole('switch', { name: `Show Elevation ${key}` }),
-      'valueChange',
-      true,
-    );
-    await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
+  await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', true);
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
+  for (const key of ['usgs', 'supplied'] as const) {
+    const label = key === 'usgs' ? 'USGS 3DEP' : 'Supplied DTM';
+    await userEvent.setup().press(screen.getByRole('radio', { name: `Use ${label} elevation` }));
+    await applyDraft();
+    expect(
+      screen.queryByTestId(`terrain-${key === 'usgs' ? 'supplied' : 'usgs'}`),
+    ).not.toBeOnTheScreen();
     const image = screen.getByTestId(`terrain-${key}`);
     const layer = image.children.find((c) => typeof c !== 'string')!;
     if (typeof layer === 'string') throw new Error('Missing raster layer');
