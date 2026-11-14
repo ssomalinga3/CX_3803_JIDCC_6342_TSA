@@ -18,7 +18,8 @@ Each `terrain` catalog layer contains Polygon features with `feature_kind`
 **Elevation** switch and a source dropdown. Exactly one source supplies bands,
 labels, hit testing and relief at a time. USGS is selected by default; if it is
 unavailable, the supplied source is used. Turning elevation off remembers the
-source. Source/switch edits apply on Done, cancel on Back and survive in-session
+source. Selecting a source keeps the dropdown and its notes open; tap the source
+button to collapse it. Source/switch edits apply on Done, cancel on Back and survive in-session
 refresh. The default complete map shows eight layers/102 features; choosing the
 supplied DTM shows eight/98, and disabling elevation leaves seven/69.
 Trails, context, GPS and camera state retain their existing independent behavior.

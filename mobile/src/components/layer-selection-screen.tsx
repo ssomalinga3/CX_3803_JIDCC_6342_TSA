@@ -251,10 +251,7 @@ function ElevationChoice({
               accessibilityLabel={`Use ${terrainLabels[key]} elevation`}
               accessibilityHint={terrainLimits[key]}
               accessibilityState={{ checked: source === key }}
-              onPress={() => {
-                choose(enabled, key);
-                setExpanded(false);
-              }}
+              onPress={() => choose(enabled, key)}
               style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
             >
               <Text style={[styles.sourceLabel, { color: theme.text }]}>
