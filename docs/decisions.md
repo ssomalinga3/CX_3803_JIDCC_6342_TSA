@@ -219,7 +219,7 @@ The owner requested Visitor (basic trails), Staff (useful context) and Researche
 The [initial mapping](development/layer-presets.md) uses trail/boundary/landmark
 for Visitor, adds water/roads/buildings/natural areas plus USGS elevation for
 Staff, and adds signal observations for Researcher. Supplied elevation is the
-fallback when USGS is absent; manual switches can select either/both. These are
+fallback when USGS is absent; the Elevation source dropdown selects one alternative at a time. These are
 engineering defaults for the current public catalog, not claims of client-approved
 role permissions. Each fresh session starts in Visitor. Applied preset/overrides
 survive in-session retry, choices stay editable, and unknown content
@@ -235,3 +235,15 @@ immediately. Done only returns to Map and remains available without a catalog;
 system/swipe back also retains changes. This supersedes the earlier draft/apply/
 cancel interaction for layer selection. Session-only storage and preset defaults
 are unchanged.
+
+## November 14, 2026 — PR stack integration
+
+The restack reconciles the grouped elevation chooser from #32 with the immediate
+preset changes from #40. Presets, individual switches and source choices all
+apply immediately; Done and native back retain them. One Elevation switch and
+its source dropdown display only one terrain source at a time. The dropdown
+retains the matching chevron and stays open after source selection. Visitor
+starts with elevation off; Staff and Researcher prefer USGS, falling back to the
+supplied source. Selecting a preset resets custom visibility; turning Elevation
+off retains its chosen source. This incorporates the already confirmed parent
+behaviors and supersedes the earlier draft/cancel and dual-source switch wording.

@@ -132,6 +132,10 @@ terrain. Nodata/outside-preserve pixels are transparent. Bundle checks and exist
 iOS execution are separate from Android/native-build/field-accuracy evidence;
 see [PR 4 verification](../../data/cascade-springs-gis/TERRAIN.md#verification-and-handoff).
 
+The PR 4 instructions above record its original default/draft behavior. With the
+later presets, start in Visitor and choose Staff to enable elevation; source
+changes apply immediately and leaving the chooser retains them.
+
 ## Approximate signal layer acceptance (PR 5)
 
 Use an iOS 26 simulator as the primary native target. Load all selected sources:

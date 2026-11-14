@@ -24,7 +24,9 @@ function useMapGisState() {
     ? choices.terrainSource
     : (availableTerrain[0] ?? choices.terrainSource);
   const hidden = useMemo(() => {
-    const result = new Set(hiddenWithOverrides(snapshot?.layers ?? [], choices.preset, choices.overrides));
+    const result = new Set(
+      hiddenWithOverrides(snapshot?.layers ?? [], choices.preset, choices.overrides),
+    );
     const enabled = choices.terrainEnabled ?? choices.preset !== 'visitor';
     for (const key of availableTerrain) {
       if (enabled && key === terrainSource) result.delete(`cascade-terrain-${key}`);
@@ -49,7 +51,9 @@ function useMapGisState() {
       terrainSource: source ?? selectedSource ?? previous.terrainSource,
       terrainEnabled: availableTerrain.length
         ? Boolean(selectedSource)
-        : preset === previous.preset ? previous.terrainEnabled : undefined,
+        : preset === previous.preset
+          ? previous.terrainEnabled
+          : undefined,
     }));
   };
   return {
@@ -59,7 +63,8 @@ function useMapGisState() {
     preset: choices.preset,
     visibleSnapshot,
     applyChoices,
-    applyHidden: (ids: ReadonlySet<string>, source?: TerrainKey) => applyChoices(choices.preset, ids, source),
+    applyHidden: (ids: ReadonlySet<string>, source?: TerrainKey) =>
+      applyChoices(choices.preset, ids, source),
   };
 }
 

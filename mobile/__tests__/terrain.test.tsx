@@ -98,7 +98,7 @@ const tree = (chooser = true) => (
     {chooser && <LayerSelectionScreen />}
   </MapGisProvider>
 );
-test('one Elevation toggle selects one source, applies drafts on Done and preserves the camera', async () => {
+test('one Elevation toggle selects one source immediately and preserves the camera', async () => {
   const data = await snapshot();
   jest
     .spyOn(PublicGis, 'usePublicGis')
@@ -153,9 +153,7 @@ test('leaving retains the source change and a disabled Elevation remembers its c
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
-  await userEvent
-    .setup()
-    .press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
   await view.rerender(tree(false));
   await view.rerender(tree());
   expect(screen.getByText('Source: Supplied DTM')).toBeOnTheScreen();
@@ -193,7 +191,14 @@ test('refresh retains the chosen source and safely falls back when it is no long
   await view.rerender(tree());
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.getByText('Source: USGS 3DEP')).toBeOnTheScreen();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   expect(screen.getByRole('radio', { name: 'Use USGS 3DEP elevation' })).toBeChecked();
   expect(screen.queryByRole('radio', { name: 'Use Supplied DTM elevation' })).not.toBeOnTheScreen();
+  gis.mockReturnValue({ status: 'ready', snapshot: data, retry: jest.fn() });
+  await view.rerender(tree());
+  expect(screen.getByTestId('terrain-supplied')).toBeOnTheScreen();
+  expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
+  await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
+  expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
+  expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
+  expect(screen.getByRole('radio', { name: 'Use Staff preset' })).toBeChecked();
 });
