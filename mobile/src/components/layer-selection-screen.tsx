@@ -13,8 +13,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { GisSnapshot } from '@/data/gis';
-import { featureText } from '@/data/feature-details';
 import { terrainKeys, type TerrainKey } from '@/data/terrain';
+import { featureText } from '@/data/feature-details';
+import { hiddenForPreset, isCustomized, layerPresets } from '@/data/layer-presets';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -37,26 +38,18 @@ const descriptions: Record<string, string> = {
 export function LayerSelectionScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { gis, hidden, terrainSource, applyHidden } = useMapGis();
+  const { gis, hidden, terrainSource, preset, applyChoices } = useMapGis();
   const snapshot = gis.snapshot;
-  const [draft, setDraft] = useState<{
-    snapshot: GisSnapshot;
-    hidden: ReadonlySet<string>;
-    terrainSource: TerrainKey;
-  }>();
-  // A replaced/failed catalog must not apply a draft against obsolete records.
-  const current = draft?.snapshot === snapshot ? (draft?.hidden ?? hidden) : hidden;
-  const currentSource =
-    draft?.snapshot === snapshot ? (draft?.terrainSource ?? terrainSource) : terrainSource;
   const layers = snapshot?.layers ?? [];
+  const customized = isCustomized(layers, preset, hidden);
   const terrainLayers = layers.filter((layer) =>
     terrainKeys.some((key) => layer.layerId === `cascade-terrain-${key}`),
   );
   const otherLayers = layers.filter((layer) => !terrainLayers.includes(layer));
-  const elevationEnabled = terrainLayers.some((layer) => !current.has(layer.layerId));
+  const elevationEnabled = terrainLayers.some((layer) => !hidden.has(layer.layerId));
   const choiceCount = otherLayers.length + (terrainLayers.length ? 1 : 0);
   const selectedCount =
-    otherLayers.filter((layer) => !current.has(layer.layerId)).length + (elevationEnabled ? 1 : 0);
+    otherLayers.filter((layer) => !hidden.has(layer.layerId)).length + (elevationEnabled ? 1 : 0);
   return (
     <View
       style={[
@@ -67,23 +60,11 @@ export function LayerSelectionScreen() {
       <View style={[styles.header, { backgroundColor: theme.background }]}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back to Map without applying layers"
+          accessibilityLabel="Done choosing GIS layers"
           onPress={returnToMap}
           style={styles.action}
         >
-          <Text style={styles.actionText}>‹ Map</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Apply GIS layers"
-          disabled={!snapshot}
-          onPress={() => {
-            applyHidden(current, currentSource);
-            returnToMap();
-          }}
-          style={styles.action}
-        >
-          <Text style={[styles.actionText, !snapshot && styles.disabled]}>Done</Text>
+          <Text style={styles.actionText}>Done</Text>
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
@@ -91,8 +72,55 @@ export function LayerSelectionScreen() {
           Choose GIS Layers
         </Text>
         <Text style={[styles.description, { color: theme.textSecondary }]}>
-          Choose what appears on your map.
+          Changes appear on your map immediately.
         </Text>
+        {snapshot && layers.length > 0 && (
+          <View style={[styles.card, { backgroundColor: theme.background }]}>
+            <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
+              Layer presets
+            </Text>
+            <Text style={[styles.description, { color: theme.textSecondary }]}>
+              Choose a starting set, then adjust any layer.
+            </Text>
+            <View style={styles.presetRow}>
+              {layerPresets.map((option) => {
+                const selected = preset === option.id && !customized;
+                return (
+                  <Pressable
+                    key={option.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`Use ${option.label} preset`}
+                    accessibilityState={{ checked: selected }}
+                    accessibilityHint="Updates your map immediately"
+                    onPress={() => applyChoices(option.id, hiddenForPreset(layers, option.id))}
+                    style={[
+                      styles.presetOption,
+                      { borderColor: selected ? '#007aff' : theme.backgroundElement },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.radio,
+                        { borderColor: selected ? '#007aff' : theme.textSecondary },
+                      ]}
+                    >
+                      {selected && <View style={styles.radioDot} />}
+                    </View>
+                    <Text style={[styles.presetLabel, { color: theme.text }]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[styles.description, { color: theme.textSecondary }]}
+            >
+              {customized
+                ? `Customized from ${layerPresets.find((p) => p.id === preset)!.label}`
+                : layerPresets.find((p) => p.id === preset)!.description}
+            </Text>
+          </View>
+        )}
         {gis.status === 'loading' && (
           <ActivityIndicator accessibilityLabel="Loading GIS layer choices" />
         )}
@@ -138,13 +166,13 @@ export function LayerSelectionScreen() {
                 <Switch
                   style={{ minHeight: 44 }}
                   accessibilityLabel={`Show ${name}`}
-                  accessibilityHint="Applies when you tap Done"
-                  value={!current.has(layer.layerId)}
+                  accessibilityHint="Updates your map immediately"
+                  value={!hidden.has(layer.layerId)}
                   onValueChange={(enabled) => {
-                    const next = new Set(current);
+                    const next = new Set(hidden);
                     if (enabled) next.delete(layer.layerId);
                     else next.add(layer.layerId);
-                    setDraft({ snapshot: snapshot!, hidden: next, terrainSource: currentSource });
+                    applyChoices(preset, next);
                   }}
                 />
               </View>
@@ -153,6 +181,11 @@ export function LayerSelectionScreen() {
                   ? descriptions[layer.layerType]
                   : 'Features available in this layer.'}
               </Text>
+              {layer.layerType === 'terrain' && (
+                <Text style={[styles.description, { color: theme.textSecondary }]}>
+                  {featureText(layer.source, 300)}
+                </Text>
+              )}
               {pillar && (
                 <Text
                   style={[
@@ -169,9 +202,9 @@ export function LayerSelectionScreen() {
         {snapshot && terrainLayers.length > 0 && (
           <ElevationChoice
             layers={terrainLayers}
-            hidden={current}
-            source={currentSource}
-            onChange={(next, source) => setDraft({ snapshot, hidden: next, terrainSource: source })}
+            hidden={hidden}
+            source={terrainSource}
+            onChange={(next, source) => applyChoices(preset, next, source)}
           />
         )}
       </ScrollView>
@@ -215,7 +248,7 @@ function ElevationChoice({
         <Switch
           style={{ minHeight: 44 }}
           accessibilityLabel="Show Elevation"
-          accessibilityHint="Applies when you tap Done"
+          accessibilityHint="Updates your map immediately"
           value={enabled}
           onValueChange={(value) => choose(value, source)}
         />
@@ -277,10 +310,9 @@ function ElevationChoice({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16 },
+  header: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16 },
   action: { minHeight: 44, minWidth: 44, justifyContent: 'center' },
   actionText: { color: '#007aff', fontSize: 17, fontWeight: '600' },
-  disabled: { opacity: 0.4 },
   content: { padding: 20, gap: 16 },
   title: { fontSize: 28, fontWeight: '700' },
   description: { fontSize: 16, lineHeight: 23 },
@@ -295,6 +327,29 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   status: { gap: 12 },
+  presetRow: { flexDirection: 'row', gap: 6 },
+  presetOption: {
+    flex: 1,
+    minHeight: 64,
+    borderWidth: 2,
+    borderRadius: 10,
+    paddingHorizontal: 3,
+    paddingVertical: 8,
+    flexDirection: 'column',
+    gap: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  presetLabel: { fontSize: 14, fontWeight: '600', flexShrink: 1, textAlign: 'center' },
+  radio: {
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#007aff' },
   sourceButton: {
     minHeight: 48,
     borderWidth: 1,

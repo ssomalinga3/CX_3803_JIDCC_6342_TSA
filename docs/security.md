@@ -59,3 +59,11 @@ Validate and sanitize text, coordinates, category references, and uploaded files
 Check that unauthorized requests cannot view staff reports, alter statuses, export records, or obtain private media access; public layer requests cannot expose restricted features; invalid/oversized uploads are rejected; denied device permissions have usable fallbacks; location is absent from logs; and expired media links stop working. Authentication/session implementation, password policy, abuse limits, retention, and complete staff permissions are unresolved in D-01, D-02, D-04, and D-09.
 
 Verify guest park/custom submissions and offline retries without a login prompt. Using a park-administrator session, verify a custom report is absent from lists, maps, summaries, exports, and notifications, and that direct detail/media/mutation requests are denied. Verify a different guest cannot retrieve the report by ID and that failed custom delivery never routes it to park staff.
+
+## Public map presets
+
+Visitor, Staff and Researcher are visibility presets over the public GIS catalog,
+not authentication/authorization roles. They are never sent as permission claims
+to the backend and do not expose private layers, reports, custom recipients or
+media. Every public layer remains manually selectable in each preset. Existing
+server access checks remain authoritative. See [preset behavior](development/layer-presets.md).

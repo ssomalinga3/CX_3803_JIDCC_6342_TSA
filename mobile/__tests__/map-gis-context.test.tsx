@@ -1,16 +1,21 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { Button, Text, View } from 'react-native';
 import * as Gis from '@/data/gis';
+import { hiddenForPreset } from '@/data/layer-presets';
 import { MapGisProvider, useMapGis } from '@/hooks/map-gis-context';
 import { layersSnapshot } from './fixtures/layers';
 
 function ReadLayers() {
-  const { gis, visibleSnapshot, applyHidden } = useMapGis();
+  const { gis, visibleSnapshot, applyHidden, applyChoices } = useMapGis();
   return (
     <View>
       <Text>{gis.status}</Text>
       <Text>{visibleSnapshot?.layers.map((layer) => layer.layerId).join(',')}</Text>
       <Button title="Hide trails" onPress={() => applyHidden(new Set(['trails', 'private']))} />
+      <Button
+        title="Use Staff"
+        onPress={() => applyChoices('staff', hiddenForPreset(gis.snapshot?.layers ?? [], 'staff'))}
+      />
       <Button title="Refresh catalog" onPress={gis.retry} />
     </View>
   );
@@ -30,6 +35,8 @@ test('shares one GIS load across route content changes; choices survive refresh 
     );
     const view = await render(tree());
     expect(await screen.findByText('ready')).toBeOnTheScreen();
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Use Staff' }));
+    expect(load).toHaveBeenCalledTimes(1);
     await userEvent.setup().press(screen.getByRole('button', { name: 'Hide trails' }));
     expect(screen.getByText('landmarks,boundary')).toBeOnTheScreen();
     await view.rerender(tree(true));

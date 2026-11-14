@@ -211,3 +211,39 @@ This refines the older J6-19 “trails always on top” title for marker legibil
 it does not change Jira ownership, palette, geometry, visibility defaults or access.
 Stable empty terrain slots and explicit native placement remove mount-order
 dependence. Hit priority follows landmark → trail → observation for crowded hits.
+
+## November 13, 2026 — D-08 public visibility presets
+
+The owner requested Visitor (basic trails), Staff (useful context) and Researcher
+(more layers) as three chooser options in a PR above natural rendering order.
+The [initial mapping](development/layer-presets.md) uses trail/boundary/landmark
+for Visitor, adds water/roads/buildings/natural areas plus USGS elevation for
+Staff, and adds signal observations for Researcher. Supplied elevation is the
+fallback when USGS is absent; the Elevation source dropdown selects one alternative at a time. These are
+engineering defaults for the current public catalog, not claims of client-approved
+role permissions. Each fresh session starts in Visitor. Applied preset/overrides
+survive in-session retry, choices stay editable, and unknown content
+starts hidden. Persistence across restarts is not added. Existing access rules,
+source caveats and report routing are unaffected.
+
+
+### Owner clarification — immediate layer changes
+
+The owner requested that preset and switch choices always update filters and
+that the separate Back button be removed. The chooser now applies each change
+immediately. Done only returns to Map and remains available without a catalog;
+system/swipe back also retains changes. This supersedes the earlier draft/apply/
+cancel interaction for layer selection. Session-only storage and preset defaults
+are unchanged.
+
+## November 14, 2026 — PR stack integration
+
+The restack reconciles the grouped elevation chooser from #32 with the immediate
+preset changes from #40. Presets, individual switches and source choices all
+apply immediately; Done and native back retain them. One Elevation switch and
+its source dropdown display only one terrain source at a time. The dropdown
+retains the matching chevron and stays open after source selection. Visitor
+starts with elevation off; Staff and Researcher prefer USGS, falling back to the
+supplied source. Selecting a preset resets custom visibility; turning Elevation
+off retains its chosen source. This incorporates the already confirmed parent
+behaviors and supersedes the earlier draft/cancel and dual-source switch wording.
