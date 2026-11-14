@@ -18,7 +18,7 @@ const tree = (chooser = true) => (
 beforeEach(() => jest.clearAllMocks());
 afterEach(() => jest.restoreAllMocks());
 
-test('draft switches apply only on Done, update counts/details/legend and retain the camera', async () => {
+test('switches apply immediately, update counts/details/legend and retain the camera', async () => {
   const snapshot = layersSnapshot();
   const retry = jest.fn();
   jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({ status: 'ready', snapshot, retry });
@@ -32,9 +32,10 @@ test('draft switches apply only on Done, update counts/details/legend and retain
     false,
   );
   expect(screen.getByText('2 of 3 layers selected')).toBeOnTheScreen();
-  expect(screen.getByLabelText('Terrace Trail: Purple')).toBeOnTheScreen();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
-  expect(router.back).toHaveBeenCalledTimes(1);
+  expect(router.back).not.toHaveBeenCalled();
+  expect(
+    screen.queryByRole('button', { name: 'Back to Map without applying layers' }),
+  ).not.toBeOnTheScreen();
   expect(screen.queryByText('Trail colors')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 2 layers · 2 features')).toBeOnTheScreen();
   await fireEvent(screen.getByTestId('public-gis-source'), 'press', {
@@ -51,7 +52,7 @@ test('draft switches apply only on Done, update counts/details/legend and retain
   expect(retry).not.toHaveBeenCalled();
 });
 
-test('Back cancels edits, Done survives reopen and all-off keeps browsing available', async () => {
+test('exiting retains edits and all-off keeps browsing available', async () => {
   const snapshot = layersSnapshot();
   jest
     .spyOn(PublicGis, 'usePublicGis')
@@ -59,16 +60,14 @@ test('Back cancels edits, Done survives reopen and all-off keeps browsing availa
   const view = await render(tree());
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   await fireEvent(screen.getByRole('switch', { name: 'Show Landmarks' }), 'valueChange', false);
-  await userEvent
-    .setup()
-    .press(screen.getByRole('button', { name: 'Back to Map without applying layers' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
+  expect(router.back).toHaveBeenCalledTimes(1);
   await view.rerender(tree(false));
   await view.rerender(tree());
-  expect(screen.getByRole('switch', { name: 'Show Landmarks' })).toBeChecked();
+  expect(screen.getByRole('switch', { name: 'Show Landmarks' })).not.toBeChecked();
   for (const name of ['Preserve trails', 'Landmarks', 'Preserve outline']) {
     await fireEvent(screen.getByRole('switch', { name: `Show ${name}` }), 'valueChange', false);
   }
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await view.rerender(tree(false));
   expect(
     screen.getByText('All GIS layers are hidden. Basemap browsing remains available.'),
@@ -81,12 +80,11 @@ test('Back cancels edits, Done survives reopen and all-off keeps browsing availa
     'valueChange',
     true,
   );
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getAllByLabelText('Terrace Trail: Purple')).toHaveLength(1);
   expect(screen.getByText('Public GIS · 1 layer · 1 feature')).toBeOnTheScreen();
 });
 
-test('catalog replacement discards obsolete drafts and a direct link has a safe Map return', async () => {
+test('catalog replacement retains applied choices and a direct link has a safe Map return', async () => {
   const snapshot = layersSnapshot();
   const gis = jest
     .spyOn(PublicGis, 'usePublicGis')
@@ -99,10 +97,10 @@ test('catalog replacement discards obsolete drafts and a direct link has a safe 
     retry: jest.fn(),
   });
   await view.rerender(tree());
-  expect(screen.getByRole('switch', { name: 'Show Landmarks' })).toBeChecked();
+  expect(screen.getByRole('switch', { name: 'Show Landmarks' })).not.toBeChecked();
   expect(screen.queryByRole('switch', { name: 'Show Preserve trails' })).not.toBeOnTheScreen();
   jest.mocked(router.canGoBack).mockReturnValueOnce(false);
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
   expect(router.replace).toHaveBeenCalledWith('/');
 });
 
@@ -110,7 +108,9 @@ test('unavailable catalog cannot overwrite choices and offers retry without a GP
   const retry = jest.fn();
   jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({ status: 'error', retry });
   await render(tree());
-  expect(screen.getByRole('button', { name: 'Apply GIS layers' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Done choosing GIS layers' })).toBeEnabled();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
+  expect(router.back).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole('switch')).not.toBeOnTheScreen();
   await userEvent.setup().press(screen.getByRole('button', { name: 'Retry GIS layer choices' }));
   expect(retry).toHaveBeenCalledTimes(1);

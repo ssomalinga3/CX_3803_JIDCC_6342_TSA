@@ -109,7 +109,6 @@ test('one Elevation toggle selects one source, applies drafts on Done and preser
   const fits = mockFitBounds.mock.calls.length;
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.getAllByRole('switch')).toHaveLength(2);
@@ -130,53 +129,45 @@ test('one Elevation toggle selects one source, applies drafts on Done and preser
   expect(screen.queryByText('Why they look similar')).not.toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Choose elevation source' })).toBeCollapsed();
   expect(screen.getByText('Source: Supplied DTM')).toBeOnTheScreen();
-  expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
-  expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getByTestId('terrain-supplied')).toBeOnTheScreen();
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 2 layers · 65 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
   expect(screen.getByRole('button', { name: 'Use my location' })).toBeEnabled();
   await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', false);
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 1 layer · 36 features')).toBeOnTheScreen();
   await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', true);
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getAllByTestId('terrain-supplied')).toHaveLength(1);
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
 });
 
-test('Back cancels a source change and a disabled Elevation remembers its chosen source', async () => {
+test('leaving retains the source change and a disabled Elevation remembers its chosen source', async () => {
   const data = await snapshot();
   jest
     .spyOn(PublicGis, 'usePublicGis')
     .mockReturnValue({ status: 'ready', snapshot: data, retry: jest.fn() });
   const view = await render(tree());
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
   await userEvent
     .setup()
-    .press(screen.getByRole('button', { name: 'Back to Map without applying layers' }));
+    .press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
   await view.rerender(tree(false));
   await view.rerender(tree());
-  expect(screen.getByText('Source: USGS 3DEP')).toBeOnTheScreen();
+  expect(screen.getByText('Source: Supplied DTM')).toBeOnTheScreen();
   await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', false);
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await view.rerender(tree(false));
   await view.rerender(tree());
   expect(screen.getByText('Source: Supplied DTM')).toBeOnTheScreen();
   expect(screen.getByRole('switch', { name: 'Show Elevation' })).not.toBeChecked();
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
   await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', true);
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getByTestId('terrain-supplied')).toBeOnTheScreen();
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
 });
@@ -188,10 +179,8 @@ test('refresh retains the chosen source and safely falls back when it is no long
     .mockReturnValue({ status: 'ready', snapshot: data, retry: jest.fn() });
   const view = await render(tree());
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   gis.mockReturnValue({ status: 'ready', snapshot: { ...data }, retry: jest.fn() });
   await view.rerender(tree());
   expect(screen.getByTestId('terrain-supplied')).toBeOnTheScreen();
@@ -204,6 +193,7 @@ test('refresh retains the chosen source and safely falls back when it is no long
   await view.rerender(tree());
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.getByText('Source: USGS 3DEP')).toBeOnTheScreen();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   expect(screen.getByRole('radio', { name: 'Use USGS 3DEP elevation' })).toBeChecked();
   expect(screen.queryByRole('radio', { name: 'Use Supplied DTM elevation' })).not.toBeOnTheScreen();
 });

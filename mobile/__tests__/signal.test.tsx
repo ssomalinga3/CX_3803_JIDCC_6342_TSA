@@ -104,7 +104,7 @@ test.each([
     };
   await expect(snapshot(value)).rejects.toThrow(/signal/i);
 });
-test('signal toggles apply with Done, keep the camera, avoid duplicate points and retain location controls', async () => {
+test('signal toggles apply immediately, keep the camera, avoid duplicate points and retain location controls', async () => {
   const data = await snapshot();
   jest
     .spyOn(PublicGis, 'usePublicGis')
@@ -120,7 +120,6 @@ test('signal toggles apply with Done, keep the camera, avoid duplicate points an
   const fits = mockFitBounds.mock.calls.length;
   expect(screen.getByText('Public GIS · 2 layers · 58 features')).toBeOnTheScreen();
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Researcher preset' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getByText('Public GIS · 3 layers · 735 features')).toBeOnTheScreen();
   for (const c of signalClasses)
     expect(screen.getByLabelText(`${c.label}: ${c.color_name}`)).toBeOnTheScreen();
@@ -129,8 +128,6 @@ test('signal toggles apply with Done, keep the camera, avoid duplicate points an
     'valueChange',
     false,
   );
-  expect(screen.getByText('Cell-signal classes')).toBeOnTheScreen();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.queryByText('Cell-signal classes')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 2 layers · 58 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
@@ -140,7 +137,6 @@ test('signal toggles apply with Done, keep the camera, avoid duplicate points an
     'valueChange',
     true,
   );
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getByText('Public GIS · 3 layers · 735 features')).toBeOnTheScreen();
   expect(screen.getAllByText('Cell-signal classes')).toHaveLength(1);
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);

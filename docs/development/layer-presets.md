@@ -23,7 +23,7 @@ Researcher. All existing individual switches remain available.
 
 Staff and Researcher use USGS elevation when available, falling back to supplied
 elevation if USGS is absent. Presets do not superimpose both alternatives by
-default; a visitor can still enable either or both manually. These defaults are
+default; the Elevation switch and source dropdown select one alternative at a time. These defaults are
 an engineering mapping of the requested audiences to the available public
 catalog. They do not infer new source attributes or restricted staff/researcher
 data. Unknown layer types remain listed but default hidden until manually enabled.
@@ -31,9 +31,11 @@ data. Unknown layer types remain listed but default hidden until manually enable
 ## Interaction and lifecycle
 
 Each fresh app/provider session starts in Visitor. Selecting a radio option
-replaces the chooser's draft with that preset's defaults for the current catalog.
-Done applies it; Back or another exit discards it. Individual switches can then
-customize any preset, including enabling every public layer or hiding everything.
+immediately replaces visibility with that preset's defaults for the current catalog.
+Individual switches also update the map immediately. Done only closes the chooser;
+there is no separate Back button. System/swipe back retains changes. Done remains
+available when the catalog is loading or unavailable. Individual switches can
+customize any preset, including selecting either elevation source or hiding everything.
 The chooser labels manual differences “Customized from Visitor/Staff/Researcher”
 and clears the radio selection until a preset is selected again. There are still
 exactly three preset options. Re-selecting one resets manual differences.
@@ -41,8 +43,8 @@ exactly three preset options. Re-selecting one resets manual differences.
 Applied state contains the selected preset plus explicit per-layer visibility
 overrides. Overrides survive route changes and in-session API retry. Newly
 available layers follow that preset's recognized type/source rules; existing
-overrides keep their layer identity. Catalog failure cannot apply a draft, and
-catalog replacement discards obsolete drafts. Only current public catalog IDs
+overrides keep their layer identity. Catalog failure offers no editable layer
+choices; replacement/retry reconciles the already applied choices. Only current public catalog IDs
 can become overrides. A new app/provider session resets to Visitor; no disk
 preference, authentication role, report state or durable offline cache is added.
 
@@ -53,31 +55,43 @@ remains in the chooser. These public viewing presets grant no server access;
 private layers and custom-recipient reports keep their existing restrictions.
 
 `mobile/src/data/layer-presets.ts` owns defaults and override reconciliation.
-`MapGisProvider` owns applied session state; the chooser owns its pending draft.
+`MapGisProvider` owns applied session state; the chooser edits it directly.
 No backend schema, API, source bytes or native dependency changes are required.
+
+The chooser uses Expo Router's native stack: `gestureEnabled: true` explicitly
+keeps iOS edge-swipe back available, and Android retains normal system back.
+There is no custom gesture or back handler. Done provides a visible exit and
+falls back to Map for a direct link without stack history. See the
+[native stack gesture contract](https://reactnavigation.org/docs/native-stack-navigator/#gestureenabled).
 
 ## Acceptance and verification
 
 On iOS 26, launch a fresh session and confirm Visitor (3 layers / 59 features).
-Open the chooser and draft Researcher, then Back: the map stays Visitor. Apply
+Open the chooser and select Researcher, then leave without Done: reopen and confirm
+Researcher is retained. Switch to
 Staff and confirm USGS relief plus context (8 / 102), then apply Researcher and
 confirm the signal samples/key appear (9 / 779). Return to Visitor: both terrain
 and the signal key disappear. Keep a zoomed camera through all changes.
 
 Manually enable a nondefault layer, verify the Customized label, apply and reopen.
 Hide all layers, confirm basemap/location controls remain usable, then reset a
-preset. Retry GIS after an API failure, replace the catalog while a draft exists,
+preset. Retry GIS after an API failure, replace the catalog while the chooser is open,
 and restart the provider to verify the lifecycle above. Preset names must never
 alter authentication, data access or recipients.
 
 Regression tests use the committed ten-layer dataset for counts/membership and
-cover preset/reset/custom/all-hidden, Done/Back, no GPS/refetch/refit, single-source
-terrain/fallback, unknown/new layers, failure/retry, obsolete drafts and session
+cover immediate preset/reset/custom/all-hidden changes, Done/route exits, no
+GPS/refetch/refit, single-source terrain/fallback, unknown/new layers, failure/
+retry, catalog replacement and session
 restart. Run `pnpm verify`; native execution and JavaScript exports remain separate
-evidence. The repository's existing uncommitted terrain-source chooser work is
-preserved outside this stack and must be reconciled when its parent changes land.
+evidence. The November 14 restack incorporates the parent's grouped elevation chooser;
+source selection also applies immediately and survives leaving the screen.
 
-### Completed checks — November 13, 2026
+### Initial checks — November 13, 2026
+
+This initial evidence predates the immediate-change clarification; its Back
+cancellation behavior is superseded by the follow-up below. The chooser
+screenshot now shows the current immediate-change interface.
 
 - `pnpm verify` passed: formatting, lint, type checks, 122 backend unit tests
   (26 database tests skipped locally), 131 mobile tests, and separate iOS/Android
@@ -99,3 +113,25 @@ device offline restart/retry and permission-denial flows were not rerun in this
 slice. No native dependencies changed. Automated coverage exercises preset
 state through catalog failure/retry and fresh provider sessions; bundle export
 does not establish native compilation or device behavior.
+
+### Immediate-change follow-up
+
+The owner requested immediate updates, removal of the separate Back button,
+and standard native back alongside Done. Regression tests now assert immediate
+map/legend/count/hit updates, preservation through route removal/reopen and
+catalog replacement, all-hidden/reset behavior, and an enabled Done exit during
+catalog failure. All 131 mobile tests pass; `pnpm verify` passes formatting,
+lint, types, 122 backend tests (26 database cases skipped locally), and both
+platform JavaScript exports. The explicit stack gesture option also passes
+mobile type checking.
+
+On the existing iPhone 17 / iOS 26.3 client, Researcher selection immediately
+updated the chooser to 9/10, Done returned to 9 layers / 779 features, and
+reopening retained Researcher. Turning signal off immediately showed
+“Customized from Researcher” and 8/10; Done returned to 8 layers / 102 features
+with no signal key and location still off. The Back button is absent; the
+[updated screenshot](../images/ios26-preset-chooser.png) records the layout.
+The native edge-swipe attempt could not execute because coordinate automation
+returned `noWindowsAvailable`; actual iOS swipe and Android system-back execution
+remain manual acceptance checks. Route-removal tests establish retained state,
+not successful physical gesture execution.

@@ -15,7 +15,7 @@ export default function TabLayout() {
       <MapGisProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="layers" />
+          <Stack.Screen name="layers" options={{ gestureEnabled: true }} />
         </Stack>
       </MapGisProvider>
     </ThemeProvider>

@@ -77,7 +77,7 @@ test('explicit overrides retain identity while new catalog entries follow the ch
   expect(next.has('private-not-in-catalog')).toBe(false);
 });
 
-test('Visitor is the initial view; preset drafts cancel on Back and apply with Done without GPS or camera changes', async () => {
+test('Visitor is the initial view; preset changes apply immediately and survive leaving without GPS or camera changes', async () => {
   const snapshot = suppliedSnapshot();
   const retry = jest.fn();
   jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({ status: 'ready', snapshot, retry });
@@ -89,24 +89,23 @@ test('Visitor is the initial view; preset drafts cancel on Back and apply with D
   expect(screen.getByRole('radio', { name: 'Use Visitor preset' })).toBeChecked();
   expect(screen.getByText('Public GIS · 3 layers · 59 features')).toBeOnTheScreen();
   await preset('Researcher');
-  expect(screen.getByText('9 of 10 layers selected')).toBeOnTheScreen();
-  expect(screen.getByText('Public GIS · 3 layers · 59 features')).toBeOnTheScreen();
-  await press('Back to Map without applying layers');
+  expect(screen.getByText('9 of 9 layers selected')).toBeOnTheScreen();
+  expect(screen.getByText('Public GIS · 9 layers · 779 features')).toBeOnTheScreen();
+  expect(
+    screen.queryByRole('button', { name: 'Back to Map without applying layers' }),
+  ).not.toBeOnTheScreen();
   await view.rerender(tree(false));
   await view.rerender(tree());
-  expect(screen.getByRole('radio', { name: 'Use Visitor preset' })).toBeChecked();
+  expect(screen.getByRole('radio', { name: 'Use Researcher preset' })).toBeChecked();
   await preset('Staff');
-  await press('Apply GIS layers');
   expect(screen.getByText('Public GIS · 8 layers · 102 features')).toBeOnTheScreen();
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
   expect(screen.queryByText('Cell-signal classes')).not.toBeOnTheScreen();
   await preset('Researcher');
-  await press('Apply GIS layers');
   expect(screen.getByText('Public GIS · 9 layers · 779 features')).toBeOnTheScreen();
   expect(screen.getByText('Cell-signal classes')).toBeOnTheScreen();
   await preset('Visitor');
-  await press('Apply GIS layers');
   expect(screen.getByText('Public GIS · 3 layers · 59 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
   expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
@@ -127,21 +126,18 @@ test('manual switches customize any preset, can hide everything, and preset sele
   expect(
     screen.getAllByRole('radio').every((r) => r.props.accessibilityState.checked === false),
   ).toBe(true);
-  await press('Apply GIS layers');
   expect(screen.getByText('Public GIS · 4 layers · 736 features')).toBeOnTheScreen();
   for (const toggle of screen.getAllByRole('switch')) await fireEvent(toggle, 'valueChange', false);
-  await press('Apply GIS layers');
   expect(
     screen.getByText('All GIS layers are hidden. Basemap browsing remains available.'),
   ).toBeOnTheScreen();
   expect(screen.getByTestId('public-gis-source').props.data.features).toEqual([]);
   await preset('Visitor');
-  await press('Apply GIS layers');
   expect(screen.getByText('Public GIS · 3 layers · 59 features')).toBeOnTheScreen();
   expect(screen.getByRole('radio', { name: 'Use Visitor preset' })).toBeChecked();
 });
 
-test('failed or replaced catalogs cannot apply an obsolete preset draft', async () => {
+test('applied presets survive unavailable and replaced catalogs', async () => {
   const snapshot = suppliedSnapshot();
   const state = jest
     .spyOn(PublicGis, 'usePublicGis')
@@ -151,11 +147,11 @@ test('failed or replaced catalogs cannot apply an obsolete preset draft', async 
   state.mockReturnValue({ status: 'error', retry: jest.fn() });
   await view.rerender(tree());
   expect(screen.queryByRole('radio')).not.toBeOnTheScreen();
-  expect(screen.getByRole('button', { name: 'Apply GIS layers' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Done choosing GIS layers' })).toBeEnabled();
   state.mockReturnValue({ status: 'ready', snapshot: { ...snapshot }, retry: jest.fn() });
   await view.rerender(tree());
-  expect(screen.getByRole('radio', { name: 'Use Visitor preset' })).toBeChecked();
-  expect(screen.getByText('3 of 10 layers selected')).toBeOnTheScreen();
+  expect(screen.getByRole('radio', { name: 'Use Researcher preset' })).toBeChecked();
+  expect(screen.getByText('9 of 9 layers selected')).toBeOnTheScreen();
 });
 
 function Preferences() {

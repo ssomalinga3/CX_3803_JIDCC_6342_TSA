@@ -11,7 +11,12 @@ is required.
 **Current dataset:** PR 3 selects seven layers/69 features; the counts below are
 historical verification evidence. See [PDF map integration](../../data/cascade-springs-gis/PDF-MAP.md).
 
-## Behavior
+The [current presets contract](layer-presets.md) supersedes the historical
+draft/Done/Back interaction below: changes now apply immediately, the separate
+Back button is removed, and Done only closes. Verification below records the
+November 5 implementation.
+
+## Historical behavior — November 5, 2026
 
 - Map opens `/layers` above the existing tab group. Shared public GIS state keeps
   the map mounted and avoids a second catalog/feature request.
