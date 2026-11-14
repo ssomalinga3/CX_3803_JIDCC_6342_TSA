@@ -81,3 +81,11 @@ registration and omissions. These observations do not measure current service or
 change offline coverage assumptions. Source import and signal-only import share
 lock `(6342, 2)` and transactional replacement. Mobile visibility remains in-memory
 and session-only; this slice adds no restart cache, report queue or sensor collection.
+
+## Visibility preset lifecycle
+
+The [public view presets](development/layer-presets.md) start each fresh session
+in Visitor and retain applied preset/visibility overrides only in memory. API
+retry preserves that session choice and new recognized catalog entries follow
+the preset. This is not offline download selection or a durable preference/cache;
+base-map and queued-report requirements remain unchanged.

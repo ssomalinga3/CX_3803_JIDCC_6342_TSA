@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { GisSnapshot } from '@/data/gis';
 import { featureText } from '@/data/feature-details';
+import { hiddenForPreset, isCustomized, layerPresets, type LayerPreset } from '@/data/layer-presets';
 import { terrainKeys, type TerrainKey } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useTheme } from '@/hooks/use-theme';
@@ -37,18 +38,21 @@ const descriptions: Record<string, string> = {
 export function LayerSelectionScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { gis, hidden, terrainSource, applyHidden } = useMapGis();
+  const { gis, hidden, terrainSource, preset, applyChoices } = useMapGis();
   const snapshot = gis.snapshot;
   const [draft, setDraft] = useState<{
     snapshot: GisSnapshot;
     hidden: ReadonlySet<string>;
     terrainSource: TerrainKey;
+    preset: LayerPreset;
   }>();
   // A replaced/failed catalog must not apply a draft against obsolete records.
   const current = draft?.snapshot === snapshot ? (draft?.hidden ?? hidden) : hidden;
   const currentSource =
     draft?.snapshot === snapshot ? (draft?.terrainSource ?? terrainSource) : terrainSource;
+  const currentPreset = draft?.snapshot === snapshot ? (draft?.preset ?? preset) : preset;
   const layers = snapshot?.layers ?? [];
+  const customized = isCustomized(layers, currentPreset, current);
   const terrainLayers = layers.filter((layer) =>
     terrainKeys.some((key) => layer.layerId === `cascade-terrain-${key}`),
   );
@@ -78,7 +82,7 @@ export function LayerSelectionScreen() {
           accessibilityLabel="Apply GIS layers"
           disabled={!snapshot}
           onPress={() => {
-            applyHidden(current, currentSource);
+            applyChoices(currentPreset, current, currentSource);
             returnToMap();
           }}
           style={styles.action}
@@ -93,6 +97,60 @@ export function LayerSelectionScreen() {
         <Text style={[styles.description, { color: theme.textSecondary }]}>
           Choose what appears on your map.
         </Text>
+        {snapshot && layers.length > 0 && (
+          <View style={[styles.card, { backgroundColor: theme.background }]}>
+            <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
+              Layer presets
+            </Text>
+            <Text style={[styles.description, { color: theme.textSecondary }]}>
+              Choose a starting set, then adjust any layer.
+            </Text>
+            <View style={styles.presetRow}>
+              {layerPresets.map((option) => {
+                const selected = currentPreset === option.id && !customized;
+                return (
+                  <Pressable
+                    key={option.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`Use ${option.label} preset`}
+                    accessibilityState={{ checked: selected }}
+                    accessibilityHint="Applies when you tap Done"
+                    onPress={() =>
+                      setDraft({
+                        snapshot,
+                        preset: option.id,
+                        hidden: hiddenForPreset(layers, option.id),
+                        terrainSource: terrainLayers.some((layer) => layer.layerId === 'cascade-terrain-usgs') ? 'usgs' : 'supplied',
+                      })
+                    }
+                    style={[
+                      styles.presetOption,
+                      { borderColor: selected ? '#007aff' : theme.backgroundElement },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.radio,
+                        { borderColor: selected ? '#007aff' : theme.textSecondary },
+                      ]}
+                    >
+                      {selected && <View style={styles.radioDot} />}
+                    </View>
+                    <Text style={[styles.presetLabel, { color: theme.text }]}>{option.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[styles.description, { color: theme.textSecondary }]}
+            >
+              {customized
+                ? `Customized from ${layerPresets.find((p) => p.id === currentPreset)!.label}`
+                : layerPresets.find((p) => p.id === currentPreset)!.description}
+            </Text>
+          </View>
+        )}
         {gis.status === 'loading' && (
           <ActivityIndicator accessibilityLabel="Loading GIS layer choices" />
         )}
@@ -144,7 +202,7 @@ export function LayerSelectionScreen() {
                     const next = new Set(current);
                     if (enabled) next.delete(layer.layerId);
                     else next.add(layer.layerId);
-                    setDraft({ snapshot: snapshot!, hidden: next, terrainSource: currentSource });
+                    setDraft({ snapshot: snapshot!, hidden: next, terrainSource: currentSource, preset: currentPreset });
                   }}
                 />
               </View>
@@ -171,7 +229,7 @@ export function LayerSelectionScreen() {
             layers={terrainLayers}
             hidden={current}
             source={currentSource}
-            onChange={(next, source) => setDraft({ snapshot, hidden: next, terrainSource: source })}
+            onChange={(next, source) => setDraft({ snapshot, hidden: next, terrainSource: source, preset: currentPreset })}
           />
         )}
       </ScrollView>
@@ -295,6 +353,29 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   status: { gap: 12 },
+  presetRow: { flexDirection: 'row', gap: 6 },
+  presetOption: {
+    flex: 1,
+    minHeight: 64,
+    borderWidth: 2,
+    borderRadius: 10,
+    paddingHorizontal: 3,
+    paddingVertical: 8,
+    flexDirection: 'column',
+    gap: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  presetLabel: { fontSize: 14, fontWeight: '600', flexShrink: 1, textAlign: 'center' },
+  radio: {
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#007aff' },
   sourceButton: {
     minHeight: 48,
     borderWidth: 1,

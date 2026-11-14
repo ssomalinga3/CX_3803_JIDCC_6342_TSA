@@ -249,3 +249,17 @@ J6-19's older “trails above other layers” wording so route overlays cannot b
 covered by analytical data and place markers are not cut by route casing.
 Crowded taps follow landmark → trail → sample priority. See the
 [ordering policy and verification](../development/map-layer-order.md).
+
+## Layer presets — November 13, 2026
+
+The owner requested Visitor, Staff and Researcher starting sets. The chooser adds
+three radio options above its existing switch rows. Visitor is the fresh-session
+default: trails, boundary and landmarks. Staff adds physical/natural context and
+one elevation source; Researcher also adds cell-signal observations. The initial
+engineering mapping and source fallback are in the [preset contract](../development/layer-presets.md).
+Preset selection and manual adjustments remain drafts until Done; Back cancels.
+Manual differences show “Customized from …” with no radio checked; selecting a
+preset again resets those differences. All public layer switches remain available
+in every view. Refresh retains applied choices, while a fresh provider starts in
+Visitor. Preset labels do not assert an authenticated role or promise private data.
+This supersedes the older all-new-layer-visible policy for default selection.
