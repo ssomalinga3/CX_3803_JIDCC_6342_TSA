@@ -784,6 +784,9 @@ its data. Location stayed off. Screenshots: [source dropdown](../images/ios26-te
 [USGS terrain](../images/ios26-terrain-usgs.png). The 109 mobile tests include
 draft cancellation, disabled-source memory, refresh retention and fallback
 when a source is no longer public.
+The dropdown uses one rotated chevron from the existing `expo-symbols` library
+so its expanded/collapsed shapes and stroke weights match. Both states were
+visually checked on iOS 26; [collapsed source button](../images/ios26-terrain-source-collapsed.png).
 
 Native coordinate scrolling/tapping still encounters `noWindowsAvailable` in
 computer use; accessibility switch actions work. Native band-detail tapping,

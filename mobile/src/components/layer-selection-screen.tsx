@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -232,9 +233,14 @@ function ElevationChoice({
         <Text style={[styles.sourceLabel, { color: theme.text }]}>
           Source: {terrainLabels[source]}
         </Text>
-        <Text style={{ color: theme.text }} aria-hidden>
-          {expanded ? '⌃' : '⌄'}
-        </Text>
+        <SymbolView
+          name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
+          size={18}
+          weight="semibold"
+          tintColor={theme.text}
+          style={{ transform: [{ rotate: expanded ? '-90deg' : '90deg' }] }}
+          aria-hidden
+        />
       </Pressable>
       {expanded && (
         <View style={styles.sourceOptions}>
@@ -298,6 +304,7 @@ const styles = StyleSheet.create({
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 12,
   },
   sourceLabel: { fontSize: 16, fontWeight: '600', flexShrink: 1 },
