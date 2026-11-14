@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent, userEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen, userEvent } from '@testing-library/react-native';
 import NativePreserveMap from '@/components/preserve-map';
 import { LayerSelectionScreen } from '@/components/layer-selection-screen';
 import { pressedFeatureId } from '@/data/feature-details';
@@ -107,7 +107,6 @@ test('raster slots survive hide/show and all-hidden while retaining the camera',
   await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', false);
   for (const name of ['Preserve trails', 'Landmarks', 'Preserve outline'])
     await fireEvent(screen.getByRole('switch', { name: `Show ${name}` }), 'valueChange', false);
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await applyDraft();
   expect(screen.getByTestId('public-gis-source').props.data.features).toEqual([]);
   expect(anchors()).toHaveLength(2);
