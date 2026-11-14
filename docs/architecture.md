@@ -98,8 +98,9 @@ camera while the chooser is open. The existing tab URLs remain unchanged.
 Done applies the local draft; leaving without Done discards it. Rendering,
 feature hit-testing, counts and the trail legend use the same filtered snapshot
 with original feature IDs and provenance. Camera fitting retains the original
-catalog bounds and is suppressed for visibility-driven layout changes. Trails
-render above boundaries and landmarks; device position remains a separate source.
+catalog bounds and is suppressed for visibility-driven layout changes. Trail strokes
+render above ground/context/analytical overlays; landmark markers and labels render
+above routes, and device position remains a separate source above GIS.
 New catalog IDs default visible, unknown IDs are ignored, and applied choices
 survive an in-session retry. Nothing is persisted across application restarts.
 See [layer selection verification](development/layer-selection.md).
@@ -112,7 +113,7 @@ Runtime imports read committed GeoJSON; PDFs, image extraction and GIS libraries
 do not enter mobile bundles. Source/PDF/legacy-boundary/trail commands share lock
 `(6342, 2)`; source import replaces all selected layers in one transaction.
 The native renderer distinguishes context kinds, excludes context lines from the
-trail legend, keeps trail strokes above context/marker circles, and adds closer
+trail legend, keeps trail strokes above context and signal samples, and adds closer
 zoom landmark labels. Existing chooser, snapshot, camera, GPS and offline
 architecture remain unchanged.
 
@@ -147,3 +148,10 @@ committed GeoJSON. Mobile validates the small class/source contract, renders dar
 outlined class dots below trails/landmarks, and reuses the chooser/snapshot lifecycle.
 Exact readings, units and survey context remain absent. No device connectivity
 collection, interpolation service, native dependency or durable offline cache is added.
+
+### Natural map order
+
+The [rendering policy](development/map-layer-order.md) centralizes native layer
+placement. Permanent invisible terrain slots and an always-mounted empty-capable
+public source keep raster/vector/GPS placement stable during visibility changes,
+API failure and style reload. Source catalog order does not determine z order.

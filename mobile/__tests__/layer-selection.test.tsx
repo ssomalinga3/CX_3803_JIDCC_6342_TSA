@@ -117,7 +117,7 @@ test('unavailable catalog cannot overwrite choices and offers retry without a GP
   expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
 });
 
-test('trail rendering stays above the other GIS overlays', async () => {
+test('trail strokes stay above ground overlays and landmark markers stay above routes', async () => {
   jest
     .spyOn(PublicGis, 'usePublicGis')
     .mockReturnValue({ status: 'ready', snapshot: layersSnapshot(), retry: jest.fn() });
@@ -125,7 +125,7 @@ test('trail rendering stays above the other GIS overlays', async () => {
   const source = screen.getByTestId('public-gis-source');
   const layers = source.children.filter((child) => typeof child !== 'string');
   const ids = layers.map((child) => child.props.id);
-  expect(ids.indexOf('gis-trails')).toBeGreaterThan(ids.indexOf('gis-landmarks'));
+  expect(ids.indexOf('gis-landmarks')).toBeGreaterThan(ids.indexOf('gis-trails'));
   expect(ids.indexOf('gis-trails')).toBeGreaterThan(ids.indexOf('gis-boundary-outline'));
   expect(ids.indexOf('gis-trail-names')).toBeGreaterThan(ids.indexOf('gis-trails'));
 });

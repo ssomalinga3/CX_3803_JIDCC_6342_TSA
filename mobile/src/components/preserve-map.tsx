@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TrailLegend } from '@/components/trail-legend';
 import { SignalLegend } from '@/components/signal-legend';
 import { hasSignal, signalClasses } from '@/data/signal';
+import { gisLayerProps, terrainLayerProps, deviceLocationLayerProps } from '@/data/map-layer-order';
 import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
@@ -30,6 +31,7 @@ const MIN_ZOOM = 2;
 const MAX_ZOOM = 19;
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 type LoadState = 'loading' | 'ready' | 'unavailable';
+const EMPTY_GIS: GisSnapshot['collection'] = { type: 'FeatureCollection', features: [] };
 
 export default function PreserveMap() {
   const insets = useSafeAreaInsets();
@@ -152,6 +154,285 @@ export default function PreserveMap() {
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
         />
+        <GeoJSONSource
+          id="public-gis"
+          testID="public-gis-source"
+          data={trails?.collection ?? EMPTY_GIS}
+          onPress={(event) => {
+            if (!ready || !snapshot) return;
+            const id = pressedFeatureId(snapshot, event.nativeEvent.features);
+            if (id) {
+              event.stopPropagation();
+              setSelection({ snapshot, id });
+            }
+          }}
+        >
+          <Layer
+            {...gisLayerProps('gis-terrain-supplied-anchor')}
+            type="fill"
+            filter={['all', ['has', '__gis_order_anchor'], ['!', ['has', '__gis_order_anchor']]]}
+            paint={{ 'fill-opacity': 0 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-terrain-usgs-anchor')}
+            type="fill"
+            filter={['all', ['has', '__gis_order_anchor'], ['!', ['has', '__gis_order_anchor']]]}
+            paint={{ 'fill-opacity': 0 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-elevation-bands')}
+            type="fill"
+            filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+            paint={{
+              'fill-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'elevation_min_ft_us'],
+                800,
+                '#dbe7d0',
+                900,
+                '#bac797',
+                1040,
+                '#a88966',
+              ],
+              'fill-opacity': 0.12,
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-boundary-fill')}
+            type="fill"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Polygon'],
+              ['any', ['==', ['get', 'feature_kind'], 'boundary'], ['!', ['has', 'feature_kind']]],
+            ]}
+            paint={{ 'fill-color': '#8754c8', 'fill-opacity': 0.04 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-natural-areas')}
+            type="fill"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Polygon'],
+              ['==', ['get', 'feature_kind'], 'natural_area'],
+            ]}
+            paint={{ 'fill-color': '#65994c', 'fill-opacity': 0.16 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-elevation-lines')}
+            type="line"
+            filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+            paint={{ 'line-color': '#7b705a', 'line-opacity': 0.38, 'line-width': 0.7 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-water')}
+            type="fill"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Polygon'],
+              ['==', ['get', 'feature_kind'], 'water'],
+            ]}
+            paint={{
+              'fill-color': '#459fd1',
+              'fill-outline-color': '#277bb2',
+              'fill-opacity': 0.7,
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-roads')}
+            type="fill"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Polygon'],
+              ['==', ['get', 'feature_kind'], 'road'],
+            ]}
+            paint={{ 'fill-color': '#9b9b94', 'fill-opacity': 0.65 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-buildings')}
+            type="fill"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Polygon'],
+              ['==', ['get', 'feature_kind'], 'building'],
+            ]}
+            paint={{
+              'fill-color': '#b08766',
+              'fill-outline-color': '#6d503a',
+              'fill-opacity': 0.75,
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-context-lines')}
+            type="line"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'LineString'],
+              ['in', ['get', 'feature_kind'], ['literal', ['water', 'road']]],
+            ]}
+            paint={{
+              'line-color': ['match', ['get', 'feature_kind'], 'water', '#277bb2', '#9b9b94'],
+              'line-width': 2,
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-boundary-outline')}
+            type="line"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Polygon'],
+              ['any', ['==', ['get', 'feature_kind'], 'boundary'], ['!', ['has', 'feature_kind']]],
+            ]}
+            paint={{ 'line-color': '#7442b5', 'line-width': 2, 'line-dasharray': [3, 2] }}
+          />
+          <Layer
+            {...gisLayerProps('gis-signal-samples')}
+            testID="gis-signal-samples"
+            type="circle"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Point'],
+              ['==', ['get', 'feature_kind'], 'signal_observation'],
+            ]}
+            paint={{
+              'circle-color': [
+                'match',
+                ['get', 'signal_class'],
+                signalClasses[0].label,
+                signalClasses[0].color,
+                ...signalClasses.slice(1).flatMap((c) => [c.label, c.color]),
+                '#555',
+              ],
+              'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 1.5, 17, 3.5, 19, 5],
+              'circle-stroke-color': '#343434',
+              'circle-stroke-width': 0.7,
+              'circle-opacity': 0.9,
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-trail-casing')}
+            type="line"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'LineString'],
+              ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+            ]}
+            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+            paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-trails')}
+            type="line"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'LineString'],
+              ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+              ['==', ['get', '_display_trail_dashed'], false],
+            ]}
+            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+            paint={{ 'line-color': ['get', '_display_trail_color'], 'line-width': 4 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-unnamed-connections')}
+            type="line"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'LineString'],
+              ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+              ['==', ['get', '_display_trail_dashed'], true],
+            ]}
+            layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
+            paint={{
+              'line-color': ['get', '_display_trail_color'],
+              'line-width': 4,
+              'line-dasharray': [2, 2],
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-landmarks')}
+            type="circle"
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Point'],
+              ['!=', ['get', 'feature_kind'], 'signal_observation'],
+            ]}
+            paint={{
+              'circle-color': [
+                'match',
+                ['get', 'landmark_kind'],
+                'source_annotation',
+                '#60646c',
+                '#007aff',
+              ],
+              'circle-radius': 6,
+              'circle-stroke-color': '#fff',
+              'circle-stroke-width': 2,
+            }}
+          />
+          <Layer
+            {...gisLayerProps('gis-elevation-labels')}
+            type="symbol"
+            minzoom={17}
+            filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+            layout={{
+              'text-field': [
+                'concat',
+                ['to-string', ['get', 'elevation_min_ft_us']],
+                '–',
+                ['to-string', ['get', 'elevation_max_ft_us']],
+                ' ftUS',
+              ],
+              'text-font': ['Noto Sans Regular'],
+              'text-size': 11,
+              'text-allow-overlap': false,
+            }}
+            paint={{ 'text-color': '#605644', 'text-halo-color': '#fff', 'text-halo-width': 1 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-trail-names')}
+            type="symbol"
+            minzoom={14}
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'LineString'],
+              ['==', ['get', 'feature_kind'], 'trail'],
+              ['has', 'trail_id'],
+              ['==', ['typeof', ['get', 'name']], 'string'],
+              ['!=', ['get', 'name'], ''],
+            ]}
+            layout={{
+              'symbol-placement': 'line-center',
+              'text-field': ['get', 'name'],
+              'text-font': ['Noto Sans Regular'],
+              'text-size': 13,
+              'text-offset': [0, -0.8],
+              'text-rotation-alignment': 'viewport',
+              'text-allow-overlap': false,
+            }}
+            paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
+          />
+          <Layer
+            {...gisLayerProps('gis-landmark-names')}
+            type="symbol"
+            minzoom={16}
+            filter={[
+              'all',
+              ['==', ['geometry-type'], 'Point'],
+              ['!=', ['get', 'feature_kind'], 'signal_observation'],
+              ['==', ['typeof', ['get', 'name']], 'string'],
+            ]}
+            layout={{
+              'text-field': ['get', 'name'],
+              'text-font': ['Noto Sans Regular'],
+              'text-size': 12,
+              'text-offset': [0, 1.2],
+              'text-anchor': 'top',
+              'text-allow-overlap': false,
+              'text-max-width': 12,
+            }}
+            paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
+          />
+        </GeoJSONSource>
         {visibleTerrainKeys(snapshot).map((key) => (
           <ImageSource
             key={key}
@@ -172,306 +453,12 @@ export default function PreserveMap() {
             }
           >
             <Layer
-              id={`terrain-${key}-relief`}
+              {...terrainLayerProps(key)}
               type="raster"
-              beforeId="gis-elevation-bands"
               paint={{ 'raster-opacity': 0.35, 'raster-fade-duration': 0 }}
             />
           </ImageSource>
         ))}
-        {trails && trails.collection.features.length > 0 && (
-          <GeoJSONSource
-            id="public-gis"
-            testID="public-gis-source"
-            data={trails.collection}
-            onPress={(event) => {
-              if (!ready || !snapshot) return;
-              const id = pressedFeatureId(snapshot, event.nativeEvent.features);
-              if (id) {
-                event.stopPropagation();
-                setSelection({ snapshot, id });
-              }
-            }}
-          >
-            <Layer
-              id="gis-elevation-bands"
-              type="fill"
-              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
-              paint={{
-                'fill-color': [
-                  'interpolate',
-                  ['linear'],
-                  ['get', 'elevation_min_ft_us'],
-                  800,
-                  '#dbe7d0',
-                  900,
-                  '#bac797',
-                  1040,
-                  '#a88966',
-                ],
-                'fill-opacity': 0.12,
-              }}
-            />
-            <Layer
-              id="gis-elevation-lines"
-              type="line"
-              afterId="gis-elevation-bands"
-              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
-              paint={{ 'line-color': '#7b705a', 'line-opacity': 0.38, 'line-width': 0.7 }}
-            />
-            <Layer
-              id="gis-elevation-labels"
-              type="symbol"
-              afterId="gis-elevation-lines"
-              minzoom={17}
-              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
-              layout={{
-                'text-field': [
-                  'concat',
-                  ['to-string', ['get', 'elevation_min_ft_us']],
-                  '–',
-                  ['to-string', ['get', 'elevation_max_ft_us']],
-                  ' ftUS',
-                ],
-                'text-font': ['Noto Sans Regular'],
-                'text-size': 11,
-                'text-allow-overlap': false,
-              }}
-              paint={{ 'text-color': '#605644', 'text-halo-color': '#fff', 'text-halo-width': 1 }}
-            />
-            <Layer
-              id="gis-natural-areas"
-              type="fill"
-              afterId="gis-elevation-labels"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Polygon'],
-                ['==', ['get', 'feature_kind'], 'natural_area'],
-              ]}
-              paint={{ 'fill-color': '#65994c', 'fill-opacity': 0.16 }}
-            />
-            <Layer
-              id="gis-water"
-              type="fill"
-              afterId="gis-natural-areas"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Polygon'],
-                ['==', ['get', 'feature_kind'], 'water'],
-              ]}
-              paint={{
-                'fill-color': '#459fd1',
-                'fill-outline-color': '#277bb2',
-                'fill-opacity': 0.7,
-              }}
-            />
-            <Layer
-              id="gis-roads"
-              type="fill"
-              afterId="gis-water"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Polygon'],
-                ['==', ['get', 'feature_kind'], 'road'],
-              ]}
-              paint={{ 'fill-color': '#9b9b94', 'fill-opacity': 0.65 }}
-            />
-            <Layer
-              id="gis-buildings"
-              type="fill"
-              afterId="gis-roads"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Polygon'],
-                ['==', ['get', 'feature_kind'], 'building'],
-              ]}
-              paint={{
-                'fill-color': '#b08766',
-                'fill-outline-color': '#6d503a',
-                'fill-opacity': 0.75,
-              }}
-            />
-            <Layer
-              id="gis-boundary-fill"
-              type="fill"
-              afterId="gis-buildings"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Polygon'],
-                [
-                  'any',
-                  ['==', ['get', 'feature_kind'], 'boundary'],
-                  ['!', ['has', 'feature_kind']],
-                ],
-              ]}
-              paint={{ 'fill-color': '#8754c8', 'fill-opacity': 0.04 }}
-            />
-            <Layer
-              id="gis-boundary-outline"
-              type="line"
-              afterId="gis-boundary-fill"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Polygon'],
-                [
-                  'any',
-                  ['==', ['get', 'feature_kind'], 'boundary'],
-                  ['!', ['has', 'feature_kind']],
-                ],
-              ]}
-              paint={{ 'line-color': '#7442b5', 'line-width': 2, 'line-dasharray': [3, 2] }}
-            />
-            <Layer
-              id="gis-context-lines"
-              type="line"
-              afterId="gis-boundary-outline"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'LineString'],
-                ['in', ['get', 'feature_kind'], ['literal', ['water', 'road']]],
-              ]}
-              paint={{
-                'line-color': ['match', ['get', 'feature_kind'], 'water', '#277bb2', '#9b9b94'],
-                'line-width': 2,
-              }}
-            />
-            <Layer
-              id="gis-signal-samples"
-              testID="gis-signal-samples"
-              type="circle"
-              afterId="gis-context-lines"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Point'],
-                ['==', ['get', 'feature_kind'], 'signal_observation'],
-              ]}
-              paint={{
-                'circle-color': [
-                  'match',
-                  ['get', 'signal_class'],
-                  signalClasses[0].label,
-                  signalClasses[0].color,
-                  ...signalClasses.slice(1).flatMap((c) => [c.label, c.color]),
-                  '#555',
-                ],
-                'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 1.5, 17, 3.5, 19, 5],
-                'circle-stroke-color': '#343434',
-                'circle-stroke-width': 0.7,
-                'circle-opacity': 0.9,
-              }}
-            />
-            <Layer
-              id="gis-landmarks"
-              type="circle"
-              afterId="gis-signal-samples"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Point'],
-                ['!=', ['get', 'feature_kind'], 'signal_observation'],
-              ]}
-              paint={{
-                'circle-color': [
-                  'match',
-                  ['get', 'landmark_kind'],
-                  'source_annotation',
-                  '#60646c',
-                  '#007aff',
-                ],
-                'circle-radius': 6,
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 2,
-              }}
-            />
-            <Layer
-              id="gis-trail-casing"
-              type="line"
-              afterId="gis-landmarks"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'LineString'],
-                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
-              ]}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-              paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
-            />
-            <Layer
-              id="gis-trails"
-              type="line"
-              afterId="gis-trail-casing"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'LineString'],
-                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
-                ['==', ['get', '_display_trail_dashed'], false],
-              ]}
-              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-              paint={{ 'line-color': ['get', '_display_trail_color'], 'line-width': 4 }}
-            />
-            <Layer
-              id="gis-unnamed-connections"
-              type="line"
-              afterId="gis-trails"
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'LineString'],
-                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
-                ['==', ['get', '_display_trail_dashed'], true],
-              ]}
-              layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
-              paint={{
-                'line-color': ['get', '_display_trail_color'],
-                'line-width': 4,
-                'line-dasharray': [2, 2],
-              }}
-            />
-            <Layer
-              id="gis-trail-names"
-              type="symbol"
-              afterId="gis-unnamed-connections"
-              minzoom={14}
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'LineString'],
-                ['==', ['get', 'feature_kind'], 'trail'],
-                ['has', 'trail_id'],
-                ['==', ['typeof', ['get', 'name']], 'string'],
-                ['!=', ['get', 'name'], ''],
-              ]}
-              layout={{
-                'symbol-placement': 'line-center',
-                'text-field': ['get', 'name'],
-                'text-font': ['Noto Sans Regular'],
-                'text-size': 13,
-                'text-offset': [0, -0.8],
-                'text-rotation-alignment': 'viewport',
-                'text-allow-overlap': false,
-              }}
-              paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
-            />
-            <Layer
-              id="gis-landmark-names"
-              type="symbol"
-              afterId="gis-trail-names"
-              minzoom={16}
-              filter={[
-                'all',
-                ['==', ['geometry-type'], 'Point'],
-                ['!=', ['get', 'feature_kind'], 'signal_observation'],
-                ['==', ['typeof', ['get', 'name']], 'string'],
-              ]}
-              layout={{
-                'text-field': ['get', 'name'],
-                'text-font': ['Noto Sans Regular'],
-                'text-size': 12,
-                'text-offset': [0, 1.2],
-                'text-anchor': 'top',
-                'text-allow-overlap': false,
-                'text-max-width': 12,
-              }}
-              paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
-            />
-          </GeoJSONSource>
-        )}
         {location.fix && (
           <GeoJSONSource
             id="device-location"
@@ -485,7 +472,7 @@ export default function PreserveMap() {
             }}
           >
             <Layer
-              id="device-location-dot"
+              {...deviceLocationLayerProps}
               type="circle"
               paint={{
                 'circle-radius': 9,
