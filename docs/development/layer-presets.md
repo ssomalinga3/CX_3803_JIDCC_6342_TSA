@@ -135,3 +135,15 @@ The native edge-swipe attempt could not execute because coordinate automation
 returned `noWindowsAvailable`; actual iOS swipe and Android system-back execution
 remain manual acceptance checks. Route-removal tests establish retained state,
 not successful physical gesture execution.
+
+### Combined elevation chooser — November 14, 2026
+
+The PR restack incorporates the grouped Elevation control from #32. The catalog
+still contains ten layers / 808 features; the chooser presents nine switches,
+with one for the two alternative terrain sources. Researcher selects 9 of 9
+choices (nine API layers / 779 features), Staff selects 8 of 9, and Visitor
+selects 3 of 9. Only one terrain source renders. Switching its source applies
+immediately and keeps the source notes expanded. Disabling elevation remembers
+the source; source removal falls back safely, and preset selection resets manual
+visibility differences. Regression checks cover these combinations and camera
+preservation. Earlier screenshots and device evidence predate this reconciliation.
