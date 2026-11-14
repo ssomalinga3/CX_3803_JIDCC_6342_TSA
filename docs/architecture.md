@@ -95,7 +95,8 @@ does not reload GIS or request location. An outer Expo Router stack contains the
 existing tab group and the selection screen, preserving the mounted map and its
 camera while the chooser is open. The existing tab URLs remain unchanged.
 
-Done applies the local draft; leaving without Done discards it. Rendering,
+Preset and switch changes apply immediately to shared state; Done only closes
+the chooser, and leaving by any route retains the choices. Rendering,
 feature hit-testing, counts and the trail legend use the same filtered snapshot
 with original feature IDs and provenance. Camera fitting retains the original
 catalog bounds and is suppressed for visibility-driven layout changes. Trail strokes
@@ -163,6 +164,6 @@ API failure and style reload. Source catalog order does not determine z order.
 [Visitor, Staff and Researcher presets](development/layer-presets.md) are local
 display choices over the same public snapshot, not authorization roles. The
 provider reconciles preset defaults with explicit visibility overrides; the
-chooser applies its draft only with Done. Defaults prefer one known terrain
+chooser applies presets and switches immediately. Defaults prefer one known terrain
 source. Source identity, backend access, GPS, z order and offline scope remain
 unchanged. Preset changes do not reload GIS or refit the camera.

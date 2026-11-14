@@ -108,11 +108,9 @@ test('chooser exposes all context kinds; applying water visibility preserves the
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   const calls = mockFitBounds.mock.calls.length;
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getAllByRole('switch')).toHaveLength(7);
   expect(screen.getByText('Building footprints from the supplied map.')).toBeOnTheScreen();
   await fireEvent(screen.getByRole('switch', { name: 'Show water' }), 'valueChange', false);
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getByText('Public GIS · 6 layers · 67 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(calls);
   const source = screen.getByTestId('public-gis-source');
@@ -121,5 +119,5 @@ test('chooser exposes all context kinds; applying water visibility preserves the
       (f: { properties: { feature_kind: string } }) => f.properties.feature_kind === 'water',
     ),
   ).toBe(false);
-  expect(router.back).toHaveBeenCalled();
+  expect(router.back).not.toHaveBeenCalled();
 });

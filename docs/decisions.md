@@ -222,6 +222,16 @@ Staff, and adds signal observations for Researcher. Supplied elevation is the
 fallback when USGS is absent; manual switches can select either/both. These are
 engineering defaults for the current public catalog, not claims of client-approved
 role permissions. Each fresh session starts in Visitor. Applied preset/overrides
-survive in-session retry, choices stay editable with Done/Back, and unknown content
+survive in-session retry, choices stay editable, and unknown content
 starts hidden. Persistence across restarts is not added. Existing access rules,
 source caveats and report routing are unaffected.
+
+
+### Owner clarification — immediate layer changes
+
+The owner requested that preset and switch choices always update filters and
+that the separate Back button be removed. The chooser now applies each change
+immediately. Done only returns to Map and remains available without a catalog;
+system/swipe back also retains changes. This supersedes the earlier draft/apply/
+cancel interaction for layer selection. Session-only storage and preset defaults
+are unchanged.
