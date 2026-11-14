@@ -211,3 +211,17 @@ This refines the older J6-19 “trails always on top” title for marker legibil
 it does not change Jira ownership, palette, geometry, visibility defaults or access.
 Stable empty terrain slots and explicit native placement remove mount-order
 dependence. Hit priority follows landmark → trail → observation for crowded hits.
+
+## November 13, 2026 — D-08 public visibility presets
+
+The owner requested Visitor (basic trails), Staff (useful context) and Researcher
+(more layers) as three chooser options in a PR above natural rendering order.
+The [initial mapping](development/layer-presets.md) uses trail/boundary/landmark
+for Visitor, adds water/roads/buildings/natural areas plus USGS elevation for
+Staff, and adds signal observations for Researcher. Supplied elevation is the
+fallback when USGS is absent; manual switches can select either/both. These are
+engineering defaults for the current public catalog, not claims of client-approved
+role permissions. Each fresh session starts in Visitor. Applied preset/overrides
+survive in-session retry, choices stay editable with Done/Back, and unknown content
+starts hidden. Persistence across restarts is not added. Existing access rules,
+source caveats and report routing are unaffected.

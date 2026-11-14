@@ -107,6 +107,9 @@ test('one Elevation toggle selects one source, applies drafts on Done and preser
   await render(tree());
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   const fits = mockFitBounds.mock.calls.length;
+  expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
+  await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
   expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
   expect(screen.getAllByRole('switch')).toHaveLength(2);
@@ -153,6 +156,8 @@ test('Back cancels a source change and a disabled Elevation remembers its chosen
     .spyOn(PublicGis, 'usePublicGis')
     .mockReturnValue({ status: 'ready', snapshot: data, retry: jest.fn() });
   const view = await render(tree());
+  await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
   await userEvent
@@ -182,6 +187,8 @@ test('refresh retains the chosen source and safely falls back when it is no long
     .spyOn(PublicGis, 'usePublicGis')
     .mockReturnValue({ status: 'ready', snapshot: data, retry: jest.fn() });
   const view = await render(tree());
+  await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));

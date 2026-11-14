@@ -118,6 +118,9 @@ test('signal toggles apply with Done, keep the camera, avoid duplicate points an
   );
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   const fits = mockFitBounds.mock.calls.length;
+  expect(screen.getByText('Public GIS · 2 layers · 58 features')).toBeOnTheScreen();
+  await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Researcher preset' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getByText('Public GIS · 3 layers · 735 features')).toBeOnTheScreen();
   for (const c of signalClasses)
     expect(screen.getByLabelText(`${c.label}: ${c.color_name}`)).toBeOnTheScreen();

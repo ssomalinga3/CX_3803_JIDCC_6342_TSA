@@ -107,6 +107,8 @@ test('chooser exposes all context kinds; applying water visibility preserves the
   );
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   const calls = mockFitBounds.mock.calls.length;
+  await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Apply GIS layers' }));
   expect(screen.getAllByRole('switch')).toHaveLength(7);
   expect(screen.getByText('Building footprints from the supplied map.')).toBeOnTheScreen();
   await fireEvent(screen.getByRole('switch', { name: 'Show water' }), 'valueChange', false);

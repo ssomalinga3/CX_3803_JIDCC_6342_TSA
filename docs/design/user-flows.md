@@ -160,3 +160,13 @@ must remain stable. Repeat after GIS retry and map-style retry. Feature selectio
 prefers a landmark over a coincident trail/sample and a trail over a sample;
 device position never becomes a public detail sheet. Record native, automated
 and unverified paths separately in the [ordering record](../development/map-layer-order.md).
+
+## Layer preset acceptance
+
+Use the iOS 26 [preset acceptance checklist](../development/layer-presets.md).
+Verify a fresh Visitor view (3 / 59), Staff (8 / 102) and Researcher (9 / 779);
+Done/Back and customization/all-hidden; stable camera, no location/refetch on
+preset changes; API failure/retry, catalog replacement and fresh-session reset.
+Unknown content remains manually selectable but starts hidden. One terrain source
+is selected by advanced presets, with a supplied fallback if USGS is unavailable.
+Data access and private-report exclusions remain server-enforced in every preset.
