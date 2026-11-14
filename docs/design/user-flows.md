@@ -130,3 +130,21 @@ failure; an asset/version mismatch must be unavailable, not successful empty
 terrain. Nodata/outside-preserve pixels are transparent. Bundle checks and existing
 iOS execution are separate from Android/native-build/field-accuracy evidence;
 see [PR 4 verification](../../data/cascade-springs-gis/TERRAIN.md#verification-and-handoff).
+
+## Approximate signal layer acceptance (PR 5)
+
+Use an iOS 26 simulator as the primary native target. Load all selected sources:
+ten layers / 808 features, including 677 recovered signal samples. Compare
+close-zoom class dots with landmarks, trails and both terrain sources. The five
+legend labels must remain categorical, without inferred units. Tap a sample for
+its class/source pixel/positioning; crowded landmarks retain hit priority.
+
+In Choose GIS Layers, switch signal off and leave via Back: no change applies.
+Repeat with Done: samples and their key disappear, leaving nine layers / 131
+features without moving the zoomed camera. Restore repeatedly: exactly 808 features
+return, without duplicates or location requests. Exercise all-hidden, location
+denial, API failure/retry and catalog replacement using the existing flows. A
+missing, reclassified or incompatible signal snapshot must fail visibly. Choice
+persistence across a process restart is not implemented. Check the dedicated
+Disclaimers entry; no wording should promise service. Record device and automated
+evidence separately in the [signal handoff](../../data/cascade-springs-gis/SIGNAL.md).

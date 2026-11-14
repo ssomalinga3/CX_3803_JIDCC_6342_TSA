@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "source_sha256": "54684e263d249c374cb46e28d9d98c1edf26a063f70fcea347e4439166fbea9a",
+  "image_size": [932, 662],
+  "model": "North-up axis-aligned affine in EPSG:3857; separate x/y scales; least squares; pixel origin upper left; WGS84 output.",
+  "maximum_residual_ground_m": {
+    "fit": 15,
+    "validation": 30,
+    "annotation": 50
+  },
+  "controls": [
+    {
+      "id": "F1",
+      "pixel": [177, 27],
+      "geographic": [-84.4804334996, 33.7203040499],
+      "use": "fit",
+      "evidence": "Cascade/Veltre road center intersection, read at (365,333) in the 0.6-scale PDF review overlay; manual center precision about 3px."
+    },
+    {
+      "id": "F2",
+      "pixel": [772, 208],
+      "geographic": [-84.475509315, 33.718715799],
+      "use": "fit",
+      "evidence": "East boundary: slope meets upper horizontal step."
+    },
+    {
+      "id": "F3",
+      "pixel": [812, 231],
+      "geographic": [-84.4752058335, 33.7185360498],
+      "use": "fit",
+      "evidence": "East boundary: inner lower corner of middle step."
+    },
+    {
+      "id": "F4",
+      "pixel": [858, 232],
+      "geographic": [-84.4748382765, 33.7185387407],
+      "use": "fit",
+      "evidence": "East boundary: outer upper corner of next step."
+    },
+    {
+      "id": "F5",
+      "pixel": [907, 251],
+      "geographic": [-84.4744526138, 33.7183627583],
+      "use": "fit",
+      "evidence": "Northeast start of long eastern edge."
+    },
+    {
+      "id": "F6",
+      "pixel": [898, 549],
+      "geographic": [-84.4744888447, 33.7158973581],
+      "use": "fit",
+      "evidence": "Southeast end of long eastern edge; horizontal boundary partly hidden by legend."
+    },
+    {
+      "id": "V1",
+      "pixel": [856, 260],
+      "geographic": [-84.4748389236, 33.7183014066],
+      "use": "validation",
+      "evidence": "East boundary withheld lower step corner."
+    },
+    {
+      "id": "V2",
+      "pixel": [22, 405],
+      "geographic": [-84.481813207039, 33.716963985478],
+      "use": "validation",
+      "evidence": "Western OSM dashed trail junction compared with supplied West/Terrace junction; different mapping vintages may displace junctions."
+    },
+    {
+      "id": "V3",
+      "pixel": [152, 417],
+      "geographic": [-84.4807654606, 33.716907317838],
+      "use": "validation",
+      "evidence": "Interior OSM dashed trail junction compared with supplied West/Battle Ridge/Terrace endpoints; approximate identification."
+    },
+    {
+      "id": "V4",
+      "pixel": [337, 20],
+      "geographic": [-84.4794022443, 33.7202743273],
+      "use": "validation",
+      "evidence": "Northern boundary crest; broad rounded crest, manual precision about 5px. Withheld because the crest is broad and differs between basemaps."
+    },
+    {
+      "id": "A1",
+      "pixel": [100, 94],
+      "geographic": [-84.4813004766, 33.7195099944],
+      "use": "annotation",
+      "evidence": "Parking annotation star versus PDF parking symbol; symbol displacement makes this a qualitative check."
+    },
+    {
+      "id": "A2",
+      "pixel": [559, 61],
+      "geographic": [-84.4774134593, 33.7198082728],
+      "use": "annotation",
+      "evidence": "Waterfall annotation star versus PDF waterfall symbol; symbol displacement makes this a qualitative check."
+    }
+  ],
+  "exclusions": [
+    {
+      "name": "legend",
+      "bbox": [618, 460, 787, 637]
+    },
+    {
+      "name": "parking star",
+      "bbox": [90, 83, 109, 103]
+    },
+    {
+      "name": "waterfall star",
+      "bbox": [549, 51, 568, 70]
+    },
+    {
+      "name": "east edge star",
+      "bbox": [763, 79, 785, 100]
+    },
+    {
+      "name": "old growth creek star",
+      "bbox": [302, 245, 322, 266]
+    },
+    {
+      "name": "old growth no creek star",
+      "bbox": [548, 362, 570, 384]
+    },
+    {
+      "name": "new growth star",
+      "bbox": [436, 515, 459, 538]
+    }
+  ]
+}

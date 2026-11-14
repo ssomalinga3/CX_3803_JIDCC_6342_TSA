@@ -71,3 +71,13 @@ safety data. This import adds no offline persistence, caching or queue behavior.
 The [full-network reference](design/trail-network.md) records the later park-sign
 target and a catalog marked awaiting GIS. It defines the expected geometry and
 attribute families without importing guessed geometry or changing offline scope.
+
+## Approximate cell-signal observations (PR 5)
+
+Selected sources additionally include 677 recovered screenshot-class points in
+`cascade-cell-signal` (ten layers / 808 features in the full catalog). The
+[signal record](../data/cascade-springs-gis/SIGNAL.md) documents independent image
+registration and omissions. These observations do not measure current service or
+change offline coverage assumptions. Source import and signal-only import share
+lock `(6342, 2)` and transactional replacement. Mobile visibility remains in-memory
+and session-only; this slice adds no restart cache, report queue or sensor collection.

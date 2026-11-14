@@ -13,6 +13,8 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrailLegend } from '@/components/trail-legend';
+import { SignalLegend } from '@/components/signal-legend';
+import { hasSignal, signalClasses } from '@/data/signal';
 import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
@@ -334,10 +336,39 @@ export default function PreserveMap() {
               }}
             />
             <Layer
-              id="gis-landmarks"
+              id="gis-signal-samples"
+              testID="gis-signal-samples"
               type="circle"
               afterId="gis-context-lines"
-              filter={['==', ['geometry-type'], 'Point']}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Point'],
+                ['==', ['get', 'feature_kind'], 'signal_observation'],
+              ]}
+              paint={{
+                'circle-color': [
+                  'match',
+                  ['get', 'signal_class'],
+                  signalClasses[0].label,
+                  signalClasses[0].color,
+                  ...signalClasses.slice(1).flatMap((c) => [c.label, c.color]),
+                  '#555',
+                ],
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 1.5, 17, 3.5, 19, 5],
+                'circle-stroke-color': '#343434',
+                'circle-stroke-width': 0.7,
+                'circle-opacity': 0.9,
+              }}
+            />
+            <Layer
+              id="gis-landmarks"
+              type="circle"
+              afterId="gis-signal-samples"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Point'],
+                ['!=', ['get', 'feature_kind'], 'signal_observation'],
+              ]}
               paint={{
                 'circle-color': [
                   'match',
@@ -425,6 +456,7 @@ export default function PreserveMap() {
               filter={[
                 'all',
                 ['==', ['geometry-type'], 'Point'],
+                ['!=', ['get', 'feature_kind'], 'signal_observation'],
                 ['==', ['typeof', ['get', 'name']], 'string'],
               ]}
               layout={{
@@ -642,7 +674,11 @@ export default function PreserveMap() {
                   )
                     ? 'Purple boundary'
                     : null,
-                  snapshot.collection.features.some((f) => f.geometry.type.includes('Point'))
+                  snapshot.collection.features.some(
+                    (f) =>
+                      f.geometry.type.includes('Point') &&
+                      f.properties.feature_kind !== 'signal_observation',
+                  )
                     ? 'Blue landmarks / gray annotations'
                     : null,
                   snapshot.collection.features.some((f) => f.properties.feature_kind === 'water')
@@ -674,6 +710,7 @@ export default function PreserveMap() {
                 </Text>
               )}
               {trails && <TrailLegend entries={trails.legend} />}
+              {hasSignal(snapshot) && <SignalLegend />}
             </>
           )}
         </View>

@@ -136,3 +136,14 @@ The combined source importer now replaces all nine selected layers atomically;
 terrain-only replacement shares lock `(6342, 2)` with existing source writers.
 No physical tables, native dependencies, GPS behavior or durable offline cache
 are added. Hosting configuration and deployment ownership are outside this slice.
+
+## Approximate signal observations (PR 5)
+
+The [signal pipeline](../data/cascade-springs-gis/SIGNAL.md) registers and extracts
+the preserved screenshot offline, publishing 677 categorical Point samples in one
+additional layer. The combined importer replaces ten layers / 808 features under
+lock `(6342, 2)`; a signal-only writer preserves other layers. Runtime imports read
+committed GeoJSON. Mobile validates the small class/source contract, renders dark
+outlined class dots below trails/landmarks, and reuses the chooser/snapshot lifecycle.
+Exact readings, units and survey context remain absent. No device connectivity
+collection, interpolation service, native dependency or durable offline cache is added.

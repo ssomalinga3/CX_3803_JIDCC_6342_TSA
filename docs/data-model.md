@@ -103,7 +103,7 @@ No new physical tables, inferred pillars, or empty placeholder layers are added.
 The [trail-network contract](design/trail-network.md#storage-and-exchange) defines
 shared typed properties for named route segments, difficulty, color, landmarks,
 preserve/protective boundaries, water, natural areas, roads and buildings. These fit the
-existing generic geometry/JSON tables without migration. Supplied trails and PDF context are integrated; terrain/signal work is pending.
+existing generic geometry/JSON tables without migration. Supplied trails, PDF context, two-source terrain and approximate signal observations are integrated; see the implementation contracts below.
 The planning catalog does not publish empty layers or create inferred geometry.
 
 The later owner-authorized [approximate trail sections](../data/cascade-springs/README.md#approximate-trail-sections)
@@ -138,3 +138,14 @@ trail source attributes. No trail geometry or `ELEV_GAIN` values are changed and
 no ascent is inferred. Pillars stay null. The
 [terrain contract](../data/cascade-springs-gis/TERRAIN.md) documents source identities,
 clipping, nodata, source selection and transactional replacement of both options.
+
+## Approximate cell-signal recovery (PR 5)
+
+`cascade-cell-signal` uses existing generic GIS tables with `layerType: cell_signal`,
+nullable pillar and 677 Point features of kind `signal_observation`. The
+[signal contract](../data/cascade-springs-gis/signal-contract.json) fixes five
+transcribed legend classes, source hash/version, class counts and allowed fields.
+Properties retain source half-pixel coordinates and positioning uncertainty; IDs
+encode the extraction version and source pixel, independently of fitted map position.
+No exact reading, measurement unit, carrier, device or survey date is inferred.
+See [registration/extraction evidence](../data/cascade-springs-gis/SIGNAL.md).

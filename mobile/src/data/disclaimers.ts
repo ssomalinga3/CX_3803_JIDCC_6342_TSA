@@ -14,6 +14,11 @@ export type Disclaimer = {
 
 export const disclaimers: readonly Disclaimer[] = [
   {
+    id: 'cell-signal',
+    title: 'Cell-signal observations',
+    body: 'Colored dots are 677 recoverable samples from the supplied Cell Signal Strength screenshot, registered approximately to map controls. The five labels reproduce its legend classes; units, exact readings, carrier, device and survey date are unknown. Withheld basemap controls disagree by up to about 28 m, and annotation symbols by about 31 m; these are cartographic comparisons, not GPS or survey accuracy. The northern boundary differs between maps, and some samples lie beyond the control area. Overlapping, obscured or ambiguous dots are omitted. Positions and classes are uncertain. These observations do not show current connectivity or guarantee service and are not a continuous coverage map. The app does not collect cellular measurements.',
+  },
+  {
     id: 'supplied-terrain',
     title: 'Elevation · supplied DTM',
     body: 'The supplied csnp_dtm_2015 grid uses NAVD88 heights in US survey feet (ftUS). The filename suggests 2015; acquisition date and horizontal datum are unconfirmed. Its GRS80 projection is displayed with a no-datum-shift assumption. Boundary registration and terrain comparison support approximate orientation, not survey accuracy. Relief is regenerated from the grid; the original hillshade is retained as alignment evidence. Bands span 20 ftUS and are resampled and simplified. They are not measured trail ascent or current conditions.',
