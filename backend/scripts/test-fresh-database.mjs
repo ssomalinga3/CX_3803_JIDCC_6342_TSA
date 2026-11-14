@@ -37,6 +37,8 @@ try {
     'db:import:source',
     'db:import:pdf',
     'db:import:boundary',
+    'db:import:terrain',
+    'db:import:terrain',
     'db:import:source',
     'test:integration',
     'test:worker',

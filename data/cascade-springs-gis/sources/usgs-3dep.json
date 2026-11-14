@@ -1,0 +1,721 @@
+{
+  "schema_version": 1,
+  "retrieved_at_utc": "2026-11-12T18:29:03.818531+00:00",
+  "source": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+  "request_url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?f=json&bbox=-84.4845%2C33.7140%2C-84.4740%2C33.7205&bboxSR=4326&imageSR=3857&size=512%2C384&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&renderingRule=%7B%22rasterFunction%22%3A+%22None%22%7D&noData=-999999&noDataInterpretation=esriNoDataMatchAny",
+  "query_url": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/query?f=json&geometry=%7B%22xmin%22%3A+-84.4845%2C+%22ymin%22%3A+33.714%2C+%22xmax%22%3A+-84.474%2C+%22ymax%22%3A+33.7205%7D&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=Name%2CProductName%2CVerticalDatum%2CResolution_X%2CAcquisitionDate%2CSource%2CDEM_Type&returnGeometry=false",
+  "export": {
+    "width": 512,
+    "height": 384,
+    "extent": {
+      "xmin": -9404771.51992432,
+      "ymin": 3990460.1920894394,
+      "xmax": -9403602.665270992,
+      "ymax": 3991336.833079436,
+      "spatialReference": {
+        "wkid": 102100,
+        "latestWkid": 3857
+      }
+    },
+    "scale": 0
+  },
+  "raster": {
+    "file": "usgs-3dep.tif",
+    "bytes": 787694,
+    "sha256": "ddb1e68056488b3e0336bb472cfb3c936e7399dbfc823d2d4a8892e64883a8b3"
+  },
+  "service": {
+    "currentVersion": 11.3,
+    "serviceDescription": "The USGS 3D Elevation Program (3DEP) Bare Earth DEM Dynamic service is based on multi-resolution USGS DEM sources and provides dynamic functions for visualization. These functions include: Hillshade, Aspect Map, Hillshade Stretched, Multi-directional Hillshade, Slope Map, Elevation Tinted Hillshade, Contour. In addition the OGC Web Map Service (WMS) and Web Coverage Service (WCS) interfaces are enabled. Data available in this map service reflects all 3DEP DEM data published as of October 26, 2026.",
+    "name": "3DEPElevation",
+    "description": "The USGS 3D Elevation Program (3DEP) Bare Earth DEM Dynamic service is based on multi-resolution USGS DEM sources and provides dynamic functions for visualization. These functions include: Hillshade, Aspect Map, Hillshade Stretched, Multi-directional Hillshade, Slope Map, Elevation Tinted Hillshade, Contour. In addition the OGC Web Map Service (WMS) and Web Coverage Service (WCS) interfaces are enabled. Data available in this map service reflects all 3DEP DEM data published as of October 26, 2026.",
+    "extent": {
+      "xmin": -20037507.0672,
+      "ymin": -1689391.823360186,
+      "xmax": 20037507.532527123,
+      "ymax": 18809001.9719,
+      "spatialReference": {
+        "wkid": 102100,
+        "latestWkid": 3857
+      }
+    },
+    "initialExtent": {
+      "xmin": -20037507.0672,
+      "ymin": -1689391.823360186,
+      "xmax": 20037507.532527123,
+      "ymax": 18809001.9719,
+      "spatialReference": {
+        "wkid": 102100,
+        "latestWkid": 3857
+      }
+    },
+    "fullExtent": {
+      "xmin": -20037507.0672,
+      "ymin": -1689391.823360186,
+      "xmax": 20037507.532527123,
+      "ymax": 18809001.9719,
+      "spatialReference": {
+        "wkid": 102100,
+        "latestWkid": 3857
+      }
+    },
+    "sortableFields": "",
+    "bandCount": 1,
+    "pixelType": "F32",
+    "minValues": [-60.3043327331543],
+    "maxValues": [3922.473388671875],
+    "meanValues": [395.42771568639006],
+    "stdvValues": [502.76740749463204],
+    "hasMultidimensions": false,
+    "pixelSizeX": 0.9999999900119095,
+    "pixelSizeY": 0.9999999900119095,
+    "meanPixelSize": 0.9999999900119095,
+    "datasetFormat": "AMD",
+    "uncompressedSize": 3285893788103640,
+    "blockWidth": 2048,
+    "blockHeight": 256,
+    "compressionType": "None",
+    "bandNames": ["Band_1"],
+    "allowCopy": true,
+    "allowAnalysis": true,
+    "itemAccess": false,
+    "inspectionCapabilities": "",
+    "minPixelSize": 0,
+    "maxPixelSize": 0,
+    "copyrightText": "USGS National Map 3D Elevation Program (3DEP). October 27, 2026.",
+    "serviceDataType": "esriImageServiceDataTypeElevation",
+    "serviceSourceType": "esriImageServiceSourceTypeMosaicDataset",
+    "objectIdField": "OBJECTID",
+    "fields": [
+      {
+        "name": "OBJECTID",
+        "type": "esriFieldTypeOID",
+        "alias": "OBJECTID",
+        "domain": null
+      },
+      {
+        "name": "Shape",
+        "type": "esriFieldTypeGeometry",
+        "alias": "Shape",
+        "domain": null
+      },
+      {
+        "name": "Name",
+        "type": "esriFieldTypeString",
+        "alias": "Name",
+        "domain": null,
+        "length": 200
+      },
+      {
+        "name": "MinPS",
+        "type": "esriFieldTypeDouble",
+        "alias": "MinPS",
+        "domain": null
+      },
+      {
+        "name": "MaxPS",
+        "type": "esriFieldTypeDouble",
+        "alias": "MaxPS",
+        "domain": null
+      },
+      {
+        "name": "LowPS",
+        "type": "esriFieldTypeDouble",
+        "alias": "LowPS",
+        "domain": null
+      },
+      {
+        "name": "HighPS",
+        "type": "esriFieldTypeDouble",
+        "alias": "HighPS",
+        "domain": null
+      },
+      {
+        "name": "Category",
+        "type": "esriFieldTypeInteger",
+        "alias": "Category",
+        "domain": {
+          "type": "codedValue",
+          "name": "MosaicCatalogItemCategoryDomain",
+          "description": "Catalog item categories.",
+          "codedValues": [
+            {
+              "name": "Unknown",
+              "code": 0
+            },
+            {
+              "name": "Primary",
+              "code": 1
+            },
+            {
+              "name": "Overview",
+              "code": 2
+            },
+            {
+              "name": "Unprocessed Overview",
+              "code": 3
+            },
+            {
+              "name": "Partial Overview",
+              "code": 4
+            },
+            {
+              "name": "Inactive",
+              "code": 5
+            },
+            {
+              "name": "Uploaded",
+              "code": 253
+            },
+            {
+              "name": "Incomplete",
+              "code": 254
+            },
+            {
+              "name": "Custom",
+              "code": 255
+            }
+          ],
+          "mergePolicy": "esriMPTDefaultValue",
+          "splitPolicy": "esriSPTDefaultValue"
+        }
+      },
+      {
+        "name": "Tag",
+        "type": "esriFieldTypeString",
+        "alias": "Tag",
+        "domain": null,
+        "length": 100
+      },
+      {
+        "name": "GroupName",
+        "type": "esriFieldTypeString",
+        "alias": "GroupName",
+        "domain": null,
+        "length": 100
+      },
+      {
+        "name": "ProductName",
+        "type": "esriFieldTypeString",
+        "alias": "ProductName",
+        "domain": null,
+        "length": 100
+      },
+      {
+        "name": "CenterX",
+        "type": "esriFieldTypeDouble",
+        "alias": "CenterX",
+        "domain": null
+      },
+      {
+        "name": "CenterY",
+        "type": "esriFieldTypeDouble",
+        "alias": "CenterY",
+        "domain": null
+      },
+      {
+        "name": "ZOrder",
+        "type": "esriFieldTypeInteger",
+        "alias": "ZOrder",
+        "domain": null
+      },
+      {
+        "name": "Shape_Length",
+        "type": "esriFieldTypeDouble",
+        "alias": "Shape_Length",
+        "domain": null
+      },
+      {
+        "name": "Shape_Area",
+        "type": "esriFieldTypeDouble",
+        "alias": "Shape_Area",
+        "domain": null
+      },
+      {
+        "name": "Dataset_ID",
+        "type": "esriFieldTypeString",
+        "alias": "Dataset_ID",
+        "domain": null,
+        "length": 32
+      },
+      {
+        "name": "Best",
+        "type": "esriFieldTypeInteger",
+        "alias": "Best",
+        "domain": null
+      },
+      {
+        "name": "DEM_Type",
+        "type": "esriFieldTypeSmallInteger",
+        "alias": "DEM_Type",
+        "domain": null
+      },
+      {
+        "name": "Source",
+        "type": "esriFieldTypeString",
+        "alias": "Source",
+        "domain": null,
+        "length": 32
+      },
+      {
+        "name": "VerticalDatum",
+        "type": "esriFieldTypeString",
+        "alias": "VerticalDatum",
+        "domain": null,
+        "length": 100
+      },
+      {
+        "name": "AcquisitionDate",
+        "type": "esriFieldTypeDate",
+        "alias": "AcquisitionDate",
+        "domain": null,
+        "length": 8
+      },
+      {
+        "name": "URL",
+        "type": "esriFieldTypeString",
+        "alias": "URL",
+        "domain": null,
+        "length": 1000
+      },
+      {
+        "name": "Metadata",
+        "type": "esriFieldTypeString",
+        "alias": "Metadata",
+        "domain": null,
+        "length": 256
+      },
+      {
+        "name": "pubdate",
+        "type": "esriFieldTypeInteger",
+        "alias": "pubdate",
+        "domain": null
+      },
+      {
+        "name": "title",
+        "type": "esriFieldTypeString",
+        "alias": "title",
+        "domain": null,
+        "length": 256
+      },
+      {
+        "name": "Resolution_X",
+        "type": "esriFieldTypeString",
+        "alias": "Resolution_X",
+        "domain": null,
+        "length": 50
+      },
+      {
+        "name": "Resolution_Y",
+        "type": "esriFieldTypeDouble",
+        "alias": "Resolution_Y",
+        "domain": null
+      },
+      {
+        "name": "Cdate",
+        "type": "esriFieldTypeString",
+        "alias": "Cdate",
+        "domain": null,
+        "length": 50
+      },
+      {
+        "name": "StartDate",
+        "type": "esriFieldTypeInteger",
+        "alias": "StartDate",
+        "domain": null
+      },
+      {
+        "name": "EndDate",
+        "type": "esriFieldTypeString",
+        "alias": "EndDate",
+        "domain": null,
+        "length": 50
+      }
+    ],
+    "capabilities": "Image,Metadata,Catalog",
+    "defaultMosaicMethod": "ByAttribute",
+    "allowedMosaicMethods": "ByAttribute,LockRaster,Seamline,None",
+    "sortField": "Best",
+    "sortValue": "0",
+    "sortAscending": true,
+    "mosaicOperator": "First",
+    "maxDownloadSizeLimit": 2048,
+    "defaultCompressionQuality": 75,
+    "defaultResamplingMethod": "Bilinear",
+    "maxImageHeight": 8000,
+    "maxImageWidth": 8000,
+    "maxRecordCount": 2000,
+    "maxDownloadImageCount": 50,
+    "maxMosaicImageCount": 500,
+    "allowRasterFunction": true,
+    "rasterFunctionInfos": [
+      {
+        "name": "Hillshade Gray",
+        "description": "Provides a hillshaded surface generated dynamically using the hillshade server-side function on the elevation layer with a solar azimuth of 315 degrees and solar altitude of 45 degrees.",
+        "help": ""
+      },
+      {
+        "name": "Aspect Degrees",
+        "description": "This server-side function will apply an on-the-fly process to the input elevation data to generate an aspect layer.",
+        "help": "Raster Function Templates may be activated in ArcMap by loading the service into the map, right clicking on the service in the Table of Contents to select Properties, and selecting the desired function from the Server Functions tab.  For help with invoking raster functions via REST calls, see http://resources.arcgis.com/en/help/rest/apiref/. "
+      },
+      {
+        "name": "Aspect Map",
+        "description": "This server-side function will apply an on-the-fly process to the input elevation data to generate a color visualization of aspect. ",
+        "help": "Raster Function Templates may be activated in ArcMap by loading the service into the map, right clicking on the service in the Table of Contents to select Properties, and selecting the desired function from the Server Functions tab.  For help with invoking raster functions via REST calls, see http://resources.arcgis.com/en/help/rest/apiref/. "
+      },
+      {
+        "name": "Contour 25",
+        "description": "Provides 25 contours for the area of interest dynamically generated using the contour server-side function.",
+        "help": ""
+      },
+      {
+        "name": "Hillshade Elevation Tinted",
+        "description": "This server-side function will apply an on-the-fly process to the input elevation data to generate a tinted hillshade. ",
+        "help": "Raster Function Templates may be activated in ArcMap by loading the service into the map, right clicking on the service in the Table of Contents to select Properties, and selecting the desired function from the Server Functions tab.  For help with invoking raster functions via REST calls, see http://resources.arcgis.com/en/help/rest/apiref/. "
+      },
+      {
+        "name": "Hillshade Gray-Stretch",
+        "description": "Provides a hillshaded surface generated dynamically using the hillshade server-side function on the elevation layer with a solar azimuth of 315 degrees and solar altitude of 45 degrees, then a stretch function with 4 standard deviations and gamma of 1.5 x 3 is added on the end to add darker shadowing.",
+        "help": ""
+      },
+      {
+        "name": "Hillshade Multidirectional",
+        "description": "A raster function template.",
+        "help": ""
+      },
+      {
+        "name": "Preset 2ft Contour Interval",
+        "description": "Provides 2 foot contours dynamically for the display extent using a server-side raster function.",
+        "help": ""
+      },
+      {
+        "name": "Preset 5ft Contour Interval",
+        "description": "Provides 5 foot contours for the display extent using a server-side raster function.",
+        "help": ""
+      },
+      {
+        "name": "Preset 10ft Contour Interval",
+        "description": " Provides 10-foot contours dynamically for the display extent using a server-side raster function.",
+        "help": ""
+      },
+      {
+        "name": "Slope Map",
+        "description": "This server-side function will apply an on-the-fly process to the input elevation data to generate a color visualization of slope, where flat surfaces are gray, shallow slopes are yellow, and steep slopes are red-brown. ",
+        "help": "Raster Function Templates may be activated in ArcMap by loading the service into the map, right clicking on the service in the Table of Contents to select Properties, and selecting the desired function from the Server Functions tab.  For help with invoking raster functions via REST calls, see http://resources.arcgis.com/en/help/rest/apiref/. "
+      },
+      {
+        "name": "Slope Degrees",
+        "description": "This server-side function will apply an on-the-fly process to the input elevation data to generate a color visualization of slope, where flat surface is gray, shallow slopes are yellow, and steep slopes are red-brown. ",
+        "help": "Raster Function Templates may be activated in ArcMap by loading the service into the map, right clicking on the service in the Table of Contents to select Properties, and selecting the desired function from the Server Functions tab.  For help with invoking raster functions via REST calls, see http://resources.arcgis.com/en/help/rest/apiref/. "
+      },
+      {
+        "name": "Contour Smoothed 25",
+        "description": "Provides 25 smoothened contours for the area of interest dynamically generated using the contour server-side function.",
+        "help": ""
+      },
+      {
+        "name": "None",
+        "description": "Make a Raster or Raster Dataset into a Function Raster Dataset.",
+        "help": ""
+      }
+    ],
+    "rasterTypeInfos": [
+      {
+        "name": "Raster Dataset",
+        "description": "Supports all ArcGIS Raster Datasets",
+        "help": ""
+      }
+    ],
+    "mensurationCapabilities": "None",
+    "hasHistograms": true,
+    "hasColormap": false,
+    "hasRasterAttributeTable": false,
+    "minScale": 0,
+    "maxScale": 0,
+    "exportTilesAllowed": false,
+    "supportsStatistics": true,
+    "supportsAdvancedQueries": true,
+    "editFieldsInfo": null,
+    "ownershipBasedAccessControlForRasters": null,
+    "allowComputeTiePoints": false,
+    "useStandardizedQueries": true,
+    "advancedQueryCapabilities": {
+      "useStandardizedQueries": true,
+      "supportsStatistics": true,
+      "supportsOrderBy": true,
+      "supportsDistinct": true,
+      "supportsPagination": true
+    },
+    "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+    }
+  },
+  "intersecting_catalog": {
+    "objectIdFieldName": "OBJECTID",
+    "fields": [
+      {
+        "name": "OBJECTID",
+        "type": "esriFieldTypeOID",
+        "alias": "OBJECTID",
+        "domain": null
+      },
+      {
+        "name": "Name",
+        "type": "esriFieldTypeString",
+        "alias": "Name",
+        "domain": null,
+        "length": 200
+      },
+      {
+        "name": "ProductName",
+        "type": "esriFieldTypeString",
+        "alias": "ProductName",
+        "domain": null,
+        "length": 100
+      },
+      {
+        "name": "VerticalDatum",
+        "type": "esriFieldTypeString",
+        "alias": "VerticalDatum",
+        "domain": null,
+        "length": 100
+      },
+      {
+        "name": "Resolution_X",
+        "type": "esriFieldTypeString",
+        "alias": "Resolution_X",
+        "domain": null,
+        "length": 50
+      },
+      {
+        "name": "AcquisitionDate",
+        "type": "esriFieldTypeDate",
+        "alias": "AcquisitionDate",
+        "domain": null,
+        "length": 8
+      },
+      {
+        "name": "Source",
+        "type": "esriFieldTypeString",
+        "alias": "Source",
+        "domain": null,
+        "length": 32
+      },
+      {
+        "name": "DEM_Type",
+        "type": "esriFieldTypeSmallInteger",
+        "alias": "DEM_Type",
+        "domain": null
+      }
+    ],
+    "features": [
+      {
+        "attributes": {
+          "OBJECTID": 2614,
+          "Name": "n34w085",
+          "ProductName": "USGS_3DEP",
+          "VerticalDatum": "North American Vertical Datum of 1988 (NAVD 88)",
+          "Resolution_X": "2.77777777787015E-04",
+          "AcquisitionDate": 1710720000000,
+          "Source": "USGS",
+          "DEM_Type": 1
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 4651,
+          "Name": "n34w085",
+          "ProductName": "USGS_3DEP",
+          "VerticalDatum": "North American Vertical Datum of 1988 (NAVD 88)",
+          "Resolution_X": "9.25925926922017E-05",
+          "AcquisitionDate": 1710720000000,
+          "Source": "USGS",
+          "DEM_Type": 1
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 10240,
+          "Name": "ned19_n33x75_w084x50_ga_dekalbco_2010",
+          "ProductName": "USGS_3DEP",
+          "VerticalDatum": "North American Vertical Datum of 1988 (NAVD 88)",
+          "Resolution_X": "0.00001",
+          "AcquisitionDate": 1267401600000,
+          "Source": "USGS",
+          "DEM_Type": 1
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 10241,
+          "Name": "ned19_n33x75_w084x50_ga_fultonco_2006",
+          "ProductName": "USGS_3DEP",
+          "VerticalDatum": "North American Vertical Datum of 1988 (NAVD 88)",
+          "Resolution_X": "0.00001",
+          "AcquisitionDate": 1388534400000,
+          "Source": "USGS",
+          "DEM_Type": 1
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 119177,
+          "Name": "GA_Statewide_2018_B18_DRRA",
+          "ProductName": "USGS_3DEP",
+          "VerticalDatum": "North American Vertical Datum of 1988 (NAVD 88)",
+          "Resolution_X": null,
+          "AcquisitionDate": 1556064000000,
+          "Source": "USGS",
+          "DEM_Type": 1
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 143699,
+          "Name": "Ov_i02_L01_R00000059_C0000001B.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144529,
+          "Name": "Ov_i02_L02_R0000002C_C0000000D.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144781,
+          "Name": "Ov_i02_L03_R00000016_C00000006.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144872,
+          "Name": "Ov_i02_L04_R0000000B_C00000003.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144912,
+          "Name": "Ov_i02_L05_R00000005_C00000001.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144938,
+          "Name": "Ov_i02_L06_R00000002_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144959,
+          "Name": "Ov_i02_L07_R00000001_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144976,
+          "Name": "Ov_i02_L08_R00000000_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 144993,
+          "Name": "Ov_i02_L09_R00000000_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 145010,
+          "Name": "Ov_i02_L0A_R00000000_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 145027,
+          "Name": "Ov_i02_L0B_R00000000_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      },
+      {
+        "attributes": {
+          "OBJECTID": 145044,
+          "Name": "Ov_i02_L0C_R00000000_C00000000.tif",
+          "ProductName": "",
+          "VerticalDatum": null,
+          "Resolution_X": null,
+          "AcquisitionDate": null,
+          "Source": null,
+          "DEM_Type": null
+        }
+      }
+    ]
+  },
+  "limitations": "Multi-resolution service export resampled to a bounded display grid; acquisition date is not retrieval date. Catalog intersections are candidates, not proof of per-pixel source. No local survey or navigation accuracy claimed."
+}

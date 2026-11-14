@@ -1,5 +1,12 @@
 # Supplied Cascade Springs GIS sources
 
+**PR 4 selection:** [Two-source terrain](TERRAIN.md) adds supplied-DTM and national
+USGS 3DEP elevation options under one switch and source dropdown (bands plus relief).
+The selected total is nine layers/131 features. The supplemental USGS GeoTIFF and
+acquisition record live in `sources/usgs-3dep.*`; the terrain converter checks that
+record separately from the unchanged original three-input manifest. Original
+supplied hillshade is registered review evidence; runtime relief is regenerated.
+
 **PR 3 selection:** see [PDF map integration](PDF-MAP.md) for the six extracted/context layers, landmark reconciliation, commands and alignment evidence.
 
 **Current integration:** [PR 2 supplied trails](TRAILS.md) now replaces active

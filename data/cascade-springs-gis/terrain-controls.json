@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "image": "CSNP/HillshadeCSNP.png",
+  "pixel_origin": "upper-left; pixel centers",
+  "target": "csnp-pdf-boundary-001 exterior vertex indices in pdf-map.geojson",
+  "method": "affine pixel-to-Web-Mercator fit to shared boundary corners; withheld corners validate independently of fit",
+  "controls": [
+    { "vertex": 151, "pixel": [260, 101], "use": "fit" },
+    { "vertex": 62, "pixel": [881, 91], "use": "fit" },
+    { "vertex": 54, "pixel": [1014, 269], "use": "fit" },
+    { "vertex": 42, "pixel": [1010, 526], "use": "fit" },
+    { "vertex": 36, "pixel": [818, 702], "use": "fit" },
+    { "vertex": 35, "pixel": [299, 699], "use": "fit" },
+    { "vertex": 33, "pixel": [209, 670], "use": "fit" },
+    { "vertex": 160, "pixel": [182, 300], "use": "fit" },
+    { "vertex": 159, "pixel": [288, 315], "use": "validation" },
+    { "vertex": 61, "pixel": [880, 186], "use": "validation" },
+    { "vertex": 56, "pixel": [980, 249], "use": "validation" },
+    { "vertex": 40, "pixel": [873, 625], "use": "validation" },
+    { "vertex": 38, "pixel": [819, 624], "use": "validation" },
+    { "vertex": 30, "pixel": [322, 618], "use": "validation" },
+    { "vertex": 32, "pixel": [203, 647], "use": "validation" }
+  ]
+}

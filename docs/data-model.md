@@ -126,3 +126,15 @@ The matched Waterfall stores its original My Maps feature intact in inert
 `source_annotations`. Explicit per-kind collections replace six owned layers
 atomically under the same lock as supplied trails. Null pillars and unchanged
 segment difficulty remain intentional.
+
+## Terrain source properties (PR 4)
+
+Two `terrain` catalog layers use existing generic GIS tables. Each owns Polygon
+features with `feature_kind: elevation_band` or `hillshade`. The former records
+20 ftUS lower/upper display bounds; the latter is a versioned bundled-image
+footprint, not a property boundary. Source/dataset hashes, dataset version,
+vertical reference and horizontal-registration assumptions remain separate from
+trail source attributes. No trail geometry or `ELEV_GAIN` values are changed and
+no ascent is inferred. Pillars stay null. The
+[terrain contract](../data/cascade-springs-gis/TERRAIN.md) documents source identities,
+clipping, nodata, source selection and transactional replacement of both options.

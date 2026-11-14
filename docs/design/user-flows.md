@@ -110,3 +110,23 @@ are readable. Waterfall must have one marker retaining its My Maps note; Spring
 remains explicitly unmatched. Hide/show each context layer with Done: its features,
 hits and key entries change without refitting the map or adding trail-key entries.
 Difficulty stays unchanged. See [PR 3 evidence](../../data/cascade-springs-gis/PDF-MAP.md#verification-and-limits).
+
+For PR 4, verify the API catalog contains nine layers/131 features. The default
+map shows eight layers/102 features with USGS terrain. The chooser has eight
+switches, including one Elevation switch and a source dropdown. Expand it to
+read the similarity note and both sources' concise limitations; detailed source
+caveats remain in Disclaimers. Choosing a source updates its radio selection
+and leaves both descriptions and the similarity note open. Tap the source button
+to collapse it. Choose Supplied DTM and Done: the map changes to
+eight layers/98 features with only that source's bands/relief. Back cancels drafts.
+At detail zoom, select elevation bands and confirm a 20 ftUS range, NAVD88
+reference and correct source. Trails/POIs take priority where hits overlap.
+Switch sources and hide/show Elevation repeatedly: its bands/labels and relief change
+together, without duplicate images, altered trail key, GPS changes or camera
+refitting. An off switch remembers the source, refresh retains choices and an
+unavailable selected source falls back to the remaining public option. Trails stay
+above relief. Hide all layers and retain basemap/location controls. Retry after an API
+failure; an asset/version mismatch must be unavailable, not successful empty
+terrain. Nodata/outside-preserve pixels are transparent. Bundle checks and existing
+iOS execution are separate from Android/native-build/field-accuracy evidence;
+see [PR 4 verification](../../data/cascade-springs-gis/TERRAIN.md#verification-and-handoff).
