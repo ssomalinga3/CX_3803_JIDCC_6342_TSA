@@ -14,9 +14,13 @@ Neither source is approved survey/navigation data. 3D and trail ascent remain ou
 | `cascade-terrain-usgs`     | Elevation · USGS 3DEP    | 32 elevation bands + 1 hillshade footprint | Preserved national service subset   |
 
 Each `terrain` catalog layer contains Polygon features with `feature_kind`
-`elevation_band` or `hillshade`. Each switch controls that source's bands,
-labels, hit testing and bundled relief together. Both default visible, following
-the existing new-layer policy; turn one off to compare sources individually.
+`elevation_band` or `hillshade`. The chooser groups both sources into one
+**Elevation** switch and a source dropdown. Exactly one source supplies bands,
+labels, hit testing and relief at a time. USGS is selected by default; if it is
+unavailable, the supplied source is used. Turning elevation off remembers the
+source. Source/switch edits apply on Done, cancel on Back and survive in-session
+refresh. The default complete map shows eight layers/102 features; choosing the
+supplied DTM shows eight/98, and disabling elevation leaves seven/69.
 Trails, context, GPS and camera state retain their existing independent behavior.
 Pillars remain null. The selected source import now owns **nine layers / 131
 features** (69 prior features + 62 terrain features); it preserves the original
@@ -91,6 +95,14 @@ At 155,454 common display samples, supplied-minus-USGS elevation has median
 or accuracy evidence: source vintages, interpolation and possibly shared upstream
 lidar can correlate the datasets. Source options are separately attributed;
 they are not claimed to be independent surveys.
+
+The central 90% of sampled differences therefore fall within about 13 inches,
+much smaller than the map's 20 ftUS elevation bands. Similar band outlines,
+colors and shading when switching sources are expected. A dedicated
+“Why they look similar” note inside the expanded source dropdown explains this
+agreement and the unconfirmed possibility of shared underlying survey data.
+This explanatory note is not added to Disclaimers; the original detailed source
+caveats remain there. The dropdown also shows concise source limitations.
 
 The runtime uses regenerated gray relief, avoiding the original PNG's baked-in
 green boundary, coloration and surrounding context. Thus the original PNG is

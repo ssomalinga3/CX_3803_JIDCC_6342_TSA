@@ -120,10 +120,13 @@ architecture remain unchanged.
 
 The [terrain pipeline](../data/cascade-springs-gis/TERRAIN.md) runs only during
 development/CI. It preserves a bounded USGS national GeoTIFF alongside the
-supplied source archive, then generates two independently switchable source
-layers with generalized elevation polygons and versioned bundled hillshade
-images. The API remains GeoJSON-only; image footprints coordinate catalog
-visibility with local assets. Native ImageSource uses an explicit local asset
+supplied source archive, then generates two source layers with generalized
+elevation polygons and versioned bundled hillshade images. Mobile groups these
+alternatives under one Elevation switch and source dropdown, defaults to USGS
+and renders only the selected source. Source preference and enabled state remain
+session-only, separate from other hidden-layer IDs. The API remains GeoJSON-only;
+image footprints coordinate catalog visibility with local assets. Native
+ImageSource uses an explicit local asset
 allowlist. A mismatched dataset version/hash/placement rejects the snapshot and
 uses the existing error/retry path. No raster URL serving or Worker asset
 binding is introduced. Import commands read committed files outside the request
