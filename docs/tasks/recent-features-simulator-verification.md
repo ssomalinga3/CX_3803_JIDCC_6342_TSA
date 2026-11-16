@@ -17,10 +17,10 @@ merge the remaining open feature PRs as part of this verification assignment.
 
 ## Audit scope and result
 
-Audit window: **November 9, 2026 01:33:41 UTC through November 16, 2026
-01:33:41 UTC** (the preceding seven days at audit time). GitHub PRs updated since
+Audit window: **November 9, 2026 02:09:34 UTC through November 16, 2026
+02:09:34 UTC** (the preceding seven days at final audit time). GitHub PRs updated since
 November 8 were enumerated, and their merge metadata and submitted reviews were
-read. Ten PRs had merges in the window. Five of those also had approval reviews
+read. Eleven PRs had merges in the window. Five of those also had approval reviews
 in the window; no additional approved-but-open PR was found.
 Approval here means a submitted GitHub `APPROVED` review, not an implicit
 resolution of every client/product proposal.
@@ -42,6 +42,7 @@ code-inclusion audit, not a claim of complete device acceptance.
 | [#36](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/36) | Internal private report persistence and replay handling         | `70018a3`    | Yes; no report HTTP routes                 |
 | [#37](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/37) | Gated opt-in offline basemap prototype                          | `1efd056`    | Yes; disabled without an authorized style  |
 | [#41](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/41) | Retain newer in-memory GIS through failed refreshes             | `3e588de`    | Yes                                        |
+| [#43](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/43) | Land merged GIS ancestors and correct integration-test timing   | `81ded45`    | Yes                                        |
 
 ### Why the integration repair was necessary
 
@@ -65,7 +66,7 @@ inclusion in `main`; inspect the target and ancestry.
 
 At audit completion, #38 (signal observations), #39 (natural rendering order),
 #40 (visibility presets), and #34 (hosted backend) remain open. Their branches
-are being updated onto the repaired main in this order:
+have been rebased and relinked onto repaired main as native GitHub stack #44 in this order:
 
 `main → #38 → #39 → #40 → #34`
 
@@ -93,6 +94,15 @@ For the #43 integration:
   terrain and the saved-data timestamp. Restarting the API and tapping Retry
   removed the saved-data notice and retained the live features.
 
+Visual evidence: [online main integration](../images/ios26-main-gis-online.png)
+and [cached restart with the API unavailable](../images/ios26-main-gis-cached.png).
+
+The four open PRs also passed all five checks at their restacked heads:
+#38 `6412eca`, #39 `3d41276`, #40 `509770f`, #34 `8371b2d`. The complete
+preview stack passed `pnpm verify` (130 backend unit tests and 144 mobile tests),
+the backend/Worker dry-run build and all 160 fresh-PostGIS backend tests. Those
+checks do not merge the preview features into main or replace device acceptance.
+
 Native compilation was not rerun. Android execution, fully disconnected startup
 with embedded JavaScript, pack-download recovery, accessibility, measured device
 performance and field alignment are **not** established by these checks.
@@ -116,11 +126,30 @@ use 18787/18788; serialize copies using those ports. Do not stop another agent's
 server, migrate a shared/production database, or reset a simulator with unrelated
 user state. Do not write to hosted Neon/Cloudflare resources to run local tests.
 
+### Local resources left for this handoff
+
+These are dedicated test resources, not production services. Inspect them before
+reuse because another agent may have changed them since this record was written.
+
+| Resource               | Location / purpose                                                                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main preview worktree  | `.work/pr-merged-gis-main`, branch `fix/land-merged-gis`; its `81ded45` tree matches audited main `0cfeab1`                                    |
+| Local API              | `http://127.0.0.1:8797`, Worker inspector 9237; real local backend, public selected GIS only                                                   |
+| Metro                  | `http://localhost:8092`, API configured to `http://127.0.0.1:8797/api/v1` for iOS                                                              |
+| Dedicated PostGIS      | Docker container `cascade-pr43-smoke`, loopback port 55436, documented disposable local credentials; selected 9-layer/131-feature main dataset |
+| iOS target             | Booted Cascade iOS 26 simulator, iOS 26.3; existing development client, location left off                                                      |
+| Pending stack worktree | `.work/pr-final-stack`, branch `update/gis-stack`; isolated from the main preview                                                              |
+
+The primary checkout has unrelated uncommitted documentation work. Do not switch
+or reset it. Use a separate Metro instance/configuration for Android host
+addressing. The temporary API proxy on 8796 was stopped. No Android setup was
+performed for this handoff.
+
 ## Phase 1 — establish the exact target
 
 1. Fetch remote state, record `origin/main` SHA, and inspect the working tree.
-   Recheck the ten audited heads with `git merge-base --is-ancestor HEAD_SHA
-origin/main`. Look for newer merged/approved PRs since this dated audit.
+   For each audited head, run `git merge-base --is-ancestor HEAD_SHA origin/main`.
+   Look for newer merged/approved PRs since this dated audit.
 2. Create an isolated verification worktree from current main. Use Node from
    `.nvmrc`, root-pinned pnpm and the one root lockfile. Install at the root with
    `pnpm install --frozen-lockfile`.
