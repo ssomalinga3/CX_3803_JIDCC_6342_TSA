@@ -46,6 +46,28 @@ test('missing configuration leaves browsing available without API requests', asy
   expect(loadPublicGis).not.toHaveBeenCalled();
 });
 
+test('a failed retry keeps newer live data when only an older disk snapshot is available', async () => {
+  const oldSnapshot = { ...snapshot, layers: [{ ...layer, name: 'Older cached layer' }] };
+  readPublicGisCache.mockReturnValue({ snapshot: oldSnapshot, savedAt: 123 });
+  loadPublicGis.mockResolvedValueOnce(snapshot).mockRejectedValueOnce(new Error('offline'));
+  const { result } = await renderHook(() => usePublicGis('https://example.com/api/v1'));
+  await waitFor(() => expect(result.current.savedAt).toBeUndefined());
+  expect(result.current.snapshot).toEqual(snapshot);
+
+  await act(() => result.current.retry());
+  await waitFor(() => expect(loadPublicGis).toHaveBeenCalledTimes(2));
+  expect(result.current.snapshot).toEqual(snapshot);
+});
+
+test('a failed retry retains the live snapshot when storage is unavailable', async () => {
+  loadPublicGis.mockResolvedValueOnce(snapshot).mockRejectedValueOnce(new Error('offline'));
+  const { result } = await renderHook(() => usePublicGis('https://example.com/api/v1'));
+  await waitFor(() => expect(result.current.status).toBe('ready'));
+  await act(() => result.current.retry());
+  await waitFor(() => expect(loadPublicGis).toHaveBeenCalledTimes(2));
+  expect(result.current.snapshot).toEqual(snapshot);
+});
+
 test('failure can recover by retrying the same endpoint', async () => {
   loadPublicGis
     .mockRejectedValueOnce(new Error('Network unavailable'))
