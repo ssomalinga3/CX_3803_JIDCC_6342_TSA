@@ -10,7 +10,15 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Linking,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrailLegend } from '@/components/trail-legend';
@@ -551,6 +559,13 @@ export default function PreserveMap() {
                 web: 'my_location',
               }}
               size={27}
+              style={[
+                styles.locationIcon,
+                Platform.OS === 'ios' &&
+                  (locationFollow.following
+                    ? styles.locationIconFilled
+                    : styles.locationIconOutline),
+              ]}
               tintColor={locationFollow.following ? '#007aff' : '#1c1c1e'}
               aria-hidden
             />
@@ -801,6 +816,13 @@ const styles = StyleSheet.create({
     boxShadow: '0px 1px 4px rgba(0,0,0,0.12)',
   },
   buttonText: { fontSize: 30, color: '#1c1c1e' },
+  // Android SymbolView renders Text inside its fixed-size box. Center the glyph
+  // layout as well as the box; the symmetric target needs no horizontal nudge.
+  locationIcon: { alignItems: 'center', justifyContent: 'center' },
+  // The SF arrows carry more visual weight toward their upper-right tip.
+  // Values are points; keep the spinner and the 52-point hit target centered.
+  locationIconOutline: { transform: [{ translateY: 1 }] },
+  locationIconFilled: { transform: [{ translateX: -1 }, { translateY: 2 }] },
   selectedButton: { backgroundColor: '#d7edff' },
   dimmed: { opacity: 0.5 },
   tabBackdrop: {

@@ -155,6 +155,9 @@ a spinner with busy/disabled state; denial retains status text and deliberate re
 and blocked access opens Settings from the icon or the visible recovery action.
 Dragging, returning to preserve, disabling location or leaving the active Map
 session while waiting for the first fix cancels pending follow.
+Center the visible glyph optically inside the circular control: the asymmetric
+iOS outline/filled arrows have individual offsets, while Android centers its
+glyph layout inside the symbol box. The spinner and touch target stay centered.
 Dragging or pinching returns to manual browsing; zoom buttons retain following.
 While following, both zoom buttons center on the latest fix in the same camera
 animation; a stationary fix needs no new GPS update to restore its on-screen anchor.

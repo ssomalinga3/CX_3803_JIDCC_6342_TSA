@@ -311,6 +311,13 @@ OS permission: its outline symbol became blue/filled and followed the first fix
 after one tap, with no separate Use my location action. See the
 [inactive control](../docs/images/ios26-location-control-off.png) and
 [active follow screenshot](../docs/images/ios26-location-follow.png).
+Optical alignment was also checked on iOS for both variants: outline down 1 point,
+filled left 1 / down 2 points. Android centers the glyph layout within the icon box;
+its symmetric target gets no asymmetric iOS offset. The spinner and 52-point
+button retain their original alignment and touch area. The Android emulator was
+restarted and opened this preview during that check, using the running local API
+on port 8792. Its unbundled emulator window was unavailable to the visual automation
+tool, so Android optical alignment remains visually unverified.
 
 Native drag/pinch cancellation remains visually unverified: coordinate-based
 Simulator automation returned `noWindowsAvailable`, while accessibility button
