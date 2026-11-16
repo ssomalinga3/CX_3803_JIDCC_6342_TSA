@@ -71,12 +71,8 @@
           "name": "gis_feature_layer_id_gis_layer_layer_id_fk",
           "tableFrom": "gis_feature",
           "tableTo": "gis_layer",
-          "columnsFrom": [
-            "layer_id"
-          ],
-          "columnsTo": [
-            "layer_id"
-          ],
+          "columnsFrom": ["layer_id"],
+          "columnsTo": ["layer_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -256,9 +252,7 @@
         "observation_client_submission_id_unique": {
           "name": "observation_client_submission_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "client_submission_id"
-          ]
+          "columns": ["client_submission_id"]
         }
       },
       "policies": {},
@@ -311,12 +305,8 @@
           "name": "observation_image_observation_id_observation_observation_id_fk",
           "tableFrom": "observation_image",
           "tableTo": "observation",
-          "columnsFrom": [
-            "observation_id"
-          ],
-          "columnsTo": [
-            "observation_id"
-          ],
+          "columnsFrom": ["observation_id"],
+          "columnsTo": ["observation_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -324,19 +314,14 @@
       "compositePrimaryKeys": {
         "observation_image_observation_id_position_pk": {
           "name": "observation_image_observation_id_position_pk",
-          "columns": [
-            "observation_id",
-            "position"
-          ]
+          "columns": ["observation_id", "position"]
         }
       },
       "uniqueConstraints": {
         "observation_image_object_key_unique": {
           "name": "observation_image_object_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "object_key"
-          ]
+          "columns": ["object_key"]
         }
       },
       "policies": {},
