@@ -8,6 +8,9 @@ and [acceptance paths](../design/user-flows.md#public-layer-selection-acceptance
 define the behavior. No dependency, native configuration, API or schema change
 is required.
 
+**Current dataset:** PR 3 selects seven layers/69 features; the counts below are
+historical verification evidence. See [PDF map integration](../../data/cascade-springs-gis/PDF-MAP.md).
+
 ## Behavior
 
 - Map opens `/layers` above the existing tab group. Shared public GIS state keeps

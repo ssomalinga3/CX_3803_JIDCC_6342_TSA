@@ -60,6 +60,9 @@ test('uses only available public display fields and leaves missing pillar/diffic
             description_html: '<p>Restoration area</p>',
             difficulty: 'Easy',
             surface_type: 'durable',
+            roughness: 'Intermediate',
+            average_width_in: 51,
+            source_segment_id: 'CASP-UTCR-05',
             length_m: 120,
             private_recipient: 'hidden@example.com',
             _display_trail_color: 'internal',
@@ -72,6 +75,25 @@ test('uses only available public display fields and leaves missing pillar/diffic
   expect(details.title).toBe('Map feature');
   expect(details.description).toBe('Restoration area');
   expect(details.fields).toContainEqual({ label: 'Length', value: '120 m' });
+  expect(details.fields).toContainEqual({ label: 'Mean tread width', value: '51 in' });
+  expect(details.fields).toContainEqual({ label: 'Roughness', value: 'Intermediate' });
+  expect(details.fields).toContainEqual({ label: 'Source segment', value: 'CASP-UTCR-05' });
   expect(JSON.stringify(details)).not.toContain('hidden@example.com');
   expect(JSON.stringify(details)).not.toContain('internal');
 });
+
+test.each([0, -1, Infinity, '51', null])(
+  'omits unsupported or missing source width %p',
+  (average_width_in) => {
+    const updated = {
+      ...snapshot,
+      collection: {
+        ...snapshot.collection,
+        features: [{ ...line, properties: { average_width_in } }],
+      },
+    };
+    expect(featureDetails(updated, 'line')?.fields.map((f) => f.label)).not.toContain(
+      'Mean tread width',
+    );
+  },
+);

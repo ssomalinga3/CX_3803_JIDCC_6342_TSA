@@ -1,0 +1,269 @@
+[
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "S",
+    "source_page_bbox": [145.42034912109375, 1199.0792236328125, 164.23193359375, 1217.984130859375]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "o",
+    "source_page_bbox": [
+      155.26577758789062, 1205.3033447265625, 171.23025512695312, 1223.995361328125
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "uthU",
+    "source_page_bbox": [
+      163.97747802734375, 1209.7335205078125, 208.458251953125, 1242.927490234375
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "t",
+    "source_page_bbox": [201.20547485351562, 1228.665771484375, 213.20751953125, 1245.3427734375]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "o",
+    "source_page_bbox": [
+      205.95480346679688, 1231.0809326171875, 221.91915893554688, 1249.77294921875
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "y",
+    "source_page_bbox": [
+      214.66659545898438, 1235.5111083984375, 229.85104370117188, 1253.8065185546875
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "C",
+    "source_page_bbox": [
+      226.56060791015625, 1241.559814453125, 243.32577514648438, 1260.6590576171875
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "r",
+    "source_page_bbox": [
+      235.69869995117188, 1246.553955078125, 249.02731323242188, 1263.538818359375
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "e",
+    "source_page_bbox": [239.2608642578125, 1251.7294921875, 257.215087890625, 1268.8717041015625]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "ek",
+    "source_page_bbox": [
+      244.88140869140625, 1258.64306640625, 267.94732666015625, 1281.843017578125
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "T",
+    "source_page_bbox": [410.6557922363281, 849.8782348632812, 424.2522277832031, 867.8687133789062]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "u",
+    "source_page_bbox": [420.2731628417969, 847.5433959960938, 433.5220031738281, 865.3873901367188]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "rk",
+    "source_page_bbox": [429.93505859375, 844.5009765625, 447.2209167480469, 863.1456298828125]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "e",
+    "source_page_bbox": [
+      443.84039306640625, 842.6209716796875, 455.91851806640625, 860.1397705078125
+    ]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "yfootCre",
+    "source_page_bbox": [452.5379943847656, 827.9697265625, 523.69677734375, 858.2596435546875]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "e",
+    "source_page_bbox": [520.316162109375, 826.0897216796875, 532.394287109375, 843.6085815429688]
+  },
+  {
+    "source_group": "ATL_Streams w name and source - Label Class 1",
+    "text": "k",
+    "source_page_bbox": [529.013671875, 824.3993530273438, 540.213623046875, 841.7284545898438]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "Frog PondSpring",
+    "source_page_bbox": [620.2225952148438, 885.262939453125, 668.882568359375, 912.1282348632812]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "Quarry",
+    "source_page_bbox": [597.083984375, 987.6559448242188, 629.734130859375, 999.6559448242188]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "Boilerhouse andGreenhouse Ruins",
+    "source_page_bbox": [685.2103881835938, 653.9699096679688, 773.8645629882812, 680.8351440429688]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "OutdoorClassroom",
+    "source_page_bbox": [434.6536865234375, 884.2454833984375, 485.9797058105469, 911.1107177734375]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "BaileyArt Plaza",
+    "source_page_bbox": [422.4953918457031, 642.4547729492188, 466.4993896484375, 669.3200073242188]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "Old Building",
+    "source_page_bbox": [739.2147216796875, 1100.359619140625, 799.88671875, 1112.359619140625]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "ParkingLot",
+    "source_page_bbox": [496.5824279785156, 688.3995971679688, 534.58642578125, 715.2648315429688]
+  },
+  {
+    "source_group": "Points of Interest - Class 1",
+    "text": "OutdoorClassroom",
+    "source_page_bbox": [723.0824584960938, 727.2252197265625, 774.408447265625, 754.0904541015625]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "VELTRECIR SW",
+    "source_page_bbox": [596.71826171875, 521.2879638671875, 628.73046875, 572.3321533203125]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "SHORE DRSW",
+    "source_page_bbox": [310.2383117675781, 519.8271484375, 342.21124267578125, 591.720458984375]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "LAURENS DR SW",
+    "source_page_bbox": [388.7841796875, 2044.8597412109375, 405.419189453125, 2162.62939453125]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "SPRING PARKDR SW",
+    "source_page_bbox": [1462.371337890625, 527.849365234375, 1514.9364013671875, 620.5155029296875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "LAURENSWAY",
+    "source_page_bbox": [604.16259765625, 2016.081787109375, 624.42333984375, 2121.123779296875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "S",
+    "source_page_bbox": [610.680908203125, 2003.0234375, 624.77197265625, 2012.498291015625]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "W",
+    "source_page_bbox": [610.7725830078125, 1989.0244140625, 624.9093017578125, 2003.1610107421875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "D",
+    "source_page_bbox": [1507.240478515625, 2046.007568359375, 1521.994384765625, 2057.190673828125]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "O",
+    "source_page_bbox": [1508.037841796875, 2035.15234375, 1522.85302734375, 2047.112060546875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "DS",
+    "source_page_bbox": [
+      1508.8966064453125, 2015.7642822265625, 1524.3868408203125, 2036.2562255859375
+    ]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "ON",
+    "source_page_bbox": [
+      1510.430419921875, 1994.0528564453125, 1526.1043701171875, 2016.868408203125
+    ]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "D",
+    "source_page_bbox": [1513.04345703125, 1979.1044921875, 1529.3681640625, 1992.830078125]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "R",
+    "source_page_bbox": [1515.966064453125, 1970.1650390625, 1532.067626953125, 1983.151123046875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "SW",
+    "source_page_bbox": [1520.329833984375, 1944.33203125, 1542.5830078125, 1971.340576171875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "HEAD RD SW",
+    "source_page_bbox": [
+      1330.2391357421875, 2009.1798095703125, 1420.3406982421875, 2025.7493896484375
+    ]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "WRIGHT DR SW",
+    "source_page_bbox": [450.4147033691406, 2042.3018798828125, 558.1549682617188, 2057.07763671875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "HARBIN",
+    "source_page_bbox": [28.9810791015625, 1304.779296875, 46.4932861328125, 1359.261962890625]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "RD",
+    "source_page_bbox": [33.0396728515625, 1362.0260009765625, 49.2425537109375, 1382.994140625]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "SW",
+    "source_page_bbox": [35.921875, 1384.84912109375, 54.2955322265625, 1410.510498046875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "CASCAD",
+    "source_page_bbox": [674.1411743164062, 542.1484985351562, 733.44189453125, 560.9142456054688]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "E",
+    "source_page_bbox": [732.2869262695312, 541.4429931640625, 741.9644165039062, 556.1006469726562]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "RD",
+    "source_page_bbox": [745.059814453125, 540.328857421875, 765.1426391601562, 555.2244873046875]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "S",
+    "source_page_bbox": [768.3381958007812, 540.1434936523438, 778.489990234375, 554.6727905273438]
+  },
+  {
+    "source_group": "Centerline_ATLDOT - Class 1",
+    "text": "W",
+    "source_page_bbox": [777.6598510742188, 540.6975708007812, 792.4653930664062, 555.5030517578125]
+  }
+]

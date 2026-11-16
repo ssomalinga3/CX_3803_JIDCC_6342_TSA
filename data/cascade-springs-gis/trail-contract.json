@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "dataset": "csnp-official-trails",
+  "bounds": [-84.49, 33.7, -84.47, 33.73],
+  "routes": {
+    "Turkeyfoot Creek Trail": "turkeyfoot-utoy-creek",
+    "South Utoy Creek Trail": "turkeyfoot-utoy-creek",
+    "Springs Trail": "springs",
+    "White Oak Trail": "white-oak",
+    "Bigleaf Magnolia Trail": "bigleaf-magnolia",
+    "Battle Ridge Trail": "battle-ridge",
+    "West Trail": "west",
+    "Terrace Trail": "terrace",
+    "Gateway Trail": "gateway",
+    "Big Beech Spur": "spur"
+  },
+  "raw_fields": [
+    "TRL_NM",
+    "TrailColor",
+    "AVG_WIDTH",
+    "PARK_ID",
+    "TRL_ID",
+    "SEGMENT_ID",
+    "GlobalID",
+    "SURFACE",
+    "ROUGHNESS",
+    "NOTES",
+    "Difficulty",
+    "PublishTra",
+    "USE_LEVEL",
+    "GRADE",
+    "ELEV_GAIN",
+    "LENGTH_MI",
+    "Shape__Len",
+    "AvgSegment",
+    "Shape__L_1"
+  ]
+}

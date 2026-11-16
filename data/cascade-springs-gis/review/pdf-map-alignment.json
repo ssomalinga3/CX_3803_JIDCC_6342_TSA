@@ -1,0 +1,10 @@
+{
+  "comparison": "shapefile vertices to nearest PDF trail stroke; no fitted correction",
+  "vertices": 1901,
+  "median_m": 0.118,
+  "p95_m": 0.22,
+  "max_m": 0.265,
+  "anchor_precision_degrees": 1e-5,
+  "curve_tolerance_pdf_points": 0.1,
+  "not_a_survey_accuracy_estimate": true
+}

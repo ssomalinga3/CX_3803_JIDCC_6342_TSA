@@ -73,7 +73,17 @@ freshness default removes expired dots/recentering until GPS recovers. See the
 [mobile GPS acceptance checklist](../../mobile/README.md#acceptance-checks) for
 permission, Settings recovery, simulated movement, lifecycle and network cases.
 
-For the approximate-name slice, opening the map after re-import shows named
+The following approximate-name/color checks are historical. For the current
+supplied-trail slice, import the selected sources and verify 36 segments and eight
+landmarks, plus the separate approximate boundary when imported. Check the nine
+named route families and one unnamed legend entry; source names remain distinct
+even where Turkeyfoot and South Utoy share a family. With location off/denied,
+open details and verify width in inches, roughness, source segment and supplied
+notes without inventing missing difficulty. Hide/show trails and confirm counts,
+legend, hit testing and camera remain consistent. See
+[verification and screenshots](../../data/cascade-springs-gis/TRAILS.md#verification-and-limits).
+
+For the historical approximate-name slice, opening the map after re-import showed named
 sections on the existing partial route and an approximate-name notice. Pan/zoom
 reveals labels as room permits; ambiguous connections remain drawn without name
 labels. Permission denial preserves both browsing and the notice. Full-network
@@ -91,3 +101,32 @@ render safely as solid gray. Check legend scrolling, text scaling and browsing
 with location denied on iOS and supported Android targets. Retry after a failed
 GIS read must repopulate the legend from the recovered data; this change adds no
 durable offline restart/retry behavior.
+
+For PR 3, import the selected source collection and verify seven layers/69
+features. With location off/denied, browse context and open details. Confirm
+blue water/green natural areas/gray roads/brown buildings and a single purple
+boundary; trails remain legible. At detail zoom, named POIs and source annotations
+are readable. Waterfall must have one marker retaining its My Maps note; Spring
+remains explicitly unmatched. Hide/show each context layer with Done: its features,
+hits and key entries change without refitting the map or adding trail-key entries.
+Difficulty stays unchanged. See [PR 3 evidence](../../data/cascade-springs-gis/PDF-MAP.md#verification-and-limits).
+
+For PR 4, verify the API catalog contains nine layers/131 features. The default
+map shows eight layers/102 features with USGS terrain. The chooser has eight
+switches, including one Elevation switch and a source dropdown. Expand it to
+read the similarity note and both sources' concise limitations; detailed source
+caveats remain in Disclaimers. Choosing a source updates its radio selection
+and leaves both descriptions and the similarity note open. Tap the source button
+to collapse it. Choose Supplied DTM and Done: the map changes to
+eight layers/98 features with only that source's bands/relief. Back cancels drafts.
+At detail zoom, select elevation bands and confirm a 20 ftUS range, NAVD88
+reference and correct source. Trails/POIs take priority where hits overlap.
+Switch sources and hide/show Elevation repeatedly: its bands/labels and relief change
+together, without duplicate images, altered trail key, GPS changes or camera
+refitting. An off switch remembers the source, refresh retains choices and an
+unavailable selected source falls back to the remaining public option. Trails stay
+above relief. Hide all layers and retain basemap/location controls. Retry after an API
+failure; an asset/version mismatch must be unavailable, not successful empty
+terrain. Nodata/outside-preserve pixels are transparent. Bundle checks and existing
+iOS execution are separate from Android/native-build/field-accuracy evidence;
+see [PR 4 verification](../../data/cascade-springs-gis/TERRAIN.md#verification-and-handoff).

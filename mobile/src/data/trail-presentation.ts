@@ -20,7 +20,11 @@ export type TrailLegendEntry = {
 export function trailPresentation(collection: GisSnapshot['collection']) {
   const entries = new Map<string, TrailLegendEntry>();
   const features = collection.features.map((feature) => {
-    if (!['LineString', 'MultiLineString'].includes(feature.geometry.type)) return feature;
+    if (
+      !['LineString', 'MultiLineString'].includes(feature.geometry.type) ||
+      (feature.properties.feature_kind !== undefined && feature.properties.feature_kind !== 'trail')
+    )
+      return feature;
     const properties = feature.properties;
     const id = properties.trail_id;
     const unnamed = properties.name_assignment === 'unassigned';

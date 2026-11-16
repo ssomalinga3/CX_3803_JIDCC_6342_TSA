@@ -1,5 +1,18 @@
 # Supplied Cascade Springs GIS sources
 
+**PR 4 selection:** [Two-source terrain](TERRAIN.md) adds supplied-DTM and national
+USGS 3DEP elevation options under one switch and source dropdown (bands plus relief).
+The selected total is nine layers/131 features. The supplemental USGS GeoTIFF and
+acquisition record live in `sources/usgs-3dep.*`; the terrain converter checks that
+record separately from the unchanged original three-input manifest. Original
+supplied hillshade is registered review evidence; runtime relief is regenerated.
+
+**PR 3 selection:** see [PDF map integration](PDF-MAP.md) for the six extracted/context layers, landmark reconciliation, commands and alignment evidence.
+
+**Current integration:** [PR 2 supplied trails](TRAILS.md) now replaces active
+approximate trail geometry. The preservation notes below describe PR 1; original
+inputs and their manifest remain unchanged.
+
 PR 1 of the [integration stack](../../docs/tasks/gis-data-integration-plan.md).
 The project owner authorized integration of the supplied files on November 11, 2026. This package preserves evidence and defines the ingestion handoff; it does
 not import data, publish layers, change the API, or change the mobile map.
@@ -66,7 +79,7 @@ Python 3.9+ and its standard library:
 
 ```sh
 python3 tools/gis/source_package.py verify
-python3 -m unittest discover -s tools/gis -p 'test_*.py'
+python3 -m unittest discover -s tools/gis -p 'test_source_package.py'
 python3 tools/gis/source_package.py extract
 ```
 

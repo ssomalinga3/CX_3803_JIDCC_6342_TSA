@@ -39,8 +39,14 @@ export function featureText(value: unknown, limit = 4000): string {
 }
 
 function priority(feature: GisFeature): number {
+  if (feature.properties.feature_kind === 'elevation_band') return 3;
+  if (feature.properties.feature_kind === 'hillshade') return 6;
   const type = feature.geometry.type;
-  return type.includes('Point') ? 0 : type.includes('Line') ? 1 : 2;
+  if (type.includes('Point')) return 0;
+  if (type.includes('Line') || feature.properties.feature_kind === 'trail') return 1;
+  // Specific context footprints should be selectable inside large preserve/natural areas.
+  const kind = feature.properties.feature_kind;
+  return kind === 'boundary' ? 5 : kind === 'natural_area' ? 4 : 2;
 }
 
 // Resolve only IDs from the native hit-test; all displayed data comes from the
@@ -69,11 +75,36 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     ['Pillar', layer?.pillar],
     ['Difficulty', properties.difficulty],
     ['Surface', properties.surface_type],
+    ['Roughness', properties.roughness],
+    ['Symbol type', properties.landmark_kind],
+    ['Source annotation', properties.source_name],
+    ['Source segment', properties.source_segment_id],
     ['Source', layer?.source],
+    ['Elevation source', properties.source],
+    ['Vertical reference', properties.vertical_datum],
   ];
   for (const [label, value] of attributes) {
     const text = featureText(value, label === 'Source' ? 1000 : 200);
     if (text) fields.push({ label, value: text });
+  }
+  if (
+    typeof properties.elevation_min_ft_us === 'number' &&
+    Number.isFinite(properties.elevation_min_ft_us) &&
+    typeof properties.elevation_max_ft_us === 'number' &&
+    Number.isFinite(properties.elevation_max_ft_us) &&
+    properties.elevation_max_ft_us > properties.elevation_min_ft_us
+  ) {
+    fields.push({
+      label: 'Elevation band',
+      value: `${properties.elevation_min_ft_us}–${properties.elevation_max_ft_us} ftUS`,
+    });
+  }
+  if (
+    typeof properties.average_width_in === 'number' &&
+    Number.isFinite(properties.average_width_in) &&
+    properties.average_width_in > 0
+  ) {
+    fields.push({ label: 'Mean tread width', value: `${properties.average_width_in} in` });
   }
   if (
     typeof properties.length_m === 'number' &&
@@ -81,6 +112,19 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     properties.length_m >= 0
   ) {
     fields.push({ label: 'Length', value: `${properties.length_m} m` });
+  }
+  if (Array.isArray(properties.source_annotations)) {
+    for (const annotation of properties.source_annotations.slice(0, 8)) {
+      const p = annotation && typeof annotation === 'object' ? annotation.properties : undefined;
+      if (!p || typeof p !== 'object') continue;
+      const name = featureText(p.name, 200);
+      const text = featureText(p.description_html, 2000);
+      if (name || text)
+        fields.push({
+          label: 'My Maps annotation',
+          value: [name, text].filter(Boolean).join(' · '),
+        });
+    }
   }
   return {
     title: featureText(properties.name, 200) || 'Map feature',

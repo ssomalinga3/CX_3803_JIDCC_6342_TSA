@@ -1,7 +1,8 @@
 # Supplied GIS data integration: stacked PR plan
 
-Prepared November 11, 2026. Status: **PR 1 source foundation implemented; PRs 2–5 planned**.
-No datasets have been imported by this work. This document is the handoff for
+Prepared November 11, 2026. Status: **PRs 1–4 implemented; PR 5 planned**.
+PRs 2–3 import supplied trails and PDF geographic context; the original source-preservation slice
+did not import datasets. This document is the handoff for
 fresh agents implementing the stack; it is not evidence that the proposed
 behavior or verification is already complete.
 
@@ -326,7 +327,9 @@ the later converters simply to make the foundation appear complete.
 ## 6. PR 2: supplied trails
 
 **Deliverable:** official-source trail segments replace approximate route geometry
-through PostGIS, API, and the existing map.
+through PostGIS, API, and the existing map. Implemented in
+[the supplied-trail record](../../data/cascade-springs-gis/TRAILS.md); scope and
+acceptance below retain the original planned requirements.
 
 - Convert all published segments from EPSG:3857 to 4326, preserving vertices and
   source identity. Avoid snapping, merging, or simplifying away topology without
@@ -397,6 +400,13 @@ positioning uncertainty. Counts must describe extracted features, not PDF paths.
 
 **Deliverable:** a bounded 2D terrain integration with documented units/alignment.
 3D terrain, historical temperature, and live sensor features are outside scope.
+
+Implemented in the [two-source terrain record](../../data/cascade-springs-gis/TERRAIN.md).
+On November 12 the owner authorized approximate supplied terrain with explicit
+limitations and requested a separately attributed national public elevation option.
+The completed slice adds supplied-DTM and USGS 3DEP options, each containing
+generalized elevation bands and bundled regenerated hillshade. Original hillshade
+is preserved and boundary-registered as review evidence.
 
 - Read the AIG grid using existing GIS libraries rather than hand-writing a
   binary decoder. Retain nodata behavior and provenance; do not put all 7.34
@@ -502,8 +512,7 @@ or configuration requires a development-client rebuild; JavaScript export,
 native compilation and device smoke checks are different evidence.
 
 Every PR should finish by updating its dataset README and affected specifications,
-checking relative links/Markdown rendering, reviewing its own diff against its
-actual parent, and recording:
+reviewing its own diff against its actual parent, and recording:
 
 - Committed source/derived paths and exact regeneration/import commands.
 - Final layer IDs, feature counts, supersession behavior and shared contracts.
@@ -587,3 +596,210 @@ and ingestion contract, then implement only supplied-trail conversion/import,
 legacy-command protections, related details/tests and its documented screenshots.
 Retain `cascade-map-trails` and all eight existing My Maps landmarks; leave PDF
 boundary/context and landmark reconciliation for PR 3. Recheck J6-22 ownership.
+
+## 12. PR 2 completion and PR 3 handoff
+
+PR 2: [#30](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/30).
+Implementation baseline: `e687b9c`; use the current branch head, including later
+handoff edits, when starting the next slice. Branch: `gis/02-official-trails`, parent `gis/01-source-foundation`
+([PR #29](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/29)).
+The [supplied-trail record](../../data/cascade-springs-gis/TRAILS.md) documents
+exact regeneration/import commands, feature IDs, layer IDs, route-family mapping,
+source attributes/units, legacy replacement policy, verification and screenshots.
+
+Committed output: `data/cascade-springs-gis/trails.geojson`; shared mapping/raw-field
+contract: `trail-contract.json` in the same directory. Conversion lives in
+`tools/gis/convert_trails.py`, using PR 1's pinned environment and verified archive.
+All 36 source segments/1,901 vertices are retained; nine named app families and
+one unnamed segment share the existing trail renderer. GeoJSON API serialization
+uses 15 decimal places to preserve the transformed coordinates. Raw source fields
+remain separate from unit-bearing normalized values and derived length/mapping.
+
+The combined `db:import:source` now selects supplied trails plus eight My Maps
+landmarks; `db:import:trails` replaces only trails. Both serialize on `(6342, 2)`.
+The shared helper requires explicit per-layer collections and rejects duplicate
+assignments/unsupported geometry. Fresh-DB setup and CI exercise both entry
+points; KML conversion/approximate section code remain archive-only. The boundary
+and its lock `(6342, 3)` remain separate for PR 3.
+
+Fourteen Python tests and conversion reproducibility passed on macOS; the source
+and conversion suite also passed on Linux with Python 3.12.12 and the same locked
+GIS dependencies. Converted coordinates use 12 decimal degrees with a `2e-12`
+degree reproducibility tolerance for platform math; all other values match exactly.
+Disposable PostGIS
+checks passed 96 backend tests and real Worker HTTP/failure checks, including
+mixed concurrent replay, stale cleanup, rollback, bbox and public access. All
+97 mobile tests, lint/typecheck, backend/Worker builds passed. Existing iPhone 16
+Plus / iOS 18.6 displayed 45 features (36 trails + eight landmarks + boundary),
+source labels, palette/Gateway casing and hide/show with camera preservation.
+See the dataset record for screenshots, workspace verification and final checks.
+
+Android native execution, new native compilation, manual permission denial,
+native feature-sheet tapping, field alignment and durable offline restart/retry
+remain unverified. Coordinate taps were blocked by the computer-use service's
+`noWindowsAvailable` error; accessibility controls and automated selection tests
+worked. No PDF difficulty fallback, new pillar mapping or safety approval is
+introduced. J6-22 was still assigned to Theodore Halpern and In Progress.
+
+Next: branch PR 3 from `gis/02-official-trails`; extract/reconcile PDF context,
+boundary and landmarks while preserving the supplied trail IDs and shared lock
+policy. Coordinate its landmark replacement with the combined source importer.
+PDF difficulty precedence, licensing and registration questions remain open.
+
+Read the [expanded PR 3 handoff](../../data/cascade-springs-gis/TRAILS.md#pr-3-handoff)
+before editing. It identifies the still-hardcoded eight-landmark writer and
+guessed-boundary importer, lock coordination, the helper's single-geometry-type
+limit, generic renderer/legend behavior, missing building classification, and
+which PDF extraction artifacts do not exist yet. PR 3 must close those integration
+gaps as part of its selected-source replacement; do not assume PR 2 already did.
+
+## PR 3 completion record
+
+Implemented on `gis/03-pdf-map-layers`, stacked on
+[PR 2 #30](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/30).
+The [PDF map handoff](../../data/cascade-springs-gis/PDF-MAP.md) documents exact
+commands, layer/feature IDs, 15-symbol reconciliation table, registration
+method/residuals, source limits and owner-confirmed unchanged difficulty.
+
+Committed `pdf-map.geojson` has one boundary, two water polygons, two natural-area
+polygons, three road footprints, three building footprints and 22 landmark/source
+annotation points (15 PDF symbols plus seven unmatched My Maps annotations).
+Waterfall retains its original My Maps feature on one PDF marker. The two spring
+references remain explicitly unresolved. Supplied trails remain unchanged; the
+selected total is seven layers/69 features. Original source bytes are unchanged.
+
+The converter uses the PDF's embedded spherical Mercator registration, explicit
+vertical-origin handling, projected interpolation, 0.1-point curve tolerance,
+0.001-point precision union, holes and viewport clipping. Committed review
+evidence overlays the extracted context and shapefile on the PDF. All 1,901 trail
+vertices compare at median 0.118 m / p95 0.220 m / max 0.265 m to the nearest PDF
+trail stroke, without a fitted correction; this is not field accuracy evidence.
+
+`db:import:source` replaces all seven selected layers atomically. New
+`db:import:pdf` and legacy `db:import:boundary` select the same six PDF/context
+layers. All share `(6342, 2)` with trail-only import, preventing legacy downgrade.
+Runtime contracts add `building` and road polygons without new tables. Rendering,
+chooser descriptions, detail allowlists, hit priority and disclaimers distinguish
+context/POIs/annotations while retaining trail key, GPS and camera behavior.
+
+Verification: 19 GIS tests and exact PDF snapshot reproducibility on macOS and
+Linux (Python 3.12.13 / 3.12.12, same locked GIS dependencies); fresh disposable
+PostGIS/Worker checks including
+concurrent legacy replay, stale removal, complete rollback, membership, public/
+private and bbox reads; backend/Worker builds; repository formatting, lint,
+typechecks, 90 backend unit tests, all 107 backend tests in the disposable
+database run, 99 mobile tests and both platform JavaScript exports passed.
+Markdown rendering/relative links and `git diff --check` were also checked.
+
+Existing iPhone 16 Plus / iOS 18.6 client on Metro 8082 / Worker 8788 showed
+69 features with location off. Zoom revealed labels and context styling. Hiding
+water changed 69→67 and restoring it returned 69 without moving the zoomed camera.
+Screenshots: [overview](../images/ios-pdf-map-layers.png),
+[labels](../images/ios-pdf-map-labels.png), [chooser](../images/ios-pdf-map-chooser.png).
+Android native execution, new native compilation, manual permission-denial and
+native feature-sheet tapping remain unverified. Visual Markdown browser preview
+was blocked by local-file URL security policy; HTML rendering and local-link checks passed. Coordinate taps still fail with
+`noWindowsAvailable`; automated details/GPS tests pass. No durable offline cache
+or safety approval is introduced. The local selected dataset was refreshed;
+existing services remain running.
+
+Next: branch PR 4 from `gis/03-pdf-map-layers`; read the PDF handoff and PR 4
+section. The embedded PDF transform is not a terrain/hillshade registration.
+Terrain datum/units/alignment, signal registration, source licensing and field
+verification remain open. Keep difficulty unchanged per the owner's November 12
+response; do not add PDF route fallbacks in later slices without a new decision.
+
+## PR 4 completion record
+
+PR 4: [#32](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/32) (draft).
+Branch `gis/04-terrain`, based on `gis/03-pdf-map-layers` at `7fd3a3e`, stacked on
+[PR 3 #31](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/31).
+The [terrain handoff](../../data/cascade-springs-gis/TERRAIN.md) documents source
+paths, units/datum assumptions, regeneration/acquisition/import commands, controls,
+asset versioning and remaining limits. The owner's existing Markdown edits to
+this plan and `AGENTS.md` are included. Concurrent hosting work/configuration is
+outside this PR and was not reverted.
+
+Two source layers: `cascade-terrain-supplied` has 28 elevation
+band polygons plus one bundled hillshade footprint; `cascade-terrain-usgs` has
+32 bands plus one footprint. Combined selection is nine layers/131 features.
+Each option includes generalized 20 ftUS bands, close-zoom labels, source/reference
+details and regenerated gray relief. The final UI groups them under one Elevation
+switch and source dropdown, defaults to USGS and renders one source at a time.
+The expanded dropdown explains their similar appearance and source limits;
+the original detailed source caveats remain in Disclaimers. Source descriptions
+make attribution/limits explicit. No pillars, ascent, difficulty, GPS or durable
+offline semantics are inferred.
+
+Original AIG/PNG remain unchanged inside the preserved archive. A new 787,694-byte
+national GeoTIFF and complete acquisition record are committed as
+`sources/usgs-3dep.*`. Normal conversion is offline. Rasterio/GDAL reads the AIG;
+the exact ftUS ratio is `1200/3937` metres. Supplied horizontal datum remains
+unknown and uses an explicitly authorized ballpark/no-datum-shift assumption.
+The PNG is registered from eight shared boundary fit corners and seven withheld
+corners (maximum validation residual 1.145 m); diagnostic comparison with both
+grids supports approximate alignment, not survey accuracy or terrain-change claims.
+The runtime regenerates relief to avoid importing the PNG's baked-in boundary.
+
+Terrain GeoJSON is 469,759 bytes formatted / 324,996 bytes compact. Bundled PNGs
+total 287,363 bytes; decoded RGBA buffers total 1,572,864 bytes, excluding native
+overhead. Desktop Node parsing observed ~0.7–0.8 ms median and 730 KB immediate
+heap allocation. These are bounded-data observations, not device startup/frame
+budgets. Footprint version/source hash/image hash/coordinates must match bundled
+metadata or the mobile load fails visibly. The API remains GeoJSON-only; no
+raster serving/Worker asset binding is added. Source and terrain-only imports are
+atomic, share `(6342, 2)` and preserve unrelated layers.
+
+Verification completed on macOS with Node 24.21.0/pnpm 10.26.2 and the locked GIS
+environment: 27 GIS regression tests and reproducible conversion checks;
+`pnpm verify` (formatting, lint, typechecks, 105 backend unit tests with 22 DB
+cases skipped, 109 mobile tests after the grouped-source update, iOS/Android
+JavaScript exports); backend/Worker
+builds; fresh disposable PostGIS with all 127 tests, repeated/concurrent imports,
+stale cleanup, complete rollback, bbox/private reads and real Worker HTTP/failure
+checks. Final diff/`git diff --check` passed. Sandbox loopback/cache restrictions
+required rerunning affected checks with normal host access; final runs passed.
+The first Linux CI run exposed floating-point hashing and PNG-compression
+differences. Sampling bounds are now canonicalized to one micrometre; checks
+require exact geometry/properties and decoded RGBA pixels while still validating
+the published PNG byte hashes exactly. All eight terrain tests also passed in
+an x86 Linux container (Python 3.12.12; same locked GIS libraries).
+
+The initial two-switch iPhone 16 Plus/iOS 18.6 verification showed
+9 layers/131 features with location off, readable trails above terrain, source
+descriptions and independent terrain switches. Disabling supplied terrain
+left the national option and changed the count to 8 layers/102 features without
+moving the camera. Screenshots: [both sources](../images/ios-terrain-both.png),
+[USGS only](../images/ios-terrain-usgs.png), [source chooser](../images/ios-terrain-chooser.png).
+
+The final grouped UI was verified November 13 on Cascade iOS 26/iOS 26.3 with
+this branch's Metro bundle. One Elevation switch opens a source dropdown with
+both limitations and the similarity note. Applying Supplied DTM showed eight
+layers/98 features, disabling Elevation showed seven/69, and selecting USGS
+restored eight/102. The disabled chooser remembered Supplied DTM; changing
+sources did not refit the map. The shared local API also contained a separately
+developed cell-signal layer, which was hidden for this check without changing
+its data. Location stayed off. Screenshots: [source dropdown](../images/ios26-terrain-source-dropdown.png),
+[supplied terrain](../images/ios26-terrain-supplied.png),
+[USGS terrain](../images/ios26-terrain-usgs.png). The 109 mobile tests include
+draft cancellation, disabled-source memory, refresh retention and fallback
+when a source is no longer public.
+The dropdown uses one rotated chevron from the existing `expo-symbols` library
+so its expanded/collapsed shapes and stroke weights match. Both states were
+visually checked on iOS 26; [collapsed source button](../images/ios26-terrain-source-collapsed.png).
+Selecting either source now keeps the menu expanded so both source descriptions
+and the similarity note remain available. Only the source button collapses it;
+this interaction was verified on iOS 26 and in the terrain regression suite.
+
+Native coordinate scrolling/tapping still encounters `noWindowsAvailable` in
+computer use; accessibility switch actions work. Native band-detail tapping,
+close-zoom elevation-label review, manual permission denial, Android execution,
+new native compilation and quantified device memory/frame time remain unverified.
+No field accuracy, durable offline restart/retry, 3D or safety approval is claimed.
+
+The local source database was refreshed. Verification used Metro 8086 and Worker
+8788; Expo's virtual env module retained the existing `.env.local` API URL, so
+that file was left unchanged and the test Worker used its configured port.
+Production hosting files were not changed. PR 5 starts from this branch, retains
+the nine selected layers and shared import lock, and registers signal-image
+observations against its own evidence rather than borrowing terrain image bounds.
