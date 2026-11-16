@@ -8,7 +8,8 @@ import {
   type MapRef,
 } from '@maplibre/maplibre-react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SymbolView } from 'expo-symbols';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -72,6 +73,7 @@ export default function PreserveMap() {
     ready,
     locationPadding,
     LOCATION_ZOOM,
+    location.status,
   );
   const snapshot = visibleSnapshot;
   const details =
@@ -136,6 +138,21 @@ export default function PreserveMap() {
     unavailable: 'Location unavailable. Check device location services and try again.',
   }[location.status];
   const locating = location.status === 'requesting' || location.status === 'searching';
+  function openLocationSettings() {
+    locationFollow.stop();
+    setSettingsFailed(false);
+    void Linking.openSettings().catch(() => setSettingsFailed(true));
+  }
+  function followLocation() {
+    if (location.status === 'blocked') {
+      openLocationSettings();
+    } else if (location.fix) {
+      void locationFollow.recenter();
+    } else {
+      locationFollow.followWhenReady();
+      location.enable();
+    }
+  }
   async function zoomBy(delta: number) {
     try {
       await locationFollow.zoomBy(delta, MIN_ZOOM, MAX_ZOOM);
@@ -515,12 +532,29 @@ export default function PreserveMap() {
 
       <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
         <MapButton
-          label="Recenter on my location"
-          disabled={!ready || !location.fix}
+          label="Follow my location"
+          hint={
+            location.status === 'blocked' ? 'Open Settings to enable location access.' : undefined
+          }
+          disabled={!ready || locating}
+          busy={locating}
           selected={locationFollow.following}
-          onPress={() => void locationFollow.recenter()}
+          onPress={followLocation}
         >
-          ⌖
+          {locating ? (
+            <ActivityIndicator color="#007aff" aria-hidden />
+          ) : (
+            <SymbolView
+              name={{
+                ios: locationFollow.following ? 'location.fill' : 'location',
+                android: 'my_location',
+                web: 'my_location',
+              }}
+              size={27}
+              tintColor={locationFollow.following ? '#007aff' : '#1c1c1e'}
+              aria-hidden
+            />
+          )}
         </MapButton>
         <MapButton
           label="Return to preserve"
@@ -594,32 +628,19 @@ export default function PreserveMap() {
               accessibilityRole="button"
               accessibilityLabel="Open location settings"
               style={styles.retry}
-              onPress={() => {
-                setSettingsFailed(false);
-                void Linking.openSettings().catch(() => setSettingsFailed(true));
-              }}
+              onPress={openLocationSettings}
             >
               <Text style={styles.retryText}>Open Settings</Text>
-            </Pressable>
-          ) : location.status !== 'ready' ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Use my location"
-              accessibilityState={{ disabled: locating }}
-              disabled={locating}
-              style={[styles.retry, locating && styles.dimmed]}
-              onPress={location.enable}
-            >
-              <Text style={styles.retryText}>
-                {locating ? 'Finding location…' : 'Use my location'}
-              </Text>
             </Pressable>
           ) : null}
           {location.status !== 'off' && (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Turn off map location"
-              onPress={location.disable}
+              onPress={() => {
+                locationFollow.stop();
+                location.disable();
+              }}
               style={styles.secondaryAction}
             >
               <Text style={styles.secondaryText}>Turn off location</Text>
@@ -723,20 +744,25 @@ function MapButton({
   label,
   disabled,
   selected,
+  busy,
+  hint,
   onPress,
   children,
 }: {
   label: string;
   disabled: boolean;
   selected?: boolean;
+  busy?: boolean;
+  hint?: string;
   onPress: () => void;
-  children: string;
+  children: ReactNode;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled, selected }}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled, selected, busy }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -745,7 +771,7 @@ function MapButton({
         (pressed || disabled) && styles.dimmed,
       ]}
     >
-      <Text style={styles.buttonText}>{children}</Text>
+      {typeof children === 'string' ? <Text style={styles.buttonText}>{children}</Text> : children}
     </Pressable>
   );
 }

@@ -65,8 +65,12 @@ remains separate from public feature details.
 See [layer selection evidence](../development/layer-selection.md) for automated
 checks, iOS smoke results and remaining design/device verification.
 
-The current map GPS slice starts from **Use my location** and native foreground
-permission. Recenter uses the latest fix, zooms in to at least 15.5 while preserving
+The current map GPS slice uses one **Follow my location** icon button. From location
+off, tapping requests native foreground permission and follows the first fresh fix
+without a second tap. Acquisition shows a spinner and temporarily disables repeat
+taps. Denial preserves browsing and allows a deliberate retry; blocked permission
+offers Settings from the icon and an explicit recovery action in the status area.
+Recenter uses the latest fix, zooms in to at least 15.5 while preserving
 a closer zoom, and follows fresh fixes at the chosen scale. Dragging or pinching
 the viewport ends following; another recenter tap resumes it. Zoom buttons keep
 following and preserve the GPS anchor immediately, even without a new fix.

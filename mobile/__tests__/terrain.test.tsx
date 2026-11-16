@@ -133,7 +133,7 @@ test('one Elevation toggle selects one source immediately and preserves the came
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 2 layers · 65 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
-  expect(screen.getByRole('button', { name: 'Use my location' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeEnabled();
   await fireEvent(screen.getByRole('switch', { name: 'Show Elevation' }), 'valueChange', false);
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();

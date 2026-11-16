@@ -29,7 +29,10 @@ Persist the custom delivery mode and recipients with the report and its offline 
 ## Location and images
 
 - Request explicit device location permission before capturing GPS. The map remains interactive if permission is denied. Camera permission is needed for photo capture.
-- The map GPS implementation requests foreground permission on **Use my location**.
+- The map GPS implementation requests foreground permission only after an explicit
+  tap on **Follow my location**. Its first fresh fix starts following without a
+  second tap; denial, failed acquisition, manual browsing or leaving the active
+  Map session cancels that pending follow intent.
   It keeps fixes in memory, removes subscriptions on map blur/background/disable,
   and never adds device coordinates to GIS requests or logs. Returning to the map
   rechecks existing permission without automatically prompting again. Report and

@@ -35,7 +35,7 @@ function MapScreen() {
     </MapGisProvider>
   );
 }
-const recenter = () => screen.getByRole('button', { name: 'Recenter on my location' });
+const recenter = () => screen.getByRole('button', { name: 'Follow my location' });
 async function readyMap() {
   const view = await render(<MapScreen />);
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
@@ -199,7 +199,7 @@ test('lost/stale/disabled location and blur cancel follow; recovery needs anothe
   await userEvent.setup().press(recenter());
   setFix(undefined);
   await view.rerender(<MapScreen />);
-  expect(recenter()).toBeDisabled();
+  expect(recenter()).toBeEnabled();
   expect(recenter()).not.toBeSelected();
   mockEaseTo.mockClear();
   setFix(fix(-84.481));

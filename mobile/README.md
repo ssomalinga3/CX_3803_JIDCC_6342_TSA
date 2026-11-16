@@ -174,11 +174,15 @@ or app configuration was introduced by that integration slice.
 
 ## Foreground map GPS (J6-14)
 
-The Map tab now offers **Use my location**, requests foreground permission only
-after that action, and draws a blue position dot from `expo-location`. **Recenter
-on my location** centers on the latest fix and follows subsequent fresh fixes.
+The Map tab has one **Follow my location** icon button. Its first tap requests
+foreground permission and follows the first fresh fix, with no second tap needed.
+The separate Use my location button is removed. Later taps recenter and resume
+following; `expo-location` supplies the blue position dot.
 It zooms in to level 15.5 when farther out, preserving any closer zoom. The selected
-button has a blue background. Dragging or pinching the map stops following;
+button has a blue background. The existing `expo-symbols` package supplies iOS
+`location` / `location.fill` and Android `my_location`, neutral while browsing and
+blue while following. Acquisition shows a busy spinner and disables duplicate taps.
+Dragging or pinching the map stops following;
 tap recenter again to resume. Zoom buttons immediately zoom around the latest GPS fix, preserving its padded
 position on screen even while stationary. Subsequent fixes retain the requested zoom,
 including during an animation. **Return to preserve** stops following and
@@ -191,6 +195,10 @@ removes the subscription and clears the displayed fix. Returning to the map
 rechecks permission and reacquires a fix if location was enabled. Denial preserves
 pan/zoom; permanent denial offers device Settings. Disabled device services,
 missing GPS, stale fixes, and map/API network failures have separate messages.
+The icon retries acquisition after recoverable failure and opens Settings when
+permission is blocked; the status area also retains an explicit Settings action.
+Dragging, Return to preserve, disabling location or leaving the active Map session
+before the first fix cancels pending follow. Turn off location remains available.
 Losing a fresh fix, map loading failure, leaving Map, backgrounding, or turning
 location off clears follow mode. Recovery requires another recenter tap.
 No coordinates are persisted, logged, or added to GIS API requests.
@@ -225,10 +233,14 @@ Implementation follows the [SDK 57 location API](https://docs.expo.dev/versions/
 ### Acceptance checks
 
 1. Open Map without enabling location. Confirm GIS/pan/zoom work and no OS prompt
-   appears. Tap Use my location; verify the native explanation and deny it.
-   Confirm browsing still works and the blue dot/recenter remain unavailable.
+   appears. The location icon is enabled once the map is ready; there is no separate
+   Use my location button. Tap Follow my location, verify the native explanation
+   and deny it. Browsing still works; the icon permits deliberate retry or opens
+   Settings for blocked permission. No dot or automatic follow should appear.
 2. Enable location in device Settings, return to Map and supply a simulated fix.
-   Confirm the blue dot and reported accuracy. At zoom below 15.5, tap recenter:
+   With permission granted, verify one tap shows a busy spinner while acquiring
+   GPS, then centers/follows the first fresh fix automatically. Confirm the blue
+   dot and reported accuracy. At zoom below 15.5, tap the location icon:
    the camera zooms in to 15.5. Zoom closer and tap it again: the scale stays the
    same. Move the simulated position repeatedly: the camera follows, keeping
    the chosen zoom and the dot clear of the header/dock. The button is selected.
@@ -286,19 +298,26 @@ this slice.
 
 ### Location-follow verification — November 16, 2026
 
-The follow change passes mobile lint, TypeScript, all 164 mobile tests (25 suites),
-including 20 new camera regressions, and JavaScript exports for iOS and Android.
+The follow change passes mobile lint, TypeScript, all 174 mobile tests (26 suites),
+including 20 camera regressions and 10 consolidated-control regressions, and
+JavaScript exports for iOS and Android.
 On iPhone 17 / iOS 26.3, the existing development client loaded this PR's Metro
 preview on port 8083. Recenter preserved a closer zoom with a 15.5 default;
 both zoom buttons immediately kept a stationary GPS dot anchored, retaining the
 selected follow state. Moving a synthetic GPS fix moved the map while keeping
 the blue dot anchored in the visible viewport. The stale-fix state also cleared
-the selection. See the [active follow screenshot](../docs/images/ios26-location-follow.png).
+the selection. The unified control was then checked from location off with existing
+OS permission: its outline symbol became blue/filled and followed the first fix
+after one tap, with no separate Use my location action. See the
+[inactive control](../docs/images/ios26-location-control-off.png) and
+[active follow screenshot](../docs/images/ios26-location-follow.png).
 
 Native drag/pinch cancellation remains visually unverified: coordinate-based
 Simulator automation returned `noWindowsAvailable`, while accessibility button
 actions and screenshots worked. Gesture cancellation, reactivation, stale-fix
 recovery, blur, map failure and pending native-query cancellation pass regression
 tests. The Android API 36 client opened this preview, but its follow/gesture
-behavior was not visually checked. No native compilation, physical-device or
+behavior and Material symbol were not visually checked. The new permission-prompt,
+denial and Settings flows pass mocks; they were not repeated in the native UI.
+No native compilation, physical-device or
 network-disabled acceptance was performed for this JavaScript-only change.

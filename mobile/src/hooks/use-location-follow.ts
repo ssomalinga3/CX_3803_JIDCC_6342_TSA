@@ -3,6 +3,8 @@ import type { LocationObject } from 'expo-location';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
+import type { LocationStatus } from '@/hooks/use-map-location';
+
 type Padding = { top: number; bottom: number; left: number; right: number };
 
 export function useLocationFollow(
@@ -12,18 +14,21 @@ export function useLocationFollow(
   ready: boolean,
   padding: Padding,
   defaultZoom: number,
+  status: LocationStatus,
 ) {
   const [following, setFollowing] = useState(false);
   const active = useRef(false);
   const followZoom = useRef<number | undefined>(undefined);
   const generation = useRef(0);
-  const latest = useRef({ fix, ready, padding });
+  const awaitingFix = useRef(false);
+  const latest = useRef({ fix, ready, padding, status });
   // Reset the selection before rendering unavailable location/map controls.
   if (following && (!fix || !ready)) setFollowing(false);
   const stop = useCallback(() => {
     generation.current += 1;
     active.current = false;
     followZoom.current = undefined;
+    awaitingFix.current = false;
     setFollowing(false);
   }, []);
 
@@ -35,24 +40,7 @@ export function useLocationFollow(
     [],
   );
 
-  useEffect(() => {
-    latest.current = { fix, ready, padding };
-    if (!fix || !ready) {
-      generation.current += 1;
-      active.current = false;
-      followZoom.current = undefined;
-    } else if (active.current) {
-      // Keep the requested scale if a fix arrives during a zoom animation.
-      camera.current?.easeTo({
-        center: [fix.coords.longitude, fix.coords.latitude],
-        zoom: followZoom.current,
-        padding,
-        duration: 300,
-      });
-    }
-  }, [camera, fix, ready, padding]);
-
-  async function recenter() {
+  const recenter = useCallback(async () => {
     if (!latest.current.fix || !latest.current.ready) return;
     const request = ++generation.current;
     try {
@@ -77,6 +65,40 @@ export function useLocationFollow(
       // apply an unknown zoom. The visitor can try recentering again.
       if (request === generation.current) stop();
     }
+  }, [camera, map, defaultZoom, stop]);
+
+  useEffect(() => {
+    const previousStatus = latest.current.status;
+    latest.current = { fix, ready, padding, status };
+    if (!fix || !ready) {
+      generation.current += 1;
+      active.current = false;
+      followZoom.current = undefined;
+      // Keep an explicit first-tap intent through permission and GPS acquisition,
+      // but never resume it after denial, failure, background or a map failure.
+      if (
+        !ready ||
+        !['off', 'requesting', 'searching'].includes(status) ||
+        (status === 'off' && previousStatus !== 'off')
+      )
+        awaitingFix.current = false;
+    } else if (awaitingFix.current) {
+      awaitingFix.current = false;
+      void recenter();
+    } else if (active.current) {
+      // Keep the requested scale if a fix arrives during a zoom animation.
+      camera.current?.easeTo({
+        center: [fix.coords.longitude, fix.coords.latitude],
+        zoom: followZoom.current,
+        padding,
+        duration: 300,
+      });
+    }
+  }, [camera, fix, ready, padding, status, recenter]);
+
+  function followWhenReady() {
+    stop();
+    awaitingFix.current = true;
   }
 
   async function zoomBy(delta: number, minZoom: number, maxZoom: number) {
@@ -101,5 +123,5 @@ export function useLocationFollow(
     }
   }
 
-  return { following, recenter, stop, zoomBy };
+  return { following, recenter, stop, zoomBy, followWhenReady };
 }
