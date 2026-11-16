@@ -176,9 +176,12 @@ or app configuration was introduced by that integration slice.
 
 The Map tab now offers **Use my location**, requests foreground permission only
 after that action, and draws a blue position dot from `expo-location`. **Recenter
-on my location** centers on the latest fix; **Return to preserve** remains a
-separate action. Position updates move the dot without pulling the camera away
-from manual browsing. Reported accuracy is displayed in meters, including coarse
+on my location** centers on the latest fix and follows subsequent fresh fixes.
+It zooms in to level 15 when farther out, preserving any closer zoom. The selected
+button has a blue background. Dragging or pinching the map stops following;
+tap recenter again to resume. Zoom buttons preserve follow mode and subsequent
+fixes preserve the chosen zoom. **Return to preserve** stops following and
+returns to the initial viewport. Reported accuracy is displayed in meters, including coarse
 fixes when the OS grants approximate location.
 
 The location subscription exists only while the Map screen is focused and the
@@ -187,6 +190,8 @@ removes the subscription and clears the displayed fix. Returning to the map
 rechecks permission and reacquires a fix if location was enabled. Denial preserves
 pan/zoom; permanent denial offers device Settings. Disabled device services,
 missing GPS, stale fixes, and map/API network failures have separate messages.
+Losing a fresh fix, map loading failure, leaving Map, backgrounding, or turning
+location off clears follow mode. Recovery requires another recenter tap.
 No coordinates are persisted, logged, or added to GIS API requests.
 
 Display freshness is currently 30 seconds: no initial fix produces an unavailable
@@ -222,9 +227,13 @@ Implementation follows the [SDK 57 location API](https://docs.expo.dev/versions/
    appears. Tap Use my location; verify the native explanation and deny it.
    Confirm browsing still works and the blue dot/recenter remain unavailable.
 2. Enable location in device Settings, return to Map and supply a simulated fix.
-   Confirm the blue dot and reported accuracy. Tap recenter, pan away, then move
-   the simulated position: the dot moves but the camera stays where you left it.
-   Tap recenter again to move to the new fix.
+   Confirm the blue dot and reported accuracy. At zoom below 15, tap recenter:
+   the camera zooms in to 15. Zoom closer and tap it again: the scale stays the
+   same. Move the simulated position repeatedly: the camera follows, keeping
+   the chosen zoom and the dot clear of the header/dock. The button is selected.
+   Drag the map while moving: following stops immediately and the dot continues
+   moving independently. Tap recenter again to resume. Zoom buttons retain follow
+   mode; pinch gestures, Return to preserve, and turning location off end it.
 3. Disable device services or remove the simulated fix. Verify unavailable/stale
    feedback and that old coordinates are not presented as current. Restore the
    fix and confirm recovery. Test approximate permission on supported devices.
@@ -273,3 +282,21 @@ network-disabled device behavior remain unverified. Background/permission
 revocation and cleanup are covered with native mocks, which do not establish
 device acceptance. Offline map persistence and off-trail warnings are not part of
 this slice.
+
+### Location-follow verification — November 16, 2026
+
+The follow change passes mobile lint, TypeScript, all 159 mobile tests (25 suites),
+including 15 new camera regressions, and JavaScript exports for iOS and Android.
+On iPhone 17 / iOS 26.3, the existing development client loaded this PR's Metro
+preview on port 8083. Recenter preserved a closer zoom; zoom buttons retained the
+selected follow state; moving a synthetic GPS fix moved the map while keeping
+the blue dot anchored in the visible viewport. The stale-fix state also cleared
+the selection. See the [active follow screenshot](../docs/images/ios26-location-follow.png).
+
+Native drag/pinch cancellation remains visually unverified: coordinate-based
+Simulator automation returned `noWindowsAvailable`, while accessibility button
+actions and screenshots worked. Gesture cancellation, reactivation, stale-fix
+recovery, blur, map failure and pending native-query cancellation pass regression
+tests. The Android API 36 client opened this preview, but its follow/gesture
+behavior was not visually checked. No native compilation, physical-device or
+network-disabled acceptance was performed for this JavaScript-only change.

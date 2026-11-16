@@ -66,8 +66,12 @@ See [layer selection evidence](../development/layer-selection.md) for automated
 checks, iOS smoke results and remaining design/device verification.
 
 The current map GPS slice starts from **Use my location** and native foreground
-permission. Recenter uses the latest fix; subsequent fixes move the dot while
-preserving manual browsing. Denial does not block the map. On blur/background or
+permission. Recenter uses the latest fix, zooms in to at least 15 while preserving
+a closer zoom, and follows fresh fixes at the chosen scale. Dragging or pinching
+the viewport ends following; another recenter tap resumes it. Zoom buttons keep
+following. Return to preserve, loss of a fresh fix, map failure, blur/background,
+or disabling location also ends following. Recovery does not resume it automatically.
+Denial does not block the map. On blur/background or
 explicit disable, subscriptions and the displayed fix are cleared. On return,
 permission is checked again without a new automatic prompt. A 30-second display
 freshness default removes expired dots/recentering until GPS recovers. See the

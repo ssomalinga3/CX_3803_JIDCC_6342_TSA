@@ -24,6 +24,7 @@ import { trailPresentation } from '@/data/trail-presentation';
 import { terrainAssets, visibleTerrainKeys } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
+import { useLocationFollow } from '@/hooks/use-location-follow';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -59,6 +60,18 @@ export default function PreserveMap() {
   }, [attempt]);
 
   const ready = loadState === 'ready';
+  const locationPadding = useMemo(
+    () => ({ top: insets.top + 110, bottom: dockBottom + dockHeight + 20, left: 24, right: 84 }),
+    [insets.top, dockBottom, dockHeight],
+  );
+  const locationFollow = useLocationFollow(
+    camera,
+    map,
+    location.fix,
+    ready,
+    locationPadding,
+    INITIAL_ZOOM,
+  );
   const snapshot = visibleSnapshot;
   const details =
     selection && selection.snapshot === snapshot
@@ -148,6 +161,15 @@ export default function PreserveMap() {
         compassPosition={{ top: insets.top + 108, right: 24 }}
         onDidFinishRenderingMapFully={() => setLoadState('ready')}
         onDidFailLoadingMap={() => setLoadState('unavailable')}
+        onRegionWillChange={(event) => {
+          if (event.nativeEvent.userInteraction) {
+            visibilityChanged.current = true;
+            locationFollow.stop();
+          }
+        }}
+        onRegionIsChanging={(event) => {
+          if (event.nativeEvent.userInteraction) locationFollow.stop();
+        }}
       >
         <Camera
           ref={camera}
@@ -499,22 +521,8 @@ export default function PreserveMap() {
         <MapButton
           label="Recenter on my location"
           disabled={!ready || !location.fix}
-          onPress={() => {
-            if (!location.fix) return;
-            camera.current?.easeTo({
-              center: [location.fix.coords.longitude, location.fix.coords.latitude],
-              zoom: INITIAL_ZOOM,
-              padding: {
-                top: insets.top + 110,
-                bottom: dockBottom + dockHeight + 20,
-                left: 24,
-                right: 84,
-              },
-              bearing: 0,
-              pitch: 0,
-              duration: 300,
-            });
-          }}
+          selected={locationFollow.following}
+          onPress={() => void locationFollow.recenter()}
         >
           ⌖
         </MapButton>
@@ -522,6 +530,7 @@ export default function PreserveMap() {
           label="Return to preserve"
           disabled={!ready}
           onPress={() => {
+            locationFollow.stop();
             camera.current?.easeTo({
               center: PRESERVE_CENTER,
               zoom: INITIAL_ZOOM,
@@ -717,11 +726,13 @@ export default function PreserveMap() {
 function MapButton({
   label,
   disabled,
+  selected,
   onPress,
   children,
 }: {
   label: string;
   disabled: boolean;
+  selected?: boolean;
   onPress: () => void;
   children: string;
 }) {
@@ -729,10 +740,14 @@ function MapButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, selected }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, (pressed || disabled) && styles.dimmed]}
+      style={({ pressed }) => [
+        styles.button,
+        selected && styles.selectedButton,
+        (pressed || disabled) && styles.dimmed,
+      ]}
     >
       <Text style={styles.buttonText}>{children}</Text>
     </Pressable>
@@ -764,6 +779,7 @@ const styles = StyleSheet.create({
     boxShadow: '0px 1px 4px rgba(0,0,0,0.12)',
   },
   buttonText: { fontSize: 30, color: '#1c1c1e' },
+  selectedButton: { backgroundColor: '#d7edff' },
   dimmed: { opacity: 0.5 },
   tabBackdrop: {
     position: 'absolute',
