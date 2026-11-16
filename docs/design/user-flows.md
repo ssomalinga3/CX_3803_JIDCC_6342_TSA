@@ -185,3 +185,28 @@ preset changes; API failure/retry, catalog replacement and fresh-session reset.
 Unknown content remains manually selectable but starts hidden. One terrain source
 is selected by advanced presets, with a supplied fallback if USGS is unavailable.
 Data access and private-report exclusions remain server-enforced in every preset.
+
+## Multiple basemap acceptance (J6-68)
+
+1. Open Choose GIS Layers with GIS ready, loading, empty, failed or unconfigured.
+   Expand Base map, read the provider overviews and individual style descriptions,
+   select a style and confirm the menu stays open with the selected radio checked.
+   Choose another style without reopening, then tap the source button to collapse
+   and reopen it; the selection remains checked. Elevation follows the same
+   stay-open behavior. Return with Done or native Back. The choice applies
+   immediately and is retained when reopening;
+   a fresh session resets to Standard. No provider thumbnails/previews load.
+2. Exercise all nine keyless styles at overview and close zoom. Check preserve
+   trails/landmarks, label contrast, legal credits and 44-point source rows. Pan,
+   zoom and switch repeatedly without camera refits, duplicate sources, extra GIS
+   loads or GPS prompts. Staff / Researcher and both elevation sources retain
+   their choices; all GIS can be hidden independently.
+3. Exercise native load failure and mocked HTTP 401/403/429, glyph and tile
+   failures. The 20-second timeout stops loading; failed-provider sources are
+   removed. Retry makes one deliberate attempt, and Use Standard map explicitly
+   selects Liberty. No automatic provider loop occurs. Camera/GPS state survives.
+4. Verify feature taps and location denial/recenter/blur behavior on iOS first,
+   then Android. Cached GIS remains independent of online provider availability;
+   this feature adds no offline pack or durable basemap choice. Record device,
+   compilation, JavaScript exports and automated evidence separately in the
+   [implementation record](../development/basemap-options.md).

@@ -31,6 +31,24 @@ The sources settle the main stack and feature direction, but do not settle the c
   later taps recenter/resume. Acquisition is busy, denial/retry and Settings
   recovery remain explicit, and interrupted first-fix requests cannot resume follow.
 
+- **November 16, 2026 — source picker dismissal:** The owner confirmed that both
+  Base map and Elevation source pickers stay open after selecting an item.
+  Selection applies immediately; the selected radio and header update, and the
+  source button explicitly collapses the options. This supersedes J6-68's
+  earlier basemap auto-collapse behavior and retains Elevation's existing behavior.
+
+- **November 13, 2026 — J6-68 basemap scope and public tile keys:** The owner
+  dropped server tile caching and requested multiple providers/styles in one
+  menu following the Elevation source pattern. The latest clarification permits
+  app-visible public map keys when copied-key usage cannot incur charges beyond
+  the free allowance; exhausting free usage is acceptable. This supersedes the
+  earlier request to hide every tile key, and permits no administrative/service
+  credentials in the app. Verify a provider-side zero-charge cap and actual
+  Free-only account configuration before enabling a keyed source. Production
+  eligibility, account evidence and offline coverage remain separate. See the
+  [activation rules](security.md#zero-charge-rule-for-app-visible-keys) and
+  [J6-68 provider research](development/basemap-options.md#disabled-provider-research).
+
 - **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
   the source-similarity explanation inside the dropdown and suggested grouping
   both datasets under one toggle. The chooser now has one Elevation switch and
@@ -269,3 +287,17 @@ starts with elevation off; Staff and Researcher prefer USGS, falling back to the
 supplied source. Selecting a preset resets custom visibility; turning Elevation
 off retains its chosen source. This incorporates the already confirmed parent
 behaviors and supersedes the earlier draft/cancel and dual-source switch wording.
+
+## November 15, 2026 — J6-68 basemap source choices
+
+The owner requested implementation from the uncommitted basemap plan, placed on
+top of the native GitHub PR stack, with iOS development followed by Android
+end-to-end checks. During implementation the owner explicitly selected immediate
+basemap changes, matching current layers/presets. Done, swipe and system back
+retain choices; this supersedes the original basemap draft/cancel plan.
+
+Enable the five verified keyless OpenFreeMap styles and four USGS services.
+No provider accounts or keys were supplied or activated. Keyed candidates remain
+disabled under the existing zero-charge gate; no paid plan, account signup,
+server cache or offline coverage is inferred. Preserve the separate offline
+prototype as an explicit configured source. See the [implementation record](development/basemap-options.md).

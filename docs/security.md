@@ -70,3 +70,54 @@ not authentication/authorization roles. They are never sent as permission claims
 to the backend and do not expose private layers, reports, custom recipients or
 media. Every public layer remains manually selectable in each preset. Existing
 server access checks remain authoritative. See [preset behavior](development/layer-presets.md).
+
+## Basemap providers (J6-68)
+
+Enabled basemaps use public keyless provider endpoints directly. Tile requests
+reveal the viewed area to that provider; GPS coordinates are not separately sent,
+and neither viewport coordinates nor provider request URLs enter application logs.
+The registry accepts no arbitrary visitor URL or credential. No administrative
+credential or billing setting is added to Expo public configuration. Keyed
+providers remain disabled until their dedicated Free account, read-only public
+key, eligibility and provider-enforced zero-charge cap are evidenced under the
+[activation gate](#zero-charge-rule-for-app-visible-keys).
+The app cannot enforce a copied key's spend cap. Offline download authorization
+continues to use the separate existing prototype configuration.
+
+### Zero-charge rule for app-visible keys
+
+This is an account-side guarantee, not a client request counter: a copied key
+can be used outside the app. Before enabling any keyed source, record the date,
+provider plan and evidence location without including real key values:
+
+1. Use a dedicated Free-only account/project, separate from paid accounts,
+   organizations, marketplace subscriptions and shared paid billing scopes.
+   Do not attach payment details, credit/invoicing terms or a paid trial.
+2. Verify provider-side hard rejection or suspension at the free limit for every
+   service the key can access. Rule out automatic upgrades, additional usage,
+   auto-recharge, top-ups and metered charges.
+3. Use a public, read-only map key with the narrowest permissions. It must not
+   manage accounts, billing, subscriptions, datasets or other keys. Keep account
+   passwords, OAuth secrets and service/admin tokens out of the app. See
+   [MapTiler credential types](https://docs.maptiler.com/guides/developer/credentials/).
+4. Apply supported app/domain/API restrictions and per-key limits as additional
+   abuse controls, checking native iOS/Android support. Web referrer restrictions
+   alone may not work for a native renderer and do not establish a financial cap.
+   Do not rotate identities or accounts to evade quotas.
+5. Confirm the intended project qualifies beyond a development trial. Nonprofit
+   status alone does not establish each vendor's Free-plan eligibility.
+6. Test rejection using fixtures, a sandbox or a provider-supported low limit;
+   do not deliberately exhaust the real free allowance.
+7. Repeat the check before release and after account or terms changes. Disable
+   the provider before a paid-plan transition and revoke old keys first, since
+   already-installed apps retain them.
+
+Missing evidence leaves the provider disabled. A billing alert or best-effort
+app counter is insufficient. This gate does not authorize provider signup,
+subscriptions or billing changes. No real keyed-provider account was inspected
+or key used during the J6-68 implementation.
+
+Only after the gate passes may a public map key enter the mobile bundle through
+ignored local/build configuration. Do not commit values or put them in Jira,
+screenshots, fixtures or logs. Expo public configuration is visible to the device,
+not secret storage.

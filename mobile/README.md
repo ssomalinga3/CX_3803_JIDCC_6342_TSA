@@ -328,3 +328,12 @@ behavior and Material symbol were not visually checked. The new permission-promp
 denial and Settings flows pass mocks; they were not repeated in the native UI.
 No native compilation, physical-device or
 network-disabled acceptance was performed for this JavaScript-only change.
+
+## Basemap choices
+
+Choose GIS Layers → Base map offers five OpenFreeMap and four USGS choices.
+Changes apply immediately and are independent of the GIS API and overlay presets.
+Standard remains the fresh-session default. No provider key is needed. See
+[setup, provider eligibility and native verification](../docs/development/basemap-options.md).
+The existing offline style remains an explicit configured source when enabled;
+these online choices do not authorize new offline downloads.

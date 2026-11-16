@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { basemapProviderDescriptions, basemaps } from '@/data/basemaps';
 import type { GisSnapshot } from '@/data/gis';
 import { terrainKeys, type TerrainKey } from '@/data/terrain';
 import { featureText } from '@/data/feature-details';
@@ -77,6 +78,7 @@ export function LayerSelectionScreen() {
         <Text style={[styles.description, { color: theme.textSecondary }]}>
           Changes appear on your map immediately.
         </Text>
+        <BasemapChoice />
         {OFFLINE_STYLE && (Platform.OS === 'android' || Platform.OS === 'ios') && (
           <OfflineBasemapControls mapStyle={OFFLINE_STYLE} />
         )}
@@ -214,6 +216,73 @@ export function LayerSelectionScreen() {
           />
         )}
       </ScrollView>
+    </View>
+  );
+}
+
+function BasemapChoice() {
+  const theme = useTheme();
+  const { basemap, chooseBasemap } = useMapGis();
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <View style={[styles.card, { backgroundColor: theme.background }]}>
+      <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
+        Base map
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Choose base map"
+        accessibilityValue={{ text: `${basemap.provider} · ${basemap.name}` }}
+        accessibilityState={{ expanded }}
+        onPress={() => setExpanded(!expanded)}
+        style={[styles.sourceButton, { borderColor: theme.textSecondary }]}
+      >
+        <Text style={[styles.sourceLabel, { color: theme.text }]}>
+          {basemap.provider} · {basemap.name}
+        </Text>
+        <SymbolView
+          name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
+          size={18}
+          weight="semibold"
+          tintColor={theme.text}
+          style={{ transform: [{ rotate: expanded ? '-90deg' : '90deg' }] }}
+          aria-hidden
+        />
+      </Pressable>
+      {expanded && (
+        <View style={styles.sourceOptions}>
+          {[...new Set(basemaps.map((entry) => entry.provider))].map((provider) => (
+            <View key={provider} style={styles.sourceOptions}>
+              <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
+                {provider}
+              </Text>
+              <Text style={[styles.description, { color: theme.textSecondary }]}>
+                {basemapProviderDescriptions[provider]}
+              </Text>
+              {basemaps
+                .filter((entry) => entry.provider === provider)
+                .map((entry) => (
+                  <Pressable
+                    key={entry.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`Use ${entry.provider} ${entry.name} base map`}
+                    accessibilityHint={`${entry.description} Updates your map immediately.`}
+                    accessibilityState={{ checked: basemap.id === entry.id }}
+                    onPress={() => chooseBasemap(entry.id)}
+                    style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
+                  >
+                    <Text style={[styles.sourceLabel, { color: theme.text }]}>
+                      {basemap.id === entry.id ? '●' : '○'} {entry.name}
+                    </Text>
+                    <Text style={[styles.description, { color: theme.textSecondary }]}>
+                      {entry.description}
+                    </Text>
+                  </Pressable>
+                ))}
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
