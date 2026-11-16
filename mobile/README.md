@@ -4,6 +4,8 @@ Expo SDK 57 / React Native 0.86 / TypeScript starter application. The Map tab re
 
 For EAS cloud compilation, the Android Emulator, Metro and the local GIS Worker
 on Windows, use the [Windows/Android runbook](../docs/development/windows-android.md).
+For a shared iOS and Android test environment on macOS, use the
+[shared simulator runbook](../docs/development/macos-android.md).
 The iOS instructions and verification below remain available for macOS teammates.
 
 ## First-time iOS Simulator setup
