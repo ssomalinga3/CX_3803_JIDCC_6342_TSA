@@ -268,10 +268,7 @@ function BasemapChoice() {
                     accessibilityLabel={`Use ${entry.provider} ${entry.name} base map`}
                     accessibilityHint={`${entry.description} Updates your map immediately.`}
                     accessibilityState={{ checked: basemap.id === entry.id }}
-                    onPress={() => {
-                      chooseBasemap(entry.id);
-                      setExpanded(false);
-                    }}
+                    onPress={() => chooseBasemap(entry.id)}
                     style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
                   >
                     <Text style={[styles.sourceLabel, { color: theme.text }]}>

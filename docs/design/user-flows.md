@@ -181,8 +181,11 @@ Data access and private-report exclusions remain server-enforced in every preset
 
 1. Open Choose GIS Layers with GIS ready, loading, empty, failed or unconfigured.
    Expand Base map, read the provider overviews and individual style descriptions,
-   select a style and return with Done
-   or native Back. The choice applies immediately and is retained when reopening;
+   select a style and confirm the menu stays open with the selected radio checked.
+   Choose another style without reopening, then tap the source button to collapse
+   and reopen it; the selection remains checked. Elevation follows the same
+   stay-open behavior. Return with Done or native Back. The choice applies
+   immediately and is retained when reopening;
    a fresh session resets to Standard. No provider thumbnails/previews load.
 2. Exercise all nine keyless styles at overview and close zoom. Check preserve
    trails/landmarks, label contrast, legal credits and 44-point source rows. Pan,

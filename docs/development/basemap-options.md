@@ -1,7 +1,8 @@
 # Multiple basemap options — J6-68
 
 The Base map card in Choose GIS Layers offers nine keyless online styles, grouped
-by provider. Select a row to apply it immediately and collapse the menu. Done,
+by provider. Select a row to apply it immediately and keep the menu open, matching
+Elevation. Tap the source button to collapse it. Done,
 iOS swipe and Android system Back retain choices. The owner confirmed immediate
 behavior during implementation, superseding the original plan's draft/cancel
 flow. A fresh session uses OpenFreeMap Standard (Liberty).
@@ -195,3 +196,20 @@ style copy, scrolling to USGS, selection of the final Shaded Relief row, collaps
 and system Back, retaining 8 layers / 98 features. The existing native clients
 were reused; no native build or full screen-reader session was run for this copy
 change. See the [updated dropdown screenshots](../images/basemaps/source-info.jpg).
+The later November 16 owner decision keeps both source menus open after
+selection, superseding the basemap auto-collapse behavior verified above.
+
+For that dismissal change, 26 focused basemap/terrain/chooser tests, mobile lint,
+type checks, formatting and `git diff --check` passed. Tests cover repeated
+selection while expanded, manual collapse/reopen and retained selection with
+unconfigured/loading/failed/empty GIS. Existing Elevation stay-open tests pass.
+iOS 26.3 verified Light then Dark without reopening and explicit collapse.
+Android 16 verified Light then Bright without reopening, the checked radio and
+header, explicit collapse, and Supplied DTM then USGS selection with Elevation's
+descriptions retained. See the [Android selected/open state](../images/basemaps/android-picker-open.png).
+The Android client was reconnected to the primary checkout after manual simulator
+use. Bright encountered a transient load failure; one explicit Retry restored
+ready browsing with Visitor's 3 layers / 59 features. Existing native clients
+were reused; no new native compilation or full
+screen-reader session was run. The iOS connector could not scroll to re-exercise
+Elevation; its existing behavior is covered by automated tests and Android.

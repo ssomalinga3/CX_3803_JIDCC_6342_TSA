@@ -99,7 +99,8 @@ const tree = (chooser = true) => (
   </MapGisProvider>
 );
 async function changeBasemap(label: string) {
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose base map' }));
+  const button = screen.getByRole('button', { name: 'Choose base map' });
+  if (!button.props.accessibilityState.expanded) await userEvent.setup().press(button);
   await userEvent.setup().press(screen.getByRole('radio', { name: `Use ${label} base map` }));
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
 }

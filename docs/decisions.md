@@ -19,6 +19,12 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 16, 2026 — source picker dismissal:** The owner confirmed that both
+  Base map and Elevation source pickers stay open after selecting an item.
+  Selection applies immediately; the selected radio and header update, and the
+  source button explicitly collapses the options. This supersedes J6-68's
+  earlier basemap auto-collapse behavior and retains Elevation's existing behavior.
+
 - **November 13, 2026 — J6-68 basemap scope and public tile keys:** The owner
   dropped server tile caching and requested multiple providers/styles in one
   menu following the Elevation source pattern. The latest clarification permits

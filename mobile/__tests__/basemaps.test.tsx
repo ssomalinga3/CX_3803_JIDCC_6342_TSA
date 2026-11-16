@@ -18,7 +18,8 @@ const tree = (chooser = true) => (
   </MapGisProvider>
 );
 async function choose(label: string) {
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Choose base map' }));
+  const button = screen.getByRole('button', { name: 'Choose base map' });
+  if (!button.props.accessibilityState.expanded) await userEvent.setup().press(button);
   await userEvent.setup().press(screen.getByRole('radio', { name: `Use ${label} base map` }));
 }
 async function rendered() {
@@ -77,10 +78,18 @@ test.each(['unconfigured', 'loading', 'error', 'empty'] as const)(
     const view = await render(tree());
     for (const entry of basemaps) {
       await choose(`${entry.provider} ${entry.name}`);
-      expect(screen.getByRole('button', { name: 'Choose base map' })).toBeCollapsed();
+      expect(screen.getByRole('button', { name: 'Choose base map' })).toBeExpanded();
+      expect(
+        screen.getByRole('radio', { name: `Use ${entry.provider} ${entry.name} base map` }),
+      ).toBeChecked();
       expect(screen.getByTestId('preserve-map')).toHaveProp('mapStyle', entry.style);
       await rendered();
     }
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Choose base map' }));
+    expect(screen.getByRole('button', { name: 'Choose base map' })).toBeCollapsed();
+    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Choose base map' }));
+    expect(screen.getByRole('radio', { name: 'Use USGS Shaded Relief base map' })).toBeChecked();
     await view.rerender(tree(false));
     await view.rerender(tree());
     expect(screen.getByRole('button', { name: 'Choose base map' })).toHaveAccessibilityValue({

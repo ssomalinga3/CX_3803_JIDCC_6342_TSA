@@ -274,8 +274,10 @@ Above the GIS controls, a Base map card shows provider and style and a single
 expandable Choose base map button, following the existing Elevation source control.
 Each provider heading includes a short overview of its map data. Single-choice
 rows show a style name and description explaining its appearance or content,
-with descriptions included in accessibility hints and 44-point minimum hit targets. Selecting a row applies immediately and collapses the menu. The
-owner confirmed this behavior during implementation; Done, swipe and system back
+with descriptions included in accessibility hints and 44-point minimum hit targets.
+Selecting a row applies immediately and keeps the menu open, matching Elevation;
+tap the source button to collapse it. The owner confirmed this behavior on
+November 16, 2026; Done, swipe and system back
 retain choices. Start a fresh app session with OpenFreeMap Standard (Liberty).
 The menu is scrollable, works independently of GIS availability and does not
 change overlay counts, presets, elevation, camera or location consent.
