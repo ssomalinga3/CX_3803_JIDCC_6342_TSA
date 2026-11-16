@@ -6,7 +6,12 @@ import { collectionBounds } from '@/data/gis';
 import { usePublicGis } from '@/hooks/use-public-gis';
 
 jest.mock('@/data/gis', () => ({ ...jest.requireActual('@/data/gis'), loadPublicGis: jest.fn() }));
+jest.mock('@/data/gis-cache', () => ({
+  readPublicGisCache: jest.fn(),
+  savePublicGisCache: jest.fn(),
+}));
 const { loadPublicGis } = jest.requireMock('@/data/gis');
+const { readPublicGisCache, savePublicGisCache } = jest.requireMock('@/data/gis-cache');
 const snapshot = {
   layers: [layer],
   featureLayers: new Map(),
@@ -14,7 +19,26 @@ const snapshot = {
   bounds: collectionBounds(collection),
   isDemo: true,
 };
-beforeEach(() => loadPublicGis.mockReset());
+beforeEach(() => {
+  loadPublicGis.mockReset();
+  readPublicGisCache.mockReset();
+  savePublicGisCache.mockReset();
+});
+
+test('keeps the saved snapshot through a failed refresh and saves a successful retry', async () => {
+  const savedAt = 123;
+  readPublicGisCache.mockReturnValue({ snapshot, savedAt });
+  loadPublicGis.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(snapshot);
+  const url = 'https://example.com/api/v1';
+  const { result } = await renderHook(() => usePublicGis(url));
+  await waitFor(() => expect(result.current.savedAt).toBe(savedAt));
+  expect(result.current.snapshot).toEqual(snapshot);
+  expect(savePublicGisCache).not.toHaveBeenCalled();
+
+  await act(() => result.current.retry());
+  await waitFor(() => expect(savePublicGisCache).toHaveBeenCalledWith(url, snapshot));
+  expect(result.current.savedAt).toBeUndefined();
+});
 
 test('missing configuration leaves browsing available without API requests', async () => {
   const { result } = await renderHook(() => usePublicGis(undefined));

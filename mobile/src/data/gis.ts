@@ -182,6 +182,14 @@ export async function loadPublicGis(value: string, signal: AbortSignal): Promise
   // Validate every URL before sending any feature requests.
   const urls = layers.map((layer) => featureUrl(base, layer));
   const collections = await Promise.all(urls.map(async (url) => parseCollection(await read(url))));
+  return assembleGisSnapshot(layers, collections);
+}
+
+export function assembleGisSnapshot(
+  layers: Layer[],
+  collections: FeatureCollection[],
+): GisSnapshot {
+  if (layers.length !== collections.length) throw new Error('Incomplete GIS snapshot');
   const featureLayers = new Map<string, Layer>();
   const collection: FeatureCollection = {
     type: 'FeatureCollection',
