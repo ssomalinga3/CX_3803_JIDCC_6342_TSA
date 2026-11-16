@@ -92,6 +92,98 @@ The helper binds Metro to IPv4 loopback to match its native manifest URLs.
 It refuses to use a Metro manifest whose bundle points at a LAN-only
 address, since that would give the simulators different addressing requirements.
 
+## Walk with spoofed GPS
+
+From the workspace root, using the pinned Node/pnpm versions:
+
+```sh
+pnpm sim:walk
+```
+
+Open **http://127.0.0.1:8766/** (or the alternate port printed in the terminal). Select
+**iOS + Android together** (the default), **iOS Simulator only**, or **Android
+Emulator only**, then **Connect**. Boot each selected device first. Both mode
+requires both platforms and sends the same position to each on every update.
+Use Cascade iOS 26 as the primary iOS target and the existing Cascade_API_36 AVD
+for Android. When multiple devices are running, select them explicitly:
+
+```sh
+IOS_SIMULATOR_UDID=your-ios-udid ANDROID_SERIAL=emulator-5554 pnpm sim:walk
+```
+
+Drag the joystick or hold the direction buttons, arrows or WASD to walk. North
+is up, independent of map rotation. Joystick deflection scales the selected
+speed, and diagonal speed matches straight movement. Choose Slow/Walk/Jog/Run
+or adjust the slider (0.2–5 m/s). Enter coordinates and **Set starting position**
+to jump elsewhere; **Reset to preserve center** returns to the default start.
+Both actions pause walking and reset the distance counter.
+
+In each app, tap **Use my location**, grant foreground access, and recenter.
+Further fixes move the dot without moving the app's camera. The tool uses the
+normal OS GPS feeds and does not bypass permissions. It affects all apps on
+the selected simulators, not physical devices. No native rebuild, Metro checkout,
+API, database or network connection is required by the walking tool itself.
+
+Release controls or press Space to pause. Focus changes and hidden panels also
+pause; a missing heartbeat pauses within 1.2 seconds plus any in-flight native
+command. Pause keeps publishing stationary fixes. **Disconnect** stops updates
+and clears iOS spoofing; Android's emulator console has no clear-fix operation,
+so Android retains its last injected position until another fix or a cold boot.
+Ctrl+C disconnects; closing the browser only pauses. If the process is killed or
+iOS clear fails, use Simulator → Features → Location → None. Avoid running other
+GPX/location controllers against the same devices: this tool replaces their
+simulated fixes and cannot restore a previous route.
+
+The dependency-free server binds to `127.0.0.1:8766`; override with
+`LOCATION_WALK_PORT`. Set `ANDROID_HOME` or `DEVELOPER_DIR` for alternate SDK/Xcode
+locations. Per-run token, origin and host checks restrict commands to the local
+session. The page obtains its current token through a same-origin request with a
+custom header; no token is required in the URL. Cross-origin session requests
+are rejected and no CORS access is enabled. After a server restart the page
+refreshes an expired token and retries a rejected request once. Existing fragment
+links still load, but their stale fragment is ignored. No external assets, routes,
+coordinate logs or preferences are saved.
+The adapters use `simctl location set` (latitude,longitude) and
+[`adb emu geo fix`](https://developer.android.com/studio/run/emulator-console#geo)
+(longitude latitude). Fixes are sent in parallel at roughly two updates per
+second; elapsed-time movement is capped at a one-second step after a delay.
+If either target fails, walking stops for both. Disconnect, restore the device
+and reconnect to recover. Updates are not atomic across operating systems, so
+a failed tick may have reached only one device; reconnect resends one shared fix.
+
+Run `pnpm sim:walk:test` for regression checks; root `pnpm test` and `pnpm test:ci`
+include them. Tests require localhost sockets but mock native tools and run
+without Xcode/Android. Use the existing [GPS acceptance paths](map-gps-acceptance.md)
+for app permission, offline and stale-fix checks. Simulated motion does not
+establish sensor accuracy, safety tolerances or physical-device acceptance.
+
+November 16, 2026: eleven tool regression tests passed, including plain-URL
+session bootstrap, stale-token recovery after server restart, coordinate order,
+movement distance/diagonal normalization, pause/watchdog, disconnect serialization
+and access/input validation. Formatting, workspace lint/type checks and JavaScript
+syntax checks passed. The earlier root `pnpm test:ci` passed ten tool checks,
+130 backend tests and 163 mobile tests; 30 existing backend integration tests
+were skipped by their configuration.
+
+A native HTTP smoke passed on **Cascade iOS 26 / iPhone 17 / iOS 26.3** and
+**Cascade_API_36 / Android 16** simultaneously: both accepted shared moving and
+stationary fixes, paused after lost heartbeats, and disconnected. The follow-up
+setup opened both clients on the existing `.work/pr-final-stack` preview, Metro
+8082 and API 8787; this is an environment check, not main-branch app acceptance.
+The original stale-fragment Chrome tab then connected without an access error.
+Holding its north direction control increased distance from 7.8 m to 9.2 m;
+release returned to standing still. iOS showed the blue-location status and
+about 5 m reported accuracy, and recentering was exercised. Both targets were
+left connected and stationary for manual use.
+
+See the [connected panel](../images/gps-walking-panel.png) and
+[iOS 26 map](../images/gps-walk-ios26.png). Direct joystick dragging and the
+Android in-app blue dot remain visually unverified: the native computer-use
+surface cannot select the emulator's unbundled process. Native Android GPS
+commands and app launch succeeded. No mobile code, native build, database or
+permission settings changed; app-level denial, offline restart/retry and
+physical-device checks remain separate from this tooling smoke.
+
 ## Shared backend on this machine
 
 Setup reused `cascade-signal-check-db-1` on host port `55435`, with a Worker on
