@@ -52,9 +52,14 @@ reporting and cache-recovery work. The repair also gives database integration
 tests 30 seconds while retaining the five-second unit-test limit: the PDF
 multi-layer access test exceeded the former integration limit locally.
 
-For future stack landings, retarget each child to current `main` after its parent
-lands, verify its diff and checks, then merge. A GitHub "Merged" badge alone does
-not prove inclusion in `main`; inspect the target and ancestry.
+For future landings, confirm the stack trunk is `main`, then verify each diff
+and its checks. Ordinary independent PR chains need their children retargeted
+after each parent lands. Native GitHub stacks handle that automatically and
+reject ordinary PR base edits; use the documented
+[Stack API](https://docs.github.com/en/rest/pulls/stacks) when relinking an existing
+stack. Native stack merges can include lower PRs as well, so do not use a merge
+operation to repair stack metadata. A GitHub "Merged" badge alone does not prove
+inclusion in `main`; inspect the target and ancestry.
 
 ### Pending features, deliberately outside main acceptance
 
