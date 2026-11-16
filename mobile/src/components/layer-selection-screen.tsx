@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +16,8 @@ import type { GisSnapshot } from '@/data/gis';
 import { featureText } from '@/data/feature-details';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useTheme } from '@/hooks/use-theme';
+import { OFFLINE_STYLE } from '@/data/offline-basemap';
+import { OfflineBasemapControls } from '@/components/offline-basemap-controls';
 
 function returnToMap() {
   if (router.canGoBack()) router.back();
@@ -71,6 +74,9 @@ export function LayerSelectionScreen() {
         <Text style={[styles.description, { color: theme.textSecondary }]}>
           Choose what appears on your map.
         </Text>
+        {OFFLINE_STYLE && (Platform.OS === 'android' || Platform.OS === 'ios') && (
+          <OfflineBasemapControls mapStyle={OFFLINE_STYLE} />
+        )}
         {gis.status === 'loading' && (
           <ActivityIndicator accessibilityLabel="Loading GIS layer choices" />
         )}
