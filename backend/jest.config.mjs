@@ -1,7 +1,11 @@
+import process from 'node:process';
+
 /** @type {import('jest').Config} */
 export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
+  // Integration cases import full source datasets and query every public layer.
+  testTimeout: process.env.GIS_INTEGRATION === '1' ? 30000 : 5000,
   roots: ['<rootDir>/test'],
   testMatch: ['**/*.test.ts'],
   extensionsToTreatAsEsm: ['.ts'],
