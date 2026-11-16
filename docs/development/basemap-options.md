@@ -6,11 +6,13 @@ iOS swipe and Android system Back retain choices. The owner confirmed immediate
 behavior during implementation, superseding the original plan's draft/cancel
 flow. A fresh session uses OpenFreeMap Standard (Liberty).
 
-Development started above `infra/cloudflare-backend` / PR #34 in native GitHub
-stack #46. All of that stack merged while this feature was being verified, so
-this PR targets `main` and starts the next native stack. The parent file tree
-remained identical across GitHub's automatic restacks and the final main merge;
-only ancestry changed. The original uncommitted
+[Draft PR #47](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/47)
+is the top entry of native GitHub stack #46, above PR #34. All preceding entries
+merged during development. GitHub requires at least two entries to create a
+native stack, so this PR extends the existing stack; it is the only unmerged
+entry. Its individual base is `infra/cloudflare-backend`, and the stack trunk
+remains `main`. The parent file tree stayed identical across automatic restacks
+and the final main merge; only ancestry changed. The original uncommitted
 [provider plan](../tasks/basemap-options-plan.md) is retained with its implementation
 amendment. No parent PR was merged by this feature.
 
