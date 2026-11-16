@@ -11,11 +11,12 @@ export function useLocationFollow(
   camera: RefObject<CameraRef | null>,
   map: RefObject<MapRef | null>,
   fix: LocationObject | undefined,
-  ready: boolean,
+  mapStatus: 'loading' | 'ready' | 'unavailable',
   padding: Padding,
   defaultZoom: number,
   status: LocationStatus,
 ) {
+  const ready = mapStatus === 'ready';
   const [following, setFollowing] = useState(false);
   const active = useRef(false);
   const followZoom = useRef<number | undefined>(undefined);
@@ -23,7 +24,7 @@ export function useLocationFollow(
   const awaitingFix = useRef(false);
   const latest = useRef({ fix, ready, padding, status });
   // Reset the selection before rendering unavailable location/map controls.
-  if (following && (!fix || !ready)) setFollowing(false);
+  if (following && (!fix || mapStatus === 'unavailable')) setFollowing(false);
   const stop = useCallback(() => {
     generation.current += 1;
     active.current = false;
@@ -70,18 +71,22 @@ export function useLocationFollow(
   useEffect(() => {
     const previousStatus = latest.current.status;
     latest.current = { fix, ready, padding, status };
-    if (!fix || !ready) {
+    if (!fix || mapStatus === 'unavailable') {
       generation.current += 1;
       active.current = false;
       followZoom.current = undefined;
       // Keep an explicit first-tap intent through permission and GPS acquisition,
       // but never resume it after denial, failure, background or a map failure.
       if (
-        !ready ||
+        mapStatus === 'unavailable' ||
         !['off', 'requesting', 'searching'].includes(status) ||
         (status === 'off' && previousStatus !== 'off')
       )
         awaitingFix.current = false;
+    } else if (!ready) {
+      // Style changes temporarily suspend camera commands, retaining an explicit
+      // follow intent. The ready transition recenters on the newest fix.
+      generation.current += 1;
     } else if (awaitingFix.current) {
       awaitingFix.current = false;
       void recenter();
@@ -94,7 +99,7 @@ export function useLocationFollow(
         duration: 300,
       });
     }
-  }, [camera, fix, ready, padding, status, recenter]);
+  }, [camera, fix, ready, mapStatus, padding, status, recenter]);
 
   function followWhenReady() {
     stop();

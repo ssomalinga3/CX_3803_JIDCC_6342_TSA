@@ -76,7 +76,7 @@ export default function PreserveMap() {
     camera,
     map,
     location.fix,
-    ready,
+    loadState,
     locationPadding,
     LOCATION_ZOOM,
     location.status,
@@ -582,7 +582,7 @@ export default function PreserveMap() {
               }}
               size={27}
               style={[
-                styles.locationIcon,
+                styles.controlIcon,
                 Platform.OS === 'ios' &&
                   (locationFollow.following
                     ? styles.locationIconFilled
@@ -607,13 +607,31 @@ export default function PreserveMap() {
             });
           }}
         >
-          ◎
+          <SymbolView
+            name={{ ios: 'map', android: 'map', web: 'map' }}
+            size={25}
+            tintColor="#1c1c1e"
+            style={styles.controlIcon}
+            aria-hidden
+          />
         </MapButton>
         <MapButton label="Zoom in" disabled={!ready} onPress={() => void zoomBy(1)}>
-          +
+          <SymbolView
+            name={{ ios: 'plus', android: 'add', web: 'add' }}
+            size={27}
+            tintColor="#1c1c1e"
+            style={styles.controlIcon}
+            aria-hidden
+          />
         </MapButton>
         <MapButton label="Zoom out" disabled={!ready} onPress={() => void zoomBy(-1)}>
-          −
+          <SymbolView
+            name={{ ios: 'minus', android: 'remove', web: 'remove' }}
+            size={27}
+            tintColor="#1c1c1e"
+            style={styles.controlIcon}
+            aria-hidden
+          />
         </MapButton>
       </View>
 
@@ -818,7 +836,7 @@ function MapButton({
         (pressed || disabled) && styles.dimmed,
       ]}
     >
-      {typeof children === 'string' ? <Text style={styles.buttonText}>{children}</Text> : children}
+      {children}
     </Pressable>
   );
 }
@@ -857,10 +875,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     boxShadow: '0px 1px 4px rgba(0,0,0,0.12)',
   },
-  buttonText: { fontSize: 30, color: '#1c1c1e' },
   // Android SymbolView renders Text inside its fixed-size box. Center the glyph
   // layout as well as the box instead of aligning the font line to its top edge.
-  locationIcon: { alignItems: 'center', justifyContent: 'center' },
+  controlIcon: { alignItems: 'center', justifyContent: 'center' },
   // The SF arrows carry more visual weight toward their upper-right tip.
   // Values are points; keep the spinner and the 52-point hit target centered.
   locationIconOutline: { transform: [{ translateY: 1 }] },

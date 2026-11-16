@@ -158,9 +158,16 @@ session while waiting for the first fix cancels pending follow.
 Center the visible glyph optically inside the circular control: the asymmetric
 iOS outline/filled arrows have individual offsets, while Android centers its
 glyph layout inside the symbol box. The spinner and touch target stay centered.
+Other map controls also use native symbols: `map` for Return to preserve,
+`plus` / `minus` on iOS and `add` / `remove` on Android for zoom. Trail legend
+overflow uses native chevrons. Base map and Elevation source rows use the same
+drawn radio indicator as presets, with selection announced by the parent radio
+control; no text-circle glyphs or duplicate accessible icon labels remain.
 Dragging or pinching returns to manual browsing; zoom buttons retain following.
 While following, both zoom buttons center on the latest fix in the same camera
 animation; a stationary fix needs no new GPS update to restore its on-screen anchor.
+Switching basemaps pauses camera commands while the style loads, retains follow
+intent and resumes at the newest fix when rendering and health checks are ready.
 Return to preserve, stale/missing location, map failure, blur/background or location
 disable ends following, requiring another recenter tap after recovery.
 Denial preserves browsing; permanent denial offers Settings. Device

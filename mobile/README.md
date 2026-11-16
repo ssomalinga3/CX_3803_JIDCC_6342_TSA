@@ -298,8 +298,9 @@ this slice.
 
 ### Location-follow verification — November 16, 2026
 
-The follow change passes mobile lint, TypeScript, all 174 mobile tests (26 suites),
-including 20 camera regressions and 10 consolidated-control regressions, and
+The combined location/icon change passes mobile lint, TypeScript, all 194 mobile
+tests (28 suites), including 20 camera regressions, 10 consolidated-control
+regressions and a follow-through-style-loading regression, and
 JavaScript exports for iOS and Android.
 On iPhone 17 / iOS 26.3, the existing development client loaded this PR's Metro
 preview on port 8083. Recenter preserved a closer zoom with a 15.5 default;
@@ -337,3 +338,30 @@ Standard remains the fresh-session default. No provider key is needed. See
 [setup, provider eligibility and native verification](../docs/development/basemap-options.md).
 The existing offline style remains an explicit configured source when enabled;
 these online choices do not authorize new offline downloads.
+
+### Map symbols and source indicators
+
+Map controls now use native symbols from the existing `expo-symbols` package:
+`map` for Return to preserve, iOS `plus` / `minus` and Android `add` / `remove`
+for zoom. Trail legend overflow cues use native left/right chevrons. Base map
+and Elevation source rows share the drawn radio indicator already used by presets;
+the parent keeps its accessible radio label and checked state, and the indicator
+is decorative. No location, map, zoom, scroll or radio text glyph remains in app
+controls; separators, ellipses and attribution copyright signs stay as text.
+
+This work is in [PR #49](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/49),
+stacked on [PR #47](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/47)
+to include the basemap picker. Review #49 against that base and land #47 first.
+Loading a new style temporarily pauses follow camera commands and resumes at
+the latest fix when ready; a failed map still ends follow and requires recovery.
+
+On iOS 26.3, native zoom/return controls, the trail chevron and basemap radio rows
+were visually checked; selecting Light changed the accessible checked state and
+kept the chooser open. Standard was restored. A transient style-load failure
+recovered with explicit Retry. Elevation radio labels/states were inspected via
+accessibility, but native scrolling failed with `noWindowsAvailable`, so its
+full visual layout remains pending. See the [map controls](../docs/images/ios26-map-symbol-controls.png)
+and [source indicators](../docs/images/ios26-basemap-radio-indicators.png).
+Android API 36 opened this combined preview; its icon/layout visual checks remain
+pending because its unbundled emulator window is unavailable to the automation
+tool. No native build, physical-device or offline acceptance is claimed here.

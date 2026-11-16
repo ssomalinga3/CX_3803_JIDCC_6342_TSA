@@ -222,6 +222,7 @@ test('map failure cancels follow and rendering recovery does not resume it', asy
   await fireEvent(screen.getByTestId('preserve-map'), 'didFailLoadingMap');
   expect(recenter()).not.toBeSelected();
   mockEaseTo.mockClear();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Retry loading map' }));
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   expect(mockEaseTo).not.toHaveBeenCalled();
 });
