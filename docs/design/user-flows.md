@@ -180,7 +180,8 @@ Data access and private-report exclusions remain server-enforced in every preset
 ## Multiple basemap acceptance (J6-68)
 
 1. Open Choose GIS Layers with GIS ready, loading, empty, failed or unconfigured.
-   Expand Base map, inspect provider groups, select a style and return with Done
+   Expand Base map, read the provider overviews and individual style descriptions,
+   select a style and return with Done
    or native Back. The choice applies immediately and is retained when reopening;
    a fresh session resets to Standard. No provider thumbnails/previews load.
 2. Exercise all nine keyless styles at overview and close zoom. Check preserve

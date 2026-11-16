@@ -158,3 +158,18 @@ and retained Supplied DTM 8 / 98. The original network client was then restored.
 [Native acceptance screenshots](../images/basemaps/acceptance.jpg) show terrain,
 feature details, the grouped chooser, location denial and explicit recovery.
 The galleries are reduced copies of native captures, not interface mockups.
+
+## Source descriptions follow-up — November 16, 2026
+
+The expanded menu now explains each provider's map-data origins and describes
+what each style shows. Descriptions live in the typed registry and are reused
+in the radio rows' accessibility hints. Source age/accuracy/privacy caveats remain
+in Disclaimers. No additional style previews or network requests are introduced.
+
+Mobile lint and type checks, 35 focused basemap/terrain/health/chooser tests,
+formatting and `git diff --check` passed. iOS 26.3 showed the provider overview,
+wrapped row copy and accessibility hints; Android 16 verified readable provider/
+style copy, scrolling to USGS, selection of the final Shaded Relief row, collapse
+and system Back, retaining 8 layers / 98 features. The existing native clients
+were reused; no native build or full screen-reader session was run for this copy
+change. See the [updated dropdown screenshots](../images/basemaps/source-info.jpg).

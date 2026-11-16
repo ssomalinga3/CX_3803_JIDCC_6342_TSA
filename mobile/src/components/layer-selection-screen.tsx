@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { basemaps } from '@/data/basemaps';
+import { basemapProviderDescriptions, basemaps } from '@/data/basemaps';
 import type { GisSnapshot } from '@/data/gis';
 import { terrainKeys, type TerrainKey } from '@/data/terrain';
 import { featureText } from '@/data/feature-details';
@@ -256,6 +256,9 @@ function BasemapChoice() {
               <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
                 {provider}
               </Text>
+              <Text style={[styles.description, { color: theme.textSecondary }]}>
+                {basemapProviderDescriptions[provider]}
+              </Text>
               {basemaps
                 .filter((entry) => entry.provider === provider)
                 .map((entry) => (
@@ -263,7 +266,7 @@ function BasemapChoice() {
                     key={entry.id}
                     accessibilityRole="radio"
                     accessibilityLabel={`Use ${entry.provider} ${entry.name} base map`}
-                    accessibilityHint="Updates your map immediately"
+                    accessibilityHint={`${entry.description} Updates your map immediately.`}
                     accessibilityState={{ checked: basemap.id === entry.id }}
                     onPress={() => {
                       chooseBasemap(entry.id);
@@ -273,6 +276,9 @@ function BasemapChoice() {
                   >
                     <Text style={[styles.sourceLabel, { color: theme.text }]}>
                       {basemap.id === entry.id ? '●' : '○'} {entry.name}
+                    </Text>
+                    <Text style={[styles.description, { color: theme.textSecondary }]}>
+                      {entry.description}
                     </Text>
                   </Pressable>
                 ))}

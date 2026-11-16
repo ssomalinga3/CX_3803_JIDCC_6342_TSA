@@ -6,9 +6,17 @@ export type Basemap = {
   id: string;
   provider: 'OpenFreeMap' | 'USGS' | 'Offline prototype';
   name: string;
+  description: string;
   style: string | StyleSpecification;
   attribution: string;
   nativeMaxZoom: number;
+};
+
+export const basemapProviderDescriptions: Record<Basemap['provider'], string> = {
+  OpenFreeMap:
+    'Community-maintained OpenStreetMap data, with streets, buildings, parks and place names.',
+  USGS: 'Published maps from the U.S. Geological Survey and partners, including aerial photos, contour maps and terrain shading.',
+  'Offline prototype': 'The preserve map used by the existing offline download option.',
 };
 
 export const DEFAULT_BASEMAP = 'openfreemap-liberty';
@@ -25,11 +33,18 @@ const sourceCredits: Record<string, string> = {
 };
 const usgsRoot = 'https://basemap.nationalmap.gov/arcgis/rest/services';
 
-function raster(id: string, name: string, service: string, attribution: string): Basemap {
+function raster(
+  id: string,
+  name: string,
+  description: string,
+  service: string,
+  attribution: string,
+): Basemap {
   return {
     id: `usgs-${id}`,
     provider: 'USGS',
     name,
+    description,
     attribution,
     // The cache advertises more levels, but useful source detail ends around z16.
     // Overzoom that detail instead of requesting empty high-zoom tiles.
@@ -56,30 +71,45 @@ function raster(id: string, name: string, service: string, attribution: string):
 // establish free-plan eligibility or a provider-enforced zero-spend cap.
 export const basemaps: readonly Basemap[] = [
   ...[
-    ['liberty', 'Standard'],
-    ['positron', 'Light'],
-    ['bright', 'Bright'],
-    ['dark', 'Dark'],
-    ['fiord', 'Fiord'],
-  ].map(([slug, name]): Basemap => ({
+    ['liberty', 'Standard', 'Street map with roads, buildings, parks and place names.'],
+    ['positron', 'Light', 'Muted colors give preserve trails and overlays more visual emphasis.'],
+    ['bright', 'Bright', 'Colorful streets and land cover with clear road and place labels.'],
+    ['dark', 'Dark', 'Dark styling contrasts with preserve trails and landmarks.'],
+    ['fiord', 'Fiord', 'Cool blue-gray styling with subdued roads and labels.'],
+  ].map(([slug, name, description]): Basemap => ({
     id: `openfreemap-${slug}`,
     provider: 'OpenFreeMap',
     name,
+    description,
     style: `https://tiles.openfreemap.org/styles/${slug}`,
     attribution: ofmAttribution,
     nativeMaxZoom: 14,
   })),
-  raster('aerial', 'Aerial', 'USGSImageryOnly', 'USDA · USGS The National Map: Orthoimagery'),
-  raster('topographic', 'Topographic', 'USGSTopo', 'USGS The National Map · USGS partners'),
+  raster(
+    'aerial',
+    'Aerial',
+    'USDA/USGS aerial photography showing tree cover, clearings and nearby development.',
+    'USGSImageryOnly',
+    'USDA · USGS The National Map: Orthoimagery',
+  ),
+  raster(
+    'topographic',
+    'Topographic',
+    'Contour lines, streams, roads and geographic names from the USGS National Map.',
+    'USGSTopo',
+    'USGS The National Map · USGS partners',
+  ),
   raster(
     'aerial-topographic',
     'Aerial + Topographic',
+    'Aerial photography with contours, roads and place labels layered on top.',
     'USGSImageryTopo',
     'USGS The National Map: Orthoimagery and US Topo',
   ),
   raster(
     'shaded-relief',
     'Shaded Relief',
+    'Shading from elevation data reveals hills, ridges and valleys.',
     'USGSShadedReliefOnly',
     'USGS The National Map: 3DEP · USGS EROS: GMTED2010',
   ),
@@ -89,6 +119,7 @@ export const basemaps: readonly Basemap[] = [
           id: 'offline-prototype',
           provider: 'Offline prototype' as const,
           name: 'Configured offline map',
+          description: 'The map used by the preserve’s offline download option.',
           style: OFFLINE_STYLE,
           attribution: 'Configured offline map · See map attribution',
           nativeMaxZoom: 16,

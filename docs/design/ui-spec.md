@@ -272,8 +272,9 @@ This supersedes the older all-new-layer-visible policy for default selection.
 
 Above the GIS controls, a Base map card shows provider and style and a single
 expandable Choose base map button, following the existing Elevation source control.
-Provider headings contain accessible single-choice rows with 44-point minimum
-hit targets. Selecting a row applies immediately and collapses the menu. The
+Each provider heading includes a short overview of its map data. Single-choice
+rows show a style name and description explaining its appearance or content,
+with descriptions included in accessibility hints and 44-point minimum hit targets. Selecting a row applies immediately and collapses the menu. The
 owner confirmed this behavior during implementation; Done, swipe and system back
 retain choices. Start a fresh app session with OpenFreeMap Standard (Liberty).
 The menu is scrollable, works independently of GIS availability and does not
