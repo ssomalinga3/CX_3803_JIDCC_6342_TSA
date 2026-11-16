@@ -21,7 +21,7 @@ S2 examined Trailforks, ArcGIS Field Maps/Survey123, Avenza Maps, and SeeClickFi
 | Surface / Figma frame | Implementation behavior |
 | --- | --- |
 | [Location permission](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-4), [active navigation](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-26), [trail safety](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-61) | Native permission request; map/trails, position, pan/zoom/recenter, and trail-boundary warning. Denial preserves map browsing. |
-| [Choose GIS Layers](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=32-40), [layers applied](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=32-116) | Dedicated selection screen with Map back action, descriptive rows, pillar badges, individual toggles, and Done. Follow Figma's screen layout; Jira's “drawer” terminology needs reconciliation in D-08. J6-19 requires trails above other layers. |
+| [Choose GIS Layers](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=32-40), [layers applied](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=32-116) | Dedicated selection screen with descriptive rows, pillar badges, individual toggles, and Done. The owner’s immediate-filter clarification removes Map back; Done only closes. Follow Figma's screen layout; Jira's “drawer” terminology needs reconciliation in D-08. J6-19 requires trails above other layers. |
 | [Route the Report](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=51-91), [Add Details](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=51-93) | Choose issue/destination first, then photos, commentary, automatic GPS/time, and Submit Report. Show the destination. Preserve [sending](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=51-95), [sent](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=51-97), and [failed](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=51-99) states. |
 | [My Reports](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=51-101) | Use the existing personal-report surface; ownership access and follow-up storage remain backend decisions. |
 | [Recipient Emails](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-260), [Review & Send](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-262) | Custom flow allows one or more removable email recipients and review before sending, only to listed addresses. [Recipient/send failure](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-266) retains the draft. D-03 covers backend enforcement and schema. |
@@ -121,12 +121,13 @@ fixtures, not approved navigation or a completed J6-14/J6-19 flow.
 ## Layer selection progress — November 5, 2026
 
 J6-19 implements the documented Choose GIS Layers screen in a route above the
-map tabs: Map back, descriptive cards, individual switches and Done. Switches
-edit a draft; Done applies it and other return actions cancel it. Applied choices
-live in memory for this app session. Public layers are independently selectable,
-including trails; PR 4 groups the two alternative terrain sources under one
-Elevation switch and source dropdown. Names come from validated public metadata;
-short descriptions explain the layer type. Human, Social, Environmental and Economic
+map tabs: descriptive cards, individual switches and Done. Presets and switches
+apply immediately; Done only closes the chooser. No separate Map back button is
+shown. Leaving by any route retains applied choices in memory for this app
+session. Public layers are independently selectable, including trails; the two
+alternative terrain sources share one Elevation switch and source dropdown.
+Names come from validated public metadata; short descriptions explain the layer
+type. Human, Social, Environmental and Economic
 badges appear only when supplied; today's source catalog has no pillar values.
 No Cultural mapping or unavailable dataset is invented.
 
@@ -226,7 +227,8 @@ The live Figma chooser frame `32:40` was reviewed for screen structure. See the
 ## Cell-signal observations (PR 5)
 
 A normal chooser row controls the recovered screenshot layer, with the existing
-new-layer-visible, draft/Done/Back and session-only behavior. Small dark-outlined
+session-only behavior; current preset defaults and immediate changes supersede
+the older new-layer-visible and draft/Done/Back rules. Small dark-outlined
 red/orange/yellow/light-green/dark-green samples render below trail strokes and
 landmarks. Samples are excluded from blue landmark styling, landmark names and
 the trail legend; a horizontally scrollable five-class key appears only while the
@@ -249,3 +251,19 @@ J6-19's older “trails above other layers” wording so route overlays cannot b
 covered by analytical data and place markers are not cut by route casing.
 Crowded taps follow landmark → trail → sample priority. See the
 [ordering policy and verification](../development/map-layer-order.md).
+
+## Layer presets — November 13, 2026
+
+The owner requested Visitor, Staff and Researcher starting sets. The chooser adds
+three radio options above its existing switch rows. Visitor is the fresh-session
+default: trails, boundary and landmarks. Staff adds physical/natural context and
+one elevation source; Researcher also adds cell-signal observations. The initial
+engineering mapping and source fallback are in the [preset contract](../development/layer-presets.md).
+Preset selection and manual adjustments apply immediately. Done only closes the
+chooser; the separate Back button is removed. Native iOS edge-swipe and Android
+system back retain changes. The iOS stack gesture is explicitly enabled.
+Manual differences show “Customized from …” with no radio checked; selecting a
+preset again resets those differences. All public layer switches remain available
+in every view. Refresh retains applied choices, while a fresh provider starts in
+Visitor. Preset labels do not assert an authenticated role or promise private data.
+This supersedes the older all-new-layer-visible policy for default selection.

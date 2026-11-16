@@ -45,9 +45,10 @@ remains separate from public feature details.
    public catalog names, type descriptions, independent native switches and
    supported pillar badges only when metadata supplies them. Do not infer pillar
    assignments or fetch features again just to open the screen.
-2. Toggle one or several rows. Done applies the draft and returns to the mounted
-   map; Map back, system back or swipe back cancels it. Reopen to see the applied
-   choices. Pan/zoom must survive applying choices without an automatic refit.
+2. Toggle one or several rows or choose a preset: changes apply immediately.
+   Done closes the chooser; there is no separate Map back button. System/swipe
+   back also retains changes. Reopen to see the current choices. Pan/zoom must
+   survive changes without an automatic refit.
 3. Hidden features disappear from rendering, hit-testing, counts and the trail
    key. Re-enable repeatedly without duplicate geometry or legend entries.
    With everything off, show the all-hidden explanation and retain basemap,
@@ -55,10 +56,10 @@ remains separate from public feature details.
 4. Keep trails above ground/context/analytical overlays, with place markers and labels above routes. The device position is unaffected by
    public layer switches. The existing location lifecycle still pauses GPS while
    Map is blurred and resumes an enabled session without an automatic prompt.
-5. Without a catalog, keep Map return available and Done disabled; distinguish
-   loading, unconfigured and failed reads, with Retry for a failed read. Discard
-   draft edits if the catalog is replaced. Preserve applied choices across an
-   in-session retry, ignoring unknown IDs and enabling new catalog IDs by default.
+5. Without a catalog, keep Done enabled to return to Map; distinguish loading,
+   unconfigured and failed reads, with Retry for a failed read. Preserve applied
+   choices across catalog replacement and in-session retry. New catalog entries
+   follow the selected preset; unknown content starts hidden.
    Choices reset on a full application restart; durable offline GIS is separate.
 
 See [layer selection evidence](../development/layer-selection.md) for automated
@@ -107,7 +108,7 @@ features. With location off/denied, browse context and open details. Confirm
 blue water/green natural areas/gray roads/brown buildings and a single purple
 boundary; trails remain legible. At detail zoom, named POIs and source annotations
 are readable. Waterfall must have one marker retaining its My Maps note; Spring
-remains explicitly unmatched. Hide/show each context layer with Done: its features,
+remains explicitly unmatched. Hide/show each context layer immediately: its features,
 hits and key entries change without refitting the map or adding trail-key entries.
 Difficulty stays unchanged. See [PR 3 evidence](../../data/cascade-springs-gis/PDF-MAP.md#verification-and-limits).
 
@@ -131,6 +132,10 @@ terrain. Nodata/outside-preserve pixels are transparent. Bundle checks and exist
 iOS execution are separate from Android/native-build/field-accuracy evidence;
 see [PR 4 verification](../../data/cascade-springs-gis/TERRAIN.md#verification-and-handoff).
 
+The PR 4 instructions above record its original default/draft behavior. With the
+later presets, start in Visitor and choose Staff to enable elevation; source
+changes apply immediately and leaving the chooser retains them.
+
 ## Approximate signal layer acceptance (PR 5)
 
 Use an iOS 26 simulator as the primary native target. Load all selected sources:
@@ -139,9 +144,10 @@ close-zoom class dots with landmarks, trails and both terrain sources. The five
 legend labels must remain categorical, without inferred units. Tap a sample for
 its class/source pixel/positioning; crowded landmarks retain hit priority.
 
-In Choose GIS Layers, switch signal off and leave via Back: no change applies.
-Repeat with Done: samples and their key disappear, leaving nine layers / 131
-features without moving the zoomed camera. Restore repeatedly: exactly 808 features
+With all ten layers enabled, switch signal off in Choose GIS Layers: samples
+and their key disappear immediately, leaving nine layers / 131 features without
+moving the zoomed camera. Done or system/swipe back retains that change. Restore
+repeatedly: exactly 808 features
 return, without duplicates or location requests. Exercise all-hidden, location
 denial, API failure/retry and catalog replacement using the existing flows. A
 missing, reclassified or incompatible signal snapshot must fail visibly. Choice
@@ -160,3 +166,13 @@ must remain stable. Repeat after GIS retry and map-style retry. Feature selectio
 prefers a landmark over a coincident trail/sample and a trail over a sample;
 device position never becomes a public detail sheet. Record native, automated
 and unverified paths separately in the [ordering record](../development/map-layer-order.md).
+
+## Layer preset acceptance
+
+Use the iOS 26 [preset acceptance checklist](../development/layer-presets.md).
+Verify a fresh Visitor view (3 / 59), Staff (8 / 102) and Researcher (9 / 779);
+immediate updates, Done/gesture exit and customization/all-hidden; stable camera, no location/refetch on
+preset changes; API failure/retry, catalog replacement and fresh-session reset.
+Unknown content remains manually selectable but starts hidden. One terrain source
+is selected by advanced presets, with a supplied fallback if USGS is unavailable.
+Data access and private-report exclusions remain server-enforced in every preset.

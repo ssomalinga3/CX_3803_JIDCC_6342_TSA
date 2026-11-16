@@ -68,7 +68,7 @@ test('all layer combinations survive repeated apply/reopen cycles through the re
           Boolean(mask & (1 << index)),
         );
       }
-      await user.press(screen.getByRole('button', { name: 'Apply GIS layers' }));
+      await user.press(screen.getByRole('button', { name: 'Done choosing GIS layers' }));
       await view.rerender(tree(false));
 
       const expectedIds = [

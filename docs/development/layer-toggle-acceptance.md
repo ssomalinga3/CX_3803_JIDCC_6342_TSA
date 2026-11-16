@@ -36,7 +36,7 @@ deduplication. The fixture's pillar is test metadata, not a production assignmen
 | Landmarks + boundary | 2             | 0                      |
 | All                  | 4             | 1                      |
 
-Every combination is applied, reopened and repeated in reverse order, ending
+Every combination updates immediately, is reopened and repeated in reverse order, ending
 with all layers restored. Assertions cover exact render-source IDs, no duplicate
 features, visible versus hidden detail hits, independent stored choices and one
 legend entry per trail. All-off retains an empty GIS source so native terrain
@@ -74,7 +74,7 @@ checks on iOS and a supported Android target:
    visible casing, and labels/legend remain readable. Check unnamed dashed
    connections and verify restored layers appear once.
 3. Repeat with large text and VoiceOver/TalkBack. Verify switch names/states,
-   Done and cancellation, scrolling, and usable map controls with all layers off.
+   Done and native back navigation retaining selections, scrolling, and usable map controls with all layers off.
 4. Record apply-to-visible-update latency, frame stalls and memory behavior
    over repeated cycles for the current catalog and a documented larger public
    test dataset. Capture the measurement method and observed values; agree a

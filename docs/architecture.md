@@ -95,14 +95,17 @@ does not reload GIS or request location. An outer Expo Router stack contains the
 existing tab group and the selection screen, preserving the mounted map and its
 camera while the chooser is open. The existing tab URLs remain unchanged.
 
-Done applies the local draft; leaving without Done discards it. Rendering,
+Preset and switch changes apply immediately to shared state; Done only closes
+the chooser, and leaving by any route retains the choices. Rendering,
 feature hit-testing, counts and the trail legend use the same filtered snapshot
 with original feature IDs and provenance. Camera fitting retains the original
 catalog bounds and is suppressed for visibility-driven layout changes. Trail strokes
 render above ground/context/analytical overlays; landmark markers and labels render
 above routes, and device position remains a separate source above GIS.
-New catalog IDs default visible, unknown IDs are ignored, and applied choices
-survive an in-session retry. Nothing is persisted across application restarts.
+Visitor is the initial public viewing preset. Staff and Researcher add context
+and observations; current catalog IDs follow preset defaults plus explicit
+per-layer overrides. Applied choices survive in-session retry, while fresh
+provider sessions start in Visitor. Nothing is persisted across application restarts.
 See [layer selection verification](development/layer-selection.md).
 
 ### Supplied PDF context (PR 3)
@@ -155,3 +158,12 @@ The [rendering policy](development/map-layer-order.md) centralizes native layer
 placement. Permanent invisible terrain slots and an always-mounted empty-capable
 public source keep raster/vector/GPS placement stable during visibility changes,
 API failure and style reload. Source catalog order does not determine z order.
+
+### Audience visibility presets
+
+[Visitor, Staff and Researcher presets](development/layer-presets.md) are local
+display choices over the same public snapshot, not authorization roles. The
+provider reconciles preset defaults with explicit visibility overrides; the
+chooser applies presets and switches immediately. Defaults prefer one known terrain
+source. Source identity, backend access, GPS, z order and offline scope remain
+unchanged. Preset changes do not reload GIS or refit the camera.
