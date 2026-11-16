@@ -1,8 +1,9 @@
 # Supplied-source ingestion contract
 
 Engineering handoff for PR 2, established by the source-foundation task. These
-names and rules are for the forthcoming converter/importer; this PR does not
-extend runtime TypeScript types or publish GeoJSON. Use the existing generic
+names and rules are implemented by the [PR 2 converter/importer](TRAILS.md).
+Runtime types now include supplied attributes and unassigned trail identity;
+no physical table or endpoint is added. Use the existing generic
 tables and [public read contract](../../docs/api.md#implemented-public-gis-reads-november-1-2026).
 See [source evidence](README.md) and the [stack plan](../../docs/tasks/gis-data-integration-plan.md).
 
@@ -31,6 +32,12 @@ The PDF owns contextual boundary/water/natural-area/road/building geometry and
 landmark evidence in PR 3; PDF trails are reconciliation evidence only. AIG owns
 elevation samples in PR 4. Image observations remain unpositioned until their
 registration is supported. Archive `info/` is supporting data, not a layer.
+
+PR 4's [terrain contract](TERRAIN.md) adds generalized elevation bands and bundled
+relief, with one independently switchable layer per supplied/USGS source. Terrain
+polygons/footprints retain their own identities, source/dataset versions, units
+and hashes. They never replace trail attributes or infer source ascent. Terrain-only
+and combined imports share `(6342, 2)` with the existing selected-source writers.
 
 ## Public trail properties
 
@@ -118,3 +125,14 @@ PostGIS/API round trips, rollback, concurrent replay, stale cleanup and legacy
 command regression checks. UI details must allowlist supported attributes with
 units. Preserve existing camera/toggle/location-denied flows. No durable offline
 cache or report-retry behavior is implied by this source package.
+
+## Implemented PR 3 supersession
+
+The preceding PR 1/2 requirements describe the historical handoff. The
+[implemented PDF contract](PDF-MAP.md) supersedes the eight-point writer and
+separate boundary lock: combined source import now selects seven layers/69
+features, while PDF and legacy-boundary imports select six layers/33 features.
+All conflicting writers use `(6342, 2)`. Every My Maps record remains recoverable;
+Waterfall is nested on the PDF marker and seven unmatched annotations retain
+original geometry. Buildings use their own logical kind and roads accept polygon
+footprints. Original inputs and generic physical tables remain unchanged.

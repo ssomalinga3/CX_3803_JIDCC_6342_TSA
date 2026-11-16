@@ -15,7 +15,8 @@ export type LandmarkKind =
   | 'waterfall'
   | 'trailhead'
   | 'junction'
-  | 'spring';
+  | 'spring'
+  | 'source_annotation';
 
 interface CommonProperties {
   name: string;
@@ -28,17 +29,43 @@ export type TrailNetworkProperties = CommonProperties &
     | {
         feature_kind: 'trail';
         /** Multiple segment features may share a trail_id; feature IDs remain unique. */
-        trail_id: string;
+        trail_id?: string;
         /** Missing attributes stay absent, rather than inferred from the reference photo. */
         difficulty?: TrailDifficulty;
         color?: string;
         length_m?: number;
         surface_type?: string;
+        roughness?: string;
+        average_width_in?: number;
+        name_assignment?: 'source' | 'approximate' | 'unassigned';
+        source_dataset?: string;
+        source_file?: string;
+        source_archive_sha256?: string;
+        source_crs?: string;
+        source_feature_id?: string;
+        source_segment_id?: string;
+        source_properties?: Record<string, string | number | null>;
+        derived_values?: Record<string, Record<string, string | number>>;
       }
     | { feature_kind: 'landmark'; landmark_kind: LandmarkKind }
     | { feature_kind: 'boundary'; boundary_kind: 'preserve' | 'protective' }
     | { feature_kind: 'water'; water_kind: 'stream' | 'water_body' }
-    | { feature_kind: 'natural_area' | 'road' }
+    | { feature_kind: 'natural_area' | 'road' | 'building' }
+    | {
+        feature_kind: 'elevation_band';
+        source_dataset: string;
+        dataset_version: string;
+        elevation_min_ft_us: number;
+        elevation_max_ft_us: number;
+        vertical_datum: string;
+      }
+    | {
+        feature_kind: 'hillshade';
+        source_dataset: string;
+        dataset_version: string;
+        raster_key: 'supplied' | 'usgs';
+        raster_sha256: string;
+      }
   );
 
 /** Rendering/import contract; spatial validity is still checked by GIS ingestion/PostGIS. */
@@ -48,5 +75,8 @@ export const trailNetworkGeometryTypes = {
   boundary: ['Polygon', 'MultiPolygon'],
   water: ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'],
   natural_area: ['Polygon', 'MultiPolygon'],
-  road: ['LineString', 'MultiLineString'],
+  road: ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'],
+  building: ['Polygon', 'MultiPolygon'],
+  elevation_band: ['Polygon'],
+  hillshade: ['Polygon'],
 } as const;

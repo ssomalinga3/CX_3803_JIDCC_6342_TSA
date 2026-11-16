@@ -3,7 +3,7 @@ import { withDatabase } from './client.js';
 import { gisLayer } from './schema.js';
 
 /** Synthetic demo boundary fixture. Not surveyed preserve data or navigation data.
- * The real approximate boundary is a separate validated import (boundary-map.ts). */
+ * The selected preserve boundary is a separate validated PDF import (pdf-map.ts). */
 const fixtures = [
   {
     layerId: 'demo-boundaries',

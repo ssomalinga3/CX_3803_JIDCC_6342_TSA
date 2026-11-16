@@ -104,6 +104,15 @@ offline persistence/restart and refresh UX remain mobile work under D-06.
 
 ## Supplied source snapshot (November 4, 2026)
 
+**Current selection:** [PR 4](../data/cascade-springs-gis/TERRAIN.md) selects 36
+supplied trail segments, six PDF/reconciled context layers and two terrain source
+options (nine layers/131 features total). Each terrain option contains elevation
+bands plus a bundled relief image with versioned catalog metadata. Bundled image
+bytes do not establish an offline catalog or complete cached map.
+Legacy commands cannot restore approximations. This still adds no device
+cache, first-launch offline coverage, report queue or restart/retry persistence.
+The historical source record below describes the original import.
+
 The [Cascade Springs dataset](../data/cascade-springs/README.md) adds one sourced
 trail and eight landmarks through an explicit `db:import:source` command. It uses
 the existing public read API and native renderer. Demo fixtures remain optional

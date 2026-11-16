@@ -38,7 +38,7 @@ Treat JavaScript bundle checks, native compilation, and device smoke tests as se
 
 Verify affected acceptance paths from `docs/design/user-flows.md`, including permission denial, offline restart/retry, duplicate prevention, and access restrictions. Check mobile changes on iOS and supported Android targets as appropriate.
 
-For documentation, verify relative links and rendered formatting. Run `git diff --check` and review the final diff. Report checks performed, outcomes, and anything unverified.
+Run `git diff --check` and review the final diff. Report checks performed, outcomes, and anything unverified.
 
 ## Unclear Requirements
 

@@ -60,6 +60,13 @@ For how the pnpm workspace scripts are structured and how a new package joins th
 
 ## Mobile public GIS connection
 
+The [supplied trail pipeline](../data/cascade-springs-gis/TRAILS.md) runs Python
+conversion only in development/CI; runtime imports read the committed, validated
+GeoJSON. Both the combined source command and trail-only command select supplied
+trails using the same advisory lock. Explicit per-layer collections replace
+geometry-type-only selection, with duplicate assignment checks and transactional
+rollback. Neither GIS tooling nor source archives enter the mobile bundle.
+
 The mobile client reuses the backend GIS contracts through type-only imports;
 no database or Worker runtime modules enter the mobile bundle. It validates
 catalog metadata, same-origin feature paths, and GeoJSON at runtime before
@@ -96,3 +103,36 @@ render above boundaries and landmarks; device position remains a separate source
 New catalog IDs default visible, unknown IDs are ignored, and applied choices
 survive an in-session retry. Nothing is persisted across application restarts.
 See [layer selection verification](development/layer-selection.md).
+
+### Supplied PDF context (PR 3)
+
+The [PDF pipeline](../data/cascade-springs-gis/PDF-MAP.md) uses the locked GIS
+development environment to extract georeferenced context and reconcile landmarks.
+Runtime imports read committed GeoJSON; PDFs, image extraction and GIS libraries
+do not enter mobile bundles. Source/PDF/legacy-boundary/trail commands share lock
+`(6342, 2)`; source import replaces all selected layers in one transaction.
+The native renderer distinguishes context kinds, excludes context lines from the
+trail legend, keeps trail strokes above context/marker circles, and adds closer
+zoom landmark labels. Existing chooser, snapshot, camera, GPS and offline
+architecture remain unchanged.
+
+### Bounded two-source terrain (PR 4)
+
+The [terrain pipeline](../data/cascade-springs-gis/TERRAIN.md) runs only during
+development/CI. It preserves a bounded USGS national GeoTIFF alongside the
+supplied source archive, then generates two source layers with generalized
+elevation polygons and versioned bundled hillshade images. Mobile groups these
+alternatives under one Elevation switch and source dropdown, defaults to USGS
+and renders only the selected source. Source preference and enabled state remain
+session-only, separate from other hidden-layer IDs. The API remains GeoJSON-only;
+image footprints coordinate catalog visibility with local assets. Native
+ImageSource uses an explicit local asset
+allowlist. A mismatched dataset version/hash/placement rejects the snapshot and
+uses the existing error/retry path. No raster URL serving or Worker asset
+binding is introduced. Import commands read committed files outside the request
+runtime; source rasters/GIS libraries are absent from app/Worker bundles.
+
+The combined source importer now replaces all nine selected layers atomically;
+terrain-only replacement shares lock `(6342, 2)` with existing source writers.
+No physical tables, native dependencies, GPS behavior or durable offline cache
+are added. Hosting configuration and deployment ownership are outside this slice.

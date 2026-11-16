@@ -19,6 +19,29 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
+  the source-similarity explanation inside the dropdown and suggested grouping
+  both datasets under one toggle. The chooser now has one Elevation switch and
+  a source dropdown; only the selected source renders. USGS is the default,
+  falling back to supplied DTM if unavailable. Switching off remembers the
+  source, and Done/Back/retry keep the established draft/session behavior.
+  The dropdown contains the short similarity and source-limit notes, a specific
+  owner-requested exception to the general consolidated-disclaimer policy.
+  Existing detailed source caveats remain in Disclaimers; no new note is added there.
+
+- **November 12, 2026 — D-05 approximate two-source terrain:** The project
+  owner authorized publishing the supplied DTM with its missing horizontal
+  datum explicitly disclosed, and requested a separate national public elevation
+  option with source/limitations clear for each. PR 4 implements separately
+  attributed supplied-DTM and USGS 3DEP layers, each combining 20 ftUS bands and
+  regenerated 2D relief. Source attribution appears in chooser/details and
+  standing caveats remain in Disclaimers. The supplied GRS80 projection uses a
+  ballpark/no-datum-shift assumption; this does not confirm a horizontal datum,
+  survey accuracy, acquisition date, measured trail ascent or safety approval.
+  National data is a preserved, resampled service subset; source intersections
+  do not establish per-pixel acquisition/resolution. See
+  [terrain evidence and contracts](../data/cascade-springs-gis/TERRAIN.md).
+
 - **November 5, 2026 — D-08 J6-19 implementation reconciliation:** The layer
   chooser follows the dedicated screen already documented from Figma, with Map
   back, individual switches and Done, rather than the ticket's older drawer
@@ -122,3 +145,39 @@ conditional South Utoy guidance), terrain horizontal datum/alignment, hillshade
 registration, signal units/registration and redistribution rights remain open.
 No layer is imported or published by PR 1, and the current approximate data and
 legacy commands remain unchanged until PRs 2 and 3 implement supersession.
+
+## November 11, 2026 — D-05 supplied trail selection (PR 2)
+
+The owner's request to implement PR 2 authorizes replacing approximate trail
+sections with the supplied shapefile. Retain `cascade-map-trails`, use canonical
+GlobalID feature IDs, preserve all 36 source segments and eight My Maps landmarks,
+and leave the approximate boundary for PR 3. Both legacy source and new trail-only
+commands select supplied trails under lock `(6342, 2)`; legacy conversion remains
+archive-only. [The implementation record](../data/cascade-springs-gis/TRAILS.md)
+defines field mapping, publication filtering, derivation and replacement checks.
+
+Explicit source-name mapping groups Turkeyfoot and South Utoy for the app palette
+while preserving their separate labels. Existing display colors remain, including
+red West versus raw source `ORAN`. Source blank difficulty remains absent; only
+Big Beech Spur supplies `easy`. Width units are inches and lengths are geodesic
+segment measurements. This implements the engineering contract without treating
+PDF difficulty observations as approval. Licensing, surveyed accuracy, safety
+tolerances, pillars, PDF precedence and raster/signal registration remain open.
+
+## November 12, 2026 — D-05 PDF context and difficulty policy (PR 3)
+
+The owner requested PR 3 from the supplied GIS stack and explicitly selected
+“Leave difficulty unchanged.” The supplied PDF therefore provides context and
+15 landmark symbols, but no route-level difficulty fallback. Springs Easy in
+the PDF conflicts with the prior Moderate sign transcription; South Utoy has
+conditional uphill-to-Battle-Ridge guidance. These observations remain evidence,
+not segment-level defaults. PR 2 colors/attributes remain unchanged.
+
+[The extraction/reconciliation record](../data/cascade-springs-gis/PDF-MAP.md)
+defines projected registration, per-layer ownership, shared lock (6342, 2),
+legacy replacement and source IDs. The hand-drawn boundary is superseded,
+Waterfall has one physical marker with both source records, and unmatched My Maps
+annotations retain explicit source labels. Spring vs Frog Pond / Spring physical
+identity remains unresolved. Generic `building` and polygon `road` kinds extend
+the logical contract without new tables. Pillars, licensing, safety tolerances,
+field accuracy and terrain/signal registration remain open.

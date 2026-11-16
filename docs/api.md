@@ -105,7 +105,10 @@ production transport remains required; local HTTP is development only.
 
 ## Approximate source trail names
 
-Re-importing the source map now publishes ten derived LineStrings and eight
+This is the historical November 4 behavior, superseded by the supplied-trail
+selection below. The KML snapshot and section mapping remain archival evidence.
+
+The historical approximate import published ten derived LineStrings and eight
 landmark Points through the same endpoints and stable layer IDs. Seven trail
 identities are approximate sign matches. Named sections include `feature_kind:
 trail`, shared `trail_id`, `name_assignment: approximate`, and `name_source`.
@@ -115,3 +118,52 @@ Unassigned connections have `name_assignment: unassigned` and no `trail_id`;
 clients must not infer missing names, difficulty or route completeness. Existing
 source description/provenance fields remain intact. See the
 [review table](../data/cascade-springs/README.md#approximate-trail-sections).
+
+## Supplied trail selection (PR 2)
+
+`cascade-map-trails` now returns 36 supplied shapefile segments under stable
+GlobalID-based IDs, replacing approximate sections. Endpoints, visibility, bbox
+semantics and cache headers remain unchanged. GeoJSON serialization now uses
+up to 15 decimal places so converted vertices survive the PostGIS/API round trip.
+PR 3 supersedes the old eight-landmark/boundary handoff as described below.
+
+Properties distinguish allowlisted `source_properties` from normalized values
+and `derived_values` provenance. They include source segment/UUID identity,
+surface, roughness, available width in inches and geodesic `length_m`. Only one
+segment supplies difficulty; blank/zero placeholders do not become measurements.
+See the [implemented field, publication and import contract](../data/cascade-springs-gis/TRAILS.md).
+
+## Supplied PDF context selection (PR 3)
+
+The [selected layer/identity contract](../data/cascade-springs-gis/PDF-MAP.md#layer-and-identity-handoff)
+adds water, natural-area, road and building polygons, replaces the guessed boundary,
+and returns 22 reconciled landmark/source-annotation points. The complete selected
+map has seven layers/69 features. Routes, public access, bbox intersection and cache
+headers use the existing endpoints unchanged. `building` is a new logical feature
+kind; `road` also supports polygon footprints.
+
+PDF properties retain `source_dataset`, `source_file`, `source_sha256`,
+`source_group`, `source_paths` or `source_symbol`/page anchor/bbox, and positioning
+limits. Waterfall retains the complete old My Maps feature in inert
+`source_annotations`. Unmatched annotations keep original IDs, coordinates and
+HTML with explicit source labels. Clients must render descriptions as text and
+never execute source markup or fetch linked media. Difficulty remains unchanged
+by owner decision; no PDF fallback or safety semantics are added.
+
+## Two-source terrain selection (PR 4)
+
+The [terrain contract](../data/cascade-springs-gis/TERRAIN.md) adds public catalog
+IDs `cascade-terrain-supplied` and `cascade-terrain-usgs`, both `layerType: terrain`.
+Each returns Polygon `elevation_band` features plus one `hillshade` image-footprint
+feature. The selected total becomes nine layers/131 features. Bbox, privacy,
+content type and cache headers remain unchanged; there is no raster HTTP route.
+
+Band properties include `elevation_min_ft_us`, `elevation_max_ft_us`,
+`vertical_datum`, `source`, `source_dataset`, `source_sha256`,
+`horizontal_registration` and `dataset_version`. Heights describe 20 ftUS display
+intervals, not measured ascent. A hillshade adds `raster_key` and
+`raster_sha256`; its ring defines ordered image corners. Clients supporting this
+contract must match dataset version, source/image hashes and exact footprint to
+their bundled descriptor before rendering. Arbitrary image URLs are not supported.
+Metadata and app assets must be released together. The API does not serve files
+under `data/` or turn bundled image availability into an offline catalog.

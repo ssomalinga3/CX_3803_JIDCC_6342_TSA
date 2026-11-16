@@ -92,14 +92,34 @@ try {
       // Import path is exercised by CI/local setup; verify real source data through the Worker.
       assert.ok(layers.some((layer) => layer.layerId === 'cascade-map-trails' && !layer.isDemo));
       for (const [id, count] of [
-        ['cascade-map-trails', 10],
-        ['cascade-map-landmarks', 8],
+        ['cascade-map-trails', 36],
+        ['cascade-map-landmarks', 22],
+        ['cascade-map-boundary', 1],
+        ['cascade-map-water', 2],
+        ['cascade-map-natural-areas', 2],
+        ['cascade-map-roads', 3],
+        ['cascade-map-buildings', 3],
+        ['cascade-terrain-supplied', 29],
+        ['cascade-terrain-usgs', 33],
       ]) {
         const response = await fetch(`${base}/api/v1/layers/${id}/features`);
         assert.equal(response.status, 200);
         const collection = await response.json();
         assert.equal(collection.features.length, count);
         assert.ok(collection.features.every((feature) => feature.properties.isDemo === false));
+        if (id.startsWith('cascade-terrain-')) {
+          assert.equal(
+            collection.features.filter((f) => f.properties.feature_kind === 'hillshade').length,
+            1,
+          );
+          assert.ok(
+            collection.features.some((f) => f.properties.feature_kind === 'elevation_band'),
+          );
+          assert.equal(
+            new Set(collection.features.map((f) => f.properties.dataset_version)).size,
+            1,
+          );
+        }
         if (id === 'cascade-map-trails') {
           assert.equal(
             new Set(
@@ -107,11 +127,13 @@ try {
                 .filter((feature) => feature.properties.trail_id)
                 .map((feature) => feature.properties.trail_id),
             ).size,
-            7,
+            9,
           );
           assert.ok(
             collection.features.every(
-              (feature) => feature.properties.source_feature_id === 'cascade-map-024c5c466a926108',
+              (feature) =>
+                feature.properties.source_dataset === 'csnp-official-trails' &&
+                feature.properties.source_properties.PublishTra === 'TRUE',
             ),
           );
         }

@@ -1,30 +1,15 @@
 import type { FeatureCollection } from '../modules/gis/types.js';
 import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
-import { splitSourceMapTrails } from './source-map-trails.js';
+import { officialTrailLayer, readOfficialTrails } from './official-trails.js';
+import { pdfMapLayers, pdfMapReplacements, readPdfMap } from './pdf-map.js';
+import { terrainLayers, terrainReplacements, readTerrainMap } from './terrain-map.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
-const sourceMapDescription =
-  'User-supplied Google My Maps snapshot, retrieved 2026-11-04. Trail names are approximate park-sign matches on partial source geometry. Not surveyed or approved for trail safety. No protective boundary supplied.';
 export const sourceMapLayers: readonly ImportLayerSpec[] = [
-  {
-    layerId: 'cascade-map-trails',
-    name: 'Cascade Springs trails (approximate names)',
-    layerType: 'trail',
-    geometryType: 'LineString',
-    description: sourceMapDescription,
-    source: sourceMapUrl,
-    isDemo: false,
-  },
-  {
-    layerId: 'cascade-map-landmarks',
-    name: 'Cascade Springs landmarks (source map)',
-    layerType: 'landmark',
-    geometryType: 'Point',
-    description: sourceMapDescription,
-    source: sourceMapUrl,
-    isDemo: false,
-  },
-] as const;
+  officialTrailLayer,
+  ...pdfMapLayers,
+  ...terrainLayers,
+];
 
 /** Validate the dataset-specific ingestion contract before opening a transaction. */
 export function validateSourceMap(value: unknown): FeatureCollection {
@@ -81,8 +66,12 @@ export function validateSourceMap(value: unknown): FeatureCollection {
   return collection;
 }
 
-/** Replace only this source's two layers atomically; unrelated and demo data stay intact. */
+/** Replace all selected source layers atomically; unrelated and demo data stay intact. */
 export async function importSourceMap(connectionString: string, value: unknown): Promise<void> {
-  const collection = splitSourceMapTrails(validateSourceMap(value));
-  await replaceLayers(connectionString, 2, sourceMapLayers, collection);
+  validateSourceMap(value); // Archive validation only; legacy values cannot downgrade selected data.
+  await replaceLayers(connectionString, 2, [
+    { layer: officialTrailLayer, collection: readOfficialTrails() },
+    ...pdfMapReplacements(readPdfMap()),
+    ...terrainReplacements(readTerrainMap()),
+  ]);
 }
