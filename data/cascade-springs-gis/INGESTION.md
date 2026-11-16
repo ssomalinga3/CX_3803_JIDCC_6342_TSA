@@ -1,8 +1,9 @@
 # Supplied-source ingestion contract
 
 Engineering handoff for PR 2, established by the source-foundation task. These
-names and rules are for the forthcoming converter/importer; this PR does not
-extend runtime TypeScript types or publish GeoJSON. Use the existing generic
+names and rules are implemented by the [PR 2 converter/importer](TRAILS.md).
+Runtime types now include supplied attributes and unassigned trail identity;
+no physical table or endpoint is added. Use the existing generic
 tables and [public read contract](../../docs/api.md#implemented-public-gis-reads-november-1-2026).
 See [source evidence](README.md) and the [stack plan](../../docs/tasks/gis-data-integration-plan.md).
 

@@ -1,10 +1,8 @@
 import type { FeatureCollection } from '../modules/gis/types.js';
 import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
 
-// Symmetric with source-map.ts: a validated, file-backed, transactional import.
-// The boundary is an approximate hand-drawn guess, the same credibility tier as
-// the source trails/landmarks (isDemo: false, name_assignment: approximate), not
-// a synthetic demo fixture.
+// The hand-drawn boundary remains approximate until the PDF slice replaces it.
+// Supplied trail geometry does not upgrade this polygon's accuracy.
 export const boundaryMapSource = 'Hand-drawn estimate by the project team';
 export const boundaryMapLayers: readonly ImportLayerSpec[] = [
   {
@@ -13,7 +11,7 @@ export const boundaryMapLayers: readonly ImportLayerSpec[] = [
     layerType: 'boundary',
     geometryType: 'Polygon',
     description:
-      'Hand-drawn approximate preserve outline supplied by the project team. Not surveyed, field-verified, or approved for navigation or property determinations. Same provisional tier as the approximate trail data.',
+      'Hand-drawn approximate preserve outline supplied by the project team. Not surveyed, field-verified, or approved for navigation or property determinations. Awaiting supplied PDF boundary extraction.',
     source: boundaryMapSource,
     isDemo: false,
   },
@@ -75,5 +73,5 @@ export function validateBoundaryMap(value: unknown): FeatureCollection {
 /** Replace only this source's boundary layer atomically; unrelated data stays intact. */
 export async function importBoundaryMap(connectionString: string, value: unknown): Promise<void> {
   const collection = validateBoundaryMap(value);
-  await replaceLayers(connectionString, 3, boundaryMapLayers, collection);
+  await replaceLayers(connectionString, 3, [{ layer: boundaryMapLayers[0]!, collection }]);
 }

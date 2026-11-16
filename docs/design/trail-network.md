@@ -20,6 +20,13 @@ connections remain unnamed. This does not replace the full-network GIS request.
 
 ## Inventory awaiting GIS
 
+**Current arrival status:** PR 2 integrates supplied shapefile trail geometry.
+The [catalog](../../data/trail-network/catalog.json) marks its nine trail families
+as `supplied-gis`, with source counts and one unnamed segment; remaining context
+layers still await extraction. Sign difficulty/color values below remain
+reference evidence, not defaults for missing source attributes. See
+[route mapping, replacement policy and evidence](../../data/cascade-springs-gis/TRAILS.md).
+
 The [planning catalog](../../data/trail-network/catalog.json) records the sign's
 trail names, difficulty labels, approximate color names, layer families and
 landmark categories. Every entry is marked `awaiting-gis`. It is not a seed,

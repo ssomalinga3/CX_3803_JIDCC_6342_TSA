@@ -60,6 +60,13 @@ For how the pnpm workspace scripts are structured and how a new package joins th
 
 ## Mobile public GIS connection
 
+The [supplied trail pipeline](../data/cascade-springs-gis/TRAILS.md) runs Python
+conversion only in development/CI; runtime imports read the committed, validated
+GeoJSON. Both the combined source command and trail-only command select supplied
+trails using the same advisory lock. Explicit per-layer collections replace
+geometry-type-only selection, with duplicate assignment checks and transactional
+rollback. Neither GIS tooling nor source archives enter the mobile bundle.
+
 The mobile client reuses the backend GIS contracts through type-only imports;
 no database or Worker runtime modules enter the mobile bundle. It validates
 catalog metadata, same-origin feature paths, and GeoJSON at runtime before

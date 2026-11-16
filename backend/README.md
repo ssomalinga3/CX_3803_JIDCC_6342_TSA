@@ -1,5 +1,12 @@
 # Backend: local Workers + PostGIS
 
+Current GIS selection: `pnpm --dir backend db:import:source` imports 36 supplied
+trail segments and eight My Maps landmarks. `pnpm --dir backend db:import:trails`
+replaces only trails, preserving landmarks. Both serialize on the same lock and
+remove stale trail features. Legacy KML conversion remains archival and cannot
+restore approximate trails through the source importer. See
+[conversion, provenance, counts and verification](../data/cascade-springs-gis/TRAILS.md).
+
 The API runs locally in Cloudflare Workers through Wrangler, using Express 5,
 TypeScript, Drizzle, and PostgreSQL 16/PostGIS. No Cloudflare account, cloud
 resources, or real credentials are needed for local development.

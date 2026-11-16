@@ -17,11 +17,11 @@ it('keeps the sign inventory separate from published GIS and covers every geomet
   const catalog = JSON.parse(
     readFileSync(new URL('../../data/trail-network/catalog.json', import.meta.url), 'utf8'),
   );
-  expect(catalog.status).toBe('awaiting-gis');
+  expect(catalog.status).toBe('trails-integrated-context-pending');
   expect(catalog.trails).toHaveLength(9);
   expect(new Set(catalog.trails.map((trail: { trail_id: string }) => trail.trail_id)).size).toBe(9);
   for (const trail of catalog.trails) {
-    expect(trail.status).toBe('awaiting-gis');
+    expect(trail.status).toBe('supplied-gis');
     expect(trail.geometry).toBeUndefined();
   }
   expect(

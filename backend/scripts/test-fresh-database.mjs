@@ -32,6 +32,9 @@ try {
     'db:seed',
     'db:import:source',
     'db:import:source',
+    'db:import:trails',
+    'db:import:trails',
+    'db:import:source',
     'test:integration',
     'test:worker',
   ]) {

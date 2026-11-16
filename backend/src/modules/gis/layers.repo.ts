@@ -40,7 +40,7 @@ export function createLayersRepository(connectionString: () => string): LayersRe
           geometry: Geometry | null;
           properties: Record<string, unknown> | null;
         }>(sql`
-        SELECT f.feature_id, ST_AsGeoJSON(f.geometry)::jsonb AS geometry, f.properties
+        SELECT f.feature_id, ST_AsGeoJSON(f.geometry, 15)::jsonb AS geometry, f.properties
         FROM gis_layer l LEFT JOIN gis_feature f ON f.layer_id = l.layer_id ${viewport}
         WHERE l.layer_id = ${layerId} AND l.is_public = true
         ORDER BY f.feature_id

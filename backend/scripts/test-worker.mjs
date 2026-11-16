@@ -92,7 +92,7 @@ try {
       // Import path is exercised by CI/local setup; verify real source data through the Worker.
       assert.ok(layers.some((layer) => layer.layerId === 'cascade-map-trails' && !layer.isDemo));
       for (const [id, count] of [
-        ['cascade-map-trails', 10],
+        ['cascade-map-trails', 36],
         ['cascade-map-landmarks', 8],
       ]) {
         const response = await fetch(`${base}/api/v1/layers/${id}/features`);
@@ -107,11 +107,13 @@ try {
                 .filter((feature) => feature.properties.trail_id)
                 .map((feature) => feature.properties.trail_id),
             ).size,
-            7,
+            9,
           );
           assert.ok(
             collection.features.every(
-              (feature) => feature.properties.source_feature_id === 'cascade-map-024c5c466a926108',
+              (feature) =>
+                feature.properties.source_dataset === 'csnp-official-trails' &&
+                feature.properties.source_properties.PublishTra === 'TRUE',
             ),
           );
         }
