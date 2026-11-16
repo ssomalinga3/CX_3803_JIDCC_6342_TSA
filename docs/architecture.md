@@ -179,3 +179,20 @@ separate in private root Neon environment configuration. Local Docker and CI
 continue to use their existing databases; hosted commands are explicit. See the
 [operational runbook](development/cloudflare-backend-runbook.md) for actual
 resources, completed end-to-end checks, prepared CD and remaining recovery work.
+
+## Multiple basemaps (J6-68)
+
+A typed mobile-only registry supplies five OpenFreeMap vector styles and four
+USGS raster styles. `MapGisProvider` owns a session-only basemap selection,
+independently of the public GIS snapshot, presets and terrain source. The one
+provider-grouped chooser applies immediately. It works without an API connection.
+
+The native Map remains mounted on style changes and explicit retry. Stable GIS,
+terrain and device sources reattach through MapLibre's existing style lifecycle;
+visibility and fitting stay independent of basemap loading. A bounded, abortable
+health check requests only the selected style, its primary current-viewport tile
+and overlay glyph. Readiness requires this check and native rendering; it is not
+an exhaustive coverage or ongoing quota monitor. Failure removes the remote
+basemap source to stop requests and offers explicit Retry / Use Standard map.
+No automatic fallback loop, backend relay, server tile cache or new dependency is
+added. See [provider and verification details](development/basemap-options.md).

@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
+import { DEFAULT_BASEMAP, getBasemap } from '@/data/basemaps';
 import { visibleGis } from '@/data/layer-visibility';
 import {
   defaultLayerPreset,
@@ -18,6 +19,8 @@ function useMapGisState() {
     terrainSource: TerrainKey;
     terrainEnabled?: boolean;
   }>(() => ({ preset: defaultLayerPreset, overrides: new Map(), terrainSource: 'usgs' }));
+  const [basemapId, setBasemapId] = useState(DEFAULT_BASEMAP);
+  const basemap = getBasemap(basemapId);
   const snapshot = gis.snapshot;
   const availableTerrain = useMemo(() => visibleTerrainKeys(snapshot), [snapshot]);
   const terrainSource = availableTerrain.includes(choices.terrainSource)
@@ -58,6 +61,8 @@ function useMapGisState() {
   };
   return {
     gis,
+    basemap,
+    chooseBasemap: (id: string) => setBasemapId(getBasemap(id).id),
     hidden,
     terrainSource,
     preset: choices.preset,

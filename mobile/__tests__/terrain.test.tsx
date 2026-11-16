@@ -98,6 +98,12 @@ const tree = (chooser = true) => (
     {chooser && <LayerSelectionScreen />}
   </MapGisProvider>
 );
+async function changeBasemap(label: string) {
+  const button = screen.getByRole('button', { name: 'Choose base map' });
+  if (!button.props.accessibilityState.expanded) await userEvent.setup().press(button);
+  await userEvent.setup().press(screen.getByRole('radio', { name: `Use ${label} base map` }));
+  await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
+}
 test('one Elevation toggle selects one source immediately and preserves the camera', async () => {
   const data = await snapshot();
   jest
@@ -107,10 +113,12 @@ test('one Elevation toggle selects one source immediately and preserves the came
   await render(tree());
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   const fits = mockFitBounds.mock.calls.length;
+  await changeBasemap('OpenFreeMap Dark');
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
   expect(screen.queryByTestId('terrain-supplied')).not.toBeOnTheScreen();
-  expect(screen.getByTestId('terrain-usgs')).toBeOnTheScreen();
+  await changeBasemap('USGS Aerial');
+  expect(screen.getAllByTestId('terrain-usgs')).toHaveLength(1);
   expect(screen.getAllByRole('switch')).toHaveLength(2);
   expect(screen.getByText('2 of 2 layers selected')).toBeOnTheScreen();
   expect(screen.queryByText('Why they look similar')).not.toBeOnTheScreen();
@@ -129,7 +137,8 @@ test('one Elevation toggle selects one source immediately and preserves the came
   expect(screen.queryByText('Why they look similar')).not.toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Choose elevation source' })).toBeCollapsed();
   expect(screen.getByText('Source: Supplied DTM')).toBeOnTheScreen();
-  expect(screen.getByTestId('terrain-supplied')).toBeOnTheScreen();
+  await changeBasemap('USGS Topographic');
+  expect(screen.getAllByTestId('terrain-supplied')).toHaveLength(1);
   expect(screen.queryByTestId('terrain-usgs')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 2 layers · 65 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
@@ -179,6 +188,7 @@ test('refresh retains the chosen source and safely falls back when it is no long
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Staff preset' }));
   await userEvent.setup().press(screen.getByRole('button', { name: 'Choose elevation source' }));
   await userEvent.setup().press(screen.getByRole('radio', { name: 'Use Supplied DTM elevation' }));
+  await changeBasemap('OpenFreeMap Fiord');
   gis.mockReturnValue({ status: 'ready', snapshot: { ...data }, retry: jest.fn() });
   await view.rerender(tree());
   expect(screen.getByTestId('terrain-supplied')).toBeOnTheScreen();

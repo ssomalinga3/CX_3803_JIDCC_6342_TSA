@@ -22,6 +22,7 @@ Cascade Springs Nature Conservancy Smart GIS: Mapping Atlanta's Ecological Core.
 | [Layer-toggle acceptance](development/layer-toggle-acceptance.md) | J6-21 client-to-component regression and remaining native visual/performance checks |
 | [Natural map rendering order](development/map-layer-order.md) | Native z-order policy, stable raster slots and overlapping-feature priority |
 | [Public visibility presets](development/layer-presets.md) | Visitor/Staff/Researcher defaults, manual overrides and session lifecycle |
+| [Multiple basemap options](development/basemap-options.md) | J6-68 provider catalog, source eligibility, recovery and iOS/Android verification |
 | [Windows/Android startup](development/windows-android.md) | PowerShell prerequisites, EAS cloud build, Android Emulator, Metro, Worker and PostGIS |
 | [First task + agent plan](tasks/first-task-gis-layers.md) | First implementation task (scope/acceptance) and the [proposed plan](tasks/first-task-implementation-plan.md) |
 | [Supplied GIS integration plan](tasks/gis-data-integration-plan.md) | Source inventory, five stacked PRs, implementation pointers, acceptance checks, and fresh-agent handoffs |

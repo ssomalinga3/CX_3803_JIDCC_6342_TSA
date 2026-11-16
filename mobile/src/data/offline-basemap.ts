@@ -4,27 +4,7 @@ import {
   type OfflinePackStatus,
 } from '@maplibre/maplibre-react-native';
 
-export function offlineStyleUrl(value: string | undefined): string | undefined {
-  if (!value) return;
-  try {
-    const url = new URL(value);
-    if (
-      url.protocol === 'https:' &&
-      !url.username &&
-      !url.password &&
-      !url.search &&
-      !url.hash &&
-      url.hostname !== 'openfreemap.org' &&
-      !url.hostname.endsWith('.openfreemap.org')
-    ) {
-      return url.href;
-    }
-  } catch {
-    // Invalid configuration leaves the prototype disabled.
-  }
-}
-
-export const OFFLINE_STYLE = offlineStyleUrl(process.env.EXPO_PUBLIC_OFFLINE_MAP_STYLE_URL);
+export { OFFLINE_STYLE, offlineStyleUrl } from '@/data/offline-basemap-config';
 
 const REGION = {
   bounds: [-84.497, 33.702, -84.463, 33.734] as [number, number, number, number],

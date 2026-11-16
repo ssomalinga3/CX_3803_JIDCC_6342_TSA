@@ -64,3 +64,9 @@ jest.mock('@maplibre/maplibre-react-native', () => {
     },
   };
 });
+
+// Network health is exercised separately with controlled HTTP fixtures.
+jest.mock('@/data/basemap-health', () => ({
+  ...jest.requireActual('@/data/basemap-health'),
+  checkBasemap: jest.fn().mockResolvedValue(undefined),
+}));
