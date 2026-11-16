@@ -9,8 +9,17 @@ import {
   type ViewState,
 } from '@maplibre/maplibre-react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
+  Linking,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrailLegend } from '@/components/trail-legend';
@@ -26,10 +35,12 @@ import { trailPresentation } from '@/data/trail-presentation';
 import { terrainAssets, visibleTerrainKeys } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
+import { useLocationFollow } from '@/hooks/use-location-follow';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
 const INITIAL_ZOOM = 15;
+const LOCATION_ZOOM = 15.5;
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 19;
 const EMPTY_GIS: GisSnapshot['collection'] = { type: 'FeatureCollection', features: [] };
@@ -57,6 +68,19 @@ export default function PreserveMap() {
   useFocusEffect(useCallback(() => () => setSelection(undefined), []));
 
   const ready = loadState === 'ready';
+  const locationPadding = useMemo(
+    () => ({ top: insets.top + 110, bottom: dockBottom + dockHeight + 20, left: 24, right: 84 }),
+    [insets.top, dockBottom, dockHeight],
+  );
+  const locationFollow = useLocationFollow(
+    camera,
+    map,
+    location.fix,
+    loadState,
+    locationPadding,
+    LOCATION_ZOOM,
+    location.status,
+  );
   const snapshot = visibleSnapshot;
   const details =
     selection && selection.snapshot === snapshot
@@ -135,14 +159,24 @@ export default function PreserveMap() {
     unavailable: 'Location unavailable. Check device location services and try again.',
   }[location.status];
   const locating = location.status === 'requesting' || location.status === 'searching';
+  function openLocationSettings() {
+    locationFollow.stop();
+    setSettingsFailed(false);
+    void Linking.openSettings().catch(() => setSettingsFailed(true));
+  }
+  function followLocation() {
+    if (location.status === 'blocked') {
+      openLocationSettings();
+    } else if (location.fix) {
+      void locationFollow.recenter();
+    } else {
+      locationFollow.followWhenReady();
+      location.enable();
+    }
+  }
   async function zoomBy(delta: number) {
     try {
-      const zoom = await map.current?.getZoom();
-      if (zoom !== undefined) {
-        camera.current?.zoomTo(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta)), {
-          duration: 200,
-        });
-      }
+      await locationFollow.zoomBy(delta, MIN_ZOOM, MAX_ZOOM);
     } catch {
       basemapLoad.failed();
     }
@@ -160,6 +194,15 @@ export default function PreserveMap() {
         compassPosition={{ top: insets.top + 108, right: 24 }}
         onDidFinishRenderingMapFully={basemapLoad.rendered}
         onDidFailLoadingMap={basemapLoad.failed}
+        onRegionWillChange={(event) => {
+          if (event.nativeEvent.userInteraction) {
+            visibilityChanged.current = true;
+            locationFollow.stop();
+          }
+        }}
+        onRegionIsChanging={(event) => {
+          if (event.nativeEvent.userInteraction) locationFollow.stop();
+        }}
         onRegionDidChange={(event) => {
           viewport.current = event.nativeEvent;
           if (event.nativeEvent.userInteraction) visibilityChanged.current = true;
@@ -519,31 +562,42 @@ export default function PreserveMap() {
 
       <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
         <MapButton
-          label="Recenter on my location"
-          disabled={!ready || !location.fix}
-          onPress={() => {
-            if (!location.fix) return;
-            camera.current?.easeTo({
-              center: [location.fix.coords.longitude, location.fix.coords.latitude],
-              zoom: INITIAL_ZOOM,
-              padding: {
-                top: insets.top + 110,
-                bottom: dockBottom + dockHeight + 20,
-                left: 24,
-                right: 84,
-              },
-              bearing: 0,
-              pitch: 0,
-              duration: 300,
-            });
-          }}
+          label="Follow my location"
+          hint={
+            location.status === 'blocked' ? 'Open Settings to enable location access.' : undefined
+          }
+          disabled={!ready || locating}
+          busy={locating}
+          selected={locationFollow.following}
+          onPress={followLocation}
         >
-          ⌖
+          {locating ? (
+            <ActivityIndicator color="#007aff" aria-hidden />
+          ) : (
+            <SymbolView
+              name={{
+                ios: locationFollow.following ? 'location.fill' : 'location',
+                android: 'near_me',
+                web: 'my_location',
+              }}
+              size={27}
+              style={[
+                styles.controlIcon,
+                Platform.OS === 'ios' &&
+                  (locationFollow.following
+                    ? styles.locationIconFilled
+                    : styles.locationIconOutline),
+              ]}
+              tintColor={locationFollow.following ? '#007aff' : '#1c1c1e'}
+              aria-hidden
+            />
+          )}
         </MapButton>
         <MapButton
           label="Return to preserve"
           disabled={!ready}
           onPress={() => {
+            locationFollow.stop();
             camera.current?.easeTo({
               center: PRESERVE_CENTER,
               zoom: INITIAL_ZOOM,
@@ -553,13 +607,31 @@ export default function PreserveMap() {
             });
           }}
         >
-          ◎
+          <SymbolView
+            name={{ ios: 'map', android: 'map', web: 'map' }}
+            size={25}
+            tintColor="#1c1c1e"
+            style={styles.controlIcon}
+            aria-hidden
+          />
         </MapButton>
         <MapButton label="Zoom in" disabled={!ready} onPress={() => void zoomBy(1)}>
-          +
+          <SymbolView
+            name={{ ios: 'plus', android: 'add', web: 'add' }}
+            size={27}
+            tintColor="#1c1c1e"
+            style={styles.controlIcon}
+            aria-hidden
+          />
         </MapButton>
         <MapButton label="Zoom out" disabled={!ready} onPress={() => void zoomBy(-1)}>
-          −
+          <SymbolView
+            name={{ ios: 'minus', android: 'remove', web: 'remove' }}
+            size={27}
+            tintColor="#1c1c1e"
+            style={styles.controlIcon}
+            aria-hidden
+          />
         </MapButton>
       </View>
 
@@ -621,32 +693,19 @@ export default function PreserveMap() {
               accessibilityRole="button"
               accessibilityLabel="Open location settings"
               style={styles.retry}
-              onPress={() => {
-                setSettingsFailed(false);
-                void Linking.openSettings().catch(() => setSettingsFailed(true));
-              }}
+              onPress={openLocationSettings}
             >
               <Text style={styles.retryText}>Open Settings</Text>
-            </Pressable>
-          ) : location.status !== 'ready' ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Use my location"
-              accessibilityState={{ disabled: locating }}
-              disabled={locating}
-              style={[styles.retry, locating && styles.dimmed]}
-              onPress={location.enable}
-            >
-              <Text style={styles.retryText}>
-                {locating ? 'Finding location…' : 'Use my location'}
-              </Text>
             </Pressable>
           ) : null}
           {location.status !== 'off' && (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Turn off map location"
-              onPress={location.disable}
+              onPress={() => {
+                locationFollow.stop();
+                location.disable();
+              }}
               style={styles.secondaryAction}
             >
               <Text style={styles.secondaryText}>Turn off location</Text>
@@ -749,24 +808,35 @@ export default function PreserveMap() {
 function MapButton({
   label,
   disabled,
+  selected,
+  busy,
+  hint,
   onPress,
   children,
 }: {
   label: string;
   disabled: boolean;
+  selected?: boolean;
+  busy?: boolean;
+  hint?: string;
   onPress: () => void;
-  children: string;
+  children: ReactNode;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled, selected, busy }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, (pressed || disabled) && styles.dimmed]}
+      style={({ pressed }) => [
+        styles.button,
+        selected && styles.selectedButton,
+        (pressed || disabled) && styles.dimmed,
+      ]}
     >
-      <Text style={styles.buttonText}>{children}</Text>
+      {children}
     </Pressable>
   );
 }
@@ -805,7 +875,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     boxShadow: '0px 1px 4px rgba(0,0,0,0.12)',
   },
-  buttonText: { fontSize: 30, color: '#1c1c1e' },
+  // Android SymbolView renders Text inside its fixed-size box. Center the glyph
+  // layout as well as the box instead of aligning the font line to its top edge.
+  controlIcon: { alignItems: 'center', justifyContent: 'center' },
+  // The SF arrows carry more visual weight toward their upper-right tip.
+  // Values are points; keep the spinner and the 52-point hit target centered.
+  locationIconOutline: { transform: [{ translateY: 1 }] },
+  locationIconFilled: { transform: [{ translateX: -1 }, { translateY: 2 }] },
+  selectedButton: { backgroundColor: '#d7edff' },
   dimmed: { opacity: 0.5 },
   tabBackdrop: {
     position: 'absolute',

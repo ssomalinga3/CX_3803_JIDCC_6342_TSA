@@ -217,7 +217,7 @@ test('a live GPS session survives style switching and retry without another prom
   jest.mocked(Location.watchPositionAsync).mockResolvedValueOnce({ remove });
   await render(tree());
   await rendered();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Follow my location' }));
   await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1));
   const prompts = jest.mocked(Location.requestForegroundPermissionsAsync).mock.calls.length;
   await choose('USGS Aerial');
@@ -229,4 +229,50 @@ test('a live GPS session survives style switching and retry without another prom
   expect(Location.requestForegroundPermissionsAsync).toHaveBeenCalledTimes(prompts);
   expect(remove).not.toHaveBeenCalled();
   expect(screen.getByRole('button', { name: 'Turn off map location' })).toBeOnTheScreen();
+});
+
+test('a style change retains follow mode and centers the latest fix when the map is ready again', async () => {
+  let update!: Location.LocationCallback;
+  jest.mocked(Location.watchPositionAsync).mockImplementationOnce(async (_options, callback) => {
+    update = callback;
+    return { remove: jest.fn() };
+  });
+  const fix = (longitude: number, timestamp: number): Location.LocationObject => ({
+    timestamp,
+    coords: {
+      longitude,
+      latitude: 33.72,
+      accuracy: 5,
+      altitude: null,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null,
+    },
+  });
+  await render(tree());
+  await rendered();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Follow my location' }));
+  await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1));
+  const timestamp = Date.now();
+  await act(() => update(fix(-84.48, timestamp)));
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeSelected();
+  let finishHealth!: () => void;
+  health.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      finishHealth = resolve;
+    }),
+  );
+  await choose('USGS Aerial');
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeSelected();
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeDisabled();
+  mockEaseTo.mockClear();
+  await act(() => update(fix(-84.481, timestamp + 1)));
+  expect(mockEaseTo).not.toHaveBeenCalled();
+  await rendered();
+  await act(async () => finishHealth());
+  expect(mockEaseTo).toHaveBeenLastCalledWith(
+    expect.objectContaining({ center: [-84.481, 33.72] }),
+  );
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeSelected();
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeEnabled();
 });

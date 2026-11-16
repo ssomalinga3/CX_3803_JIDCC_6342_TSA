@@ -1,3 +1,4 @@
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -76,7 +77,17 @@ function ScrollCue({ direction, top }: { direction: 'left' | 'right'; top: numbe
       importantForAccessibility="no-hide-descendants"
       style={[styles.cue, { top }, direction === 'left' ? styles.leftCue : styles.rightCue]}
     >
-      <Text style={styles.chevron}>{direction === 'left' ? '‹' : '›'}</Text>
+      <SymbolView
+        name={{
+          ios: direction === 'left' ? 'chevron.left' : 'chevron.right',
+          android: direction === 'left' ? 'chevron_left' : 'chevron_right',
+          web: direction === 'left' ? 'chevron_left' : 'chevron_right',
+        }}
+        size={14}
+        tintColor="#8e8e93"
+        style={styles.chevron}
+        aria-hidden
+      />
     </View>
   );
 }
@@ -110,5 +121,5 @@ const styles = StyleSheet.create({
   },
   leftCue: { left: 0 },
   rightCue: { right: 0 },
-  chevron: { fontSize: 18, lineHeight: 22, color: '#8e8e93' },
+  chevron: { alignItems: 'center', justifyContent: 'center' },
 });

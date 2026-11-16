@@ -117,7 +117,7 @@ test('selection preserves a live GPS watcher and camera position', async () => {
   try {
     await render(<PreserveMap />);
     await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
-    await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Follow my location' }));
     await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1));
     await act(() =>
       update({
@@ -138,7 +138,7 @@ test('selection preserves a live GPS watcher and camera position', async () => {
     await userEvent.setup().press(screen.getByRole('button', { name: 'Close feature details' }));
     expect(Location.watchPositionAsync).toHaveBeenCalledTimes(1);
     expect(mockEaseTo).toHaveBeenCalledTimes(cameraCalls);
-    expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Follow my location' })).toBeEnabled();
   } finally {
     gis.mockRestore();
   }
@@ -223,7 +223,7 @@ test('approximate-name notice remains visible while browsing with denied locatio
   try {
     await render(<PreserveMap />);
     await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
-    await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Follow my location' }));
     expect(
       screen.getByText('Location access is off. Enable it in Settings to see your position.'),
     ).toBeOnTheScreen();
@@ -316,8 +316,8 @@ test('recenter uses the moving device fix rather than the preserve center', asyn
   });
   await render(<PreserveMap />);
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
-  expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeDisabled();
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Use my location' }));
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeEnabled();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Follow my location' }));
   await waitFor(() => expect(Location.watchPositionAsync).toHaveBeenCalled());
   await act(() =>
     update({
@@ -333,7 +333,9 @@ test('recenter uses the moving device fix rather than the preserve center', asyn
       },
     }),
   );
-  await userEvent.setup().press(screen.getByRole('button', { name: 'Recenter on my location' }));
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Follow my location' })).toBeSelected(),
+  );
   expect(mockEaseTo).toHaveBeenLastCalledWith(
     expect.objectContaining({
       center: [-84.48, 33.72],
@@ -341,6 +343,6 @@ test('recenter uses the moving device fix rather than the preserve center', asyn
     }),
   );
   await userEvent.setup().press(screen.getByRole('button', { name: 'Turn off map location' }));
-  expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
 });

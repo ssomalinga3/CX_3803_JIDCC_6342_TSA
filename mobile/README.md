@@ -178,11 +178,19 @@ or app configuration was introduced by that integration slice.
 
 ## Foreground map GPS (J6-14)
 
-The Map tab now offers **Use my location**, requests foreground permission only
-after that action, and draws a blue position dot from `expo-location`. **Recenter
-on my location** centers on the latest fix; **Return to preserve** remains a
-separate action. Position updates move the dot without pulling the camera away
-from manual browsing. Reported accuracy is displayed in meters, including coarse
+The Map tab has one **Follow my location** icon button. Its first tap requests
+foreground permission and follows the first fresh fix, with no second tap needed.
+The separate Use my location button is removed. Later taps recenter and resume
+following; `expo-location` supplies the blue position dot.
+It zooms in to level 15.5 when farther out, preserving any closer zoom. The selected
+button has a blue background. The existing `expo-symbols` package supplies iOS
+`location` / `location.fill` and Android `near_me`, neutral while browsing and
+blue while following. Acquisition shows a busy spinner and disables duplicate taps.
+Dragging or pinching the map stops following;
+tap recenter again to resume. Zoom buttons immediately zoom around the latest GPS fix, preserving its padded
+position on screen even while stationary. Subsequent fixes retain the requested zoom,
+including during an animation. **Return to preserve** stops following and
+returns to the initial viewport. Reported accuracy is displayed in meters, including coarse
 fixes when the OS grants approximate location.
 
 The location subscription exists only while the Map screen is focused and the
@@ -191,6 +199,12 @@ removes the subscription and clears the displayed fix. Returning to the map
 rechecks permission and reacquires a fix if location was enabled. Denial preserves
 pan/zoom; permanent denial offers device Settings. Disabled device services,
 missing GPS, stale fixes, and map/API network failures have separate messages.
+The icon retries acquisition after recoverable failure and opens Settings when
+permission is blocked; the status area also retains an explicit Settings action.
+Dragging, Return to preserve, disabling location or leaving the active Map session
+before the first fix cancels pending follow. Turn off location remains available.
+Losing a fresh fix, map loading failure, leaving Map, backgrounding, or turning
+location off clears follow mode. Recovery requires another recenter tap.
 No coordinates are persisted, logged, or added to GIS API requests.
 
 Display freshness is currently 30 seconds: no initial fix produces an unavailable
@@ -223,12 +237,20 @@ Implementation follows the [SDK 57 location API](https://docs.expo.dev/versions/
 ### Acceptance checks
 
 1. Open Map without enabling location. Confirm GIS/pan/zoom work and no OS prompt
-   appears. Tap Use my location; verify the native explanation and deny it.
-   Confirm browsing still works and the blue dot/recenter remain unavailable.
+   appears. The location icon is enabled once the map is ready; there is no separate
+   Use my location button. Tap Follow my location, verify the native explanation
+   and deny it. Browsing still works; the icon permits deliberate retry or opens
+   Settings for blocked permission. No dot or automatic follow should appear.
 2. Enable location in device Settings, return to Map and supply a simulated fix.
-   Confirm the blue dot and reported accuracy. Tap recenter, pan away, then move
-   the simulated position: the dot moves but the camera stays where you left it.
-   Tap recenter again to move to the new fix.
+   With permission granted, verify one tap shows a busy spinner while acquiring
+   GPS, then centers/follows the first fresh fix automatically. Confirm the blue
+   dot and reported accuracy. At zoom below 15.5, tap the location icon:
+   the camera zooms in to 15.5. Zoom closer and tap it again: the scale stays the
+   same. Move the simulated position repeatedly: the camera follows, keeping
+   the chosen zoom and the dot clear of the header/dock. The button is selected.
+   Drag the map while moving: following stops immediately and the dot continues
+   moving independently. Tap recenter again to resume. Zoom buttons retain follow
+   mode; pinch gestures, Return to preserve, and turning location off end it.
 3. Disable device services or remove the simulated fix. Verify unavailable/stale
    feedback and that old coordinates are not presented as current. Restore the
    fix and confirm recovery. Test approximate permission on supported devices.
@@ -278,6 +300,40 @@ revocation and cleanup are covered with native mocks, which do not establish
 device acceptance. Offline map persistence and off-trail warnings are not part of
 this slice.
 
+### Location-follow verification — November 16, 2026
+
+The combined location/icon change passes mobile lint, TypeScript, all 194 mobile
+tests (28 suites), including 20 camera regressions, 10 consolidated-control
+regressions and a follow-through-style-loading regression, and
+JavaScript exports for iOS and Android.
+On iPhone 17 / iOS 26.3, the existing development client loaded this PR's Metro
+preview on port 8083. Recenter preserved a closer zoom with a 15.5 default;
+both zoom buttons immediately kept a stationary GPS dot anchored, retaining the
+selected follow state. Moving a synthetic GPS fix moved the map while keeping
+the blue dot anchored in the visible viewport. The stale-fix state also cleared
+the selection. The unified control was then checked from location off with existing
+OS permission: its outline symbol became blue/filled and followed the first fix
+after one tap, with no separate Use my location action. See the
+[inactive control](../docs/images/ios26-location-control-off.png) and
+[active follow screenshot](../docs/images/ios26-location-follow.png).
+Optical alignment was also checked on iOS for both variants: outline down 1 point,
+filled left 1 / down 2 points. Android centers the glyph layout within the icon box;
+the selected `near_me` arrow replaces the original Android crosshair. The spinner and 52-point
+button retain their original alignment and touch area. The Android emulator was
+restarted and opened this preview during that check, using the running local API
+on port 8792. Its unbundled emulator window was unavailable to the visual automation
+tool, so Android optical alignment remains visually unverified.
+
+Native drag/pinch cancellation remains visually unverified: coordinate-based
+Simulator automation returned `noWindowsAvailable`, while accessibility button
+actions and screenshots worked. Gesture cancellation, reactivation, stale-fix
+recovery, blur, map failure and pending native-query cancellation pass regression
+tests. The Android API 36 client opened this preview, but its follow/gesture
+behavior and Material symbol were not visually checked. The new permission-prompt,
+denial and Settings flows pass mocks; they were not repeated in the native UI.
+No native compilation, physical-device or
+network-disabled acceptance was performed for this JavaScript-only change.
+
 ## Basemap choices
 
 Choose GIS Layers → Base map offers five OpenFreeMap and four USGS choices.
@@ -286,3 +342,30 @@ Standard remains the fresh-session default. No provider key is needed. See
 [setup, provider eligibility and native verification](../docs/development/basemap-options.md).
 The existing offline style remains an explicit configured source when enabled;
 these online choices do not authorize new offline downloads.
+
+### Map symbols and source indicators
+
+Map controls now use native symbols from the existing `expo-symbols` package:
+`map` for Return to preserve, iOS `plus` / `minus` and Android `add` / `remove`
+for zoom. Trail legend overflow cues use native left/right chevrons. Base map
+and Elevation source rows share the drawn radio indicator already used by presets;
+the parent keeps its accessible radio label and checked state, and the indicator
+is decorative. No location, map, zoom, scroll or radio text glyph remains in app
+controls; separators, ellipses and attribution copyright signs stay as text.
+
+This work is in [PR #49](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/49),
+stacked on [PR #47](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/47)
+to include the basemap picker. Review #49 against that base and land #47 first.
+Loading a new style temporarily pauses follow camera commands and resumes at
+the latest fix when ready; a failed map still ends follow and requires recovery.
+
+On iOS 26.3, native zoom/return controls, the trail chevron and basemap radio rows
+were visually checked; selecting Light changed the accessible checked state and
+kept the chooser open. Standard was restored. A transient style-load failure
+recovered with explicit Retry. Elevation radio labels/states were inspected via
+accessibility, but native scrolling failed with `noWindowsAvailable`, so its
+full visual layout remains pending. See the [map controls](../docs/images/ios26-map-symbol-controls.png)
+and [source indicators](../docs/images/ios26-basemap-radio-indicators.png).
+Android API 36 opened this combined preview; its icon/layout visual checks remain
+pending because its unbundled emulator window is unavailable to the automation
+tool. No native build, physical-device or offline acceptance is claimed here.

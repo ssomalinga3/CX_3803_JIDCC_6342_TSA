@@ -141,14 +141,41 @@ and [acceptance paths](user-flows.md#public-layer-selection-acceptance-j6-19).
 
 ## Foreground GPS progress — November 4, 2026
 
-J6-14 now adds an explicit Use my location action, foreground permission, a moving
+J6-14 now adds an explicit Follow my location action, foreground permission, a moving
 blue dot, reported accuracy, recenter-to-user, and a separate return-to-preserve
-control in the existing map layout. Manual panning does not follow subsequent GPS
-updates. Denial preserves browsing; permanent denial offers Settings. Device
+control in the existing map layout. The November 16, 2026 owner clarification
+changes recenter into an explicit follow action: zoom in to level 15.5 if farther
+out, preserve closer zoom, then follow fresh fixes without resetting zoom.
+The single location control requests permission on tap when location is off, then
+centers and follows its first fresh fix without another tap. Remove the separate
+Use my location button. Use `expo-symbols`: iOS `location` / `location.fill` and
+Android `near_me`, neutral while browsing and blue when following. The selected
+button also has a blue background and accessible selected state. Acquisition shows
+a spinner with busy/disabled state; denial retains status text and deliberate retry,
+and blocked access opens Settings from the icon or the visible recovery action.
+Dragging, returning to preserve, disabling location or leaving the active Map
+session while waiting for the first fix cancels pending follow.
+Center the visible glyph optically inside the circular control: the asymmetric
+iOS outline/filled arrows have individual offsets, while Android centers its
+glyph layout inside the symbol box. The spinner and touch target stay centered.
+Other map controls also use native symbols: `map` for Return to preserve,
+`plus` / `minus` on iOS and `add` / `remove` on Android for zoom. Trail legend
+overflow uses native chevrons. Base map and Elevation source rows use the same
+drawn radio indicator as presets, with selection announced by the parent radio
+control; no text-circle glyphs or duplicate accessible icon labels remain.
+Dragging or pinching returns to manual browsing; zoom buttons retain following.
+While following, both zoom buttons center on the latest fix in the same camera
+animation; a stationary fix needs no new GPS update to restore its on-screen anchor.
+Switching basemaps pauses camera commands while the style loads, retains follow
+intent and resumes at the newest fix when rendering and health checks are ready.
+Return to preserve, stale/missing location, map failure, blur/background or location
+disable ends following, requiring another recenter tap after recovery.
+Denial preserves browsing; permanent denial offers Settings. Device
 services disabled, waiting/missing/stale GPS, and network/map errors remain
 distinct. Location can be turned off and is paused when leaving Map/backgrounding.
 An engineering 30-second display freshness default hides expired fixes and
-disables recentering; it does not define J6-24's trail tolerance. The user asked us
+prevents recentering on stale coordinates; the location control can retry GPS
+acquisition. It does not define J6-24's trail tolerance. The user asked us
 to assume GIS correctness for this implementation, without changing provenance or
 production data approval. See [GPS setup and acceptance](../../mobile/README.md#foreground-map-gps-j6-14)
 for native rebuild instructions and verification status. Off-trail warnings,

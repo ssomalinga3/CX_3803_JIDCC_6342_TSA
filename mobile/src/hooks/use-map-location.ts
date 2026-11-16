@@ -5,7 +5,7 @@ import { AppState } from 'react-native';
 
 // Display freshness only; this is not an off-trail tolerance or accuracy guarantee.
 export const LOCATION_FRESHNESS_MS = 30_000;
-type LocationStatus =
+export type LocationStatus =
   | 'off'
   | 'requesting'
   | 'searching'

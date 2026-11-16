@@ -19,6 +19,18 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 16, 2026 — J6-14 location follow:** The owner requested that the
+  location button only zoom inward (default level 15.5; preserve closer zoom) and
+  follow the user's location until the viewport is dragged. Recenter explicitly
+  enables follow; manual map gestures end it. Zoom buttons retain follow and
+  later fixes preserve zoom. Return to preserve and unavailable location/map or
+  leaving the active Map session also end follow. See the
+  [GPS interaction contract](design/ui-spec.md#foreground-gps-progress--november-4-2026).
+  The owner subsequently approved one native-symbol location control replacing
+  Use my location: first tap requests permission and follows the first fresh fix;
+  later taps recenter/resume. Acquisition is busy, denial/retry and Settings
+  recovery remain explicit, and interrupted first-fix requests cannot resume follow.
+
 - **November 16, 2026 — source picker dismissal:** The owner confirmed that both
   Base map and Elevation source pickers stay open after selecting an item.
   Selection applies immediately; the selected radio and header update, and the

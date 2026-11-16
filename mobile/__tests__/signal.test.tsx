@@ -131,7 +131,7 @@ test('signal toggles apply immediately, keep the camera, avoid duplicate points 
   expect(screen.queryByText('Cell-signal classes')).not.toBeOnTheScreen();
   expect(screen.getByText('Public GIS · 2 layers · 58 features')).toBeOnTheScreen();
   expect(mockFitBounds).toHaveBeenCalledTimes(fits);
-  expect(screen.getByRole('button', { name: 'Use my location' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'Follow my location' })).toBeEnabled();
   await fireEvent(
     screen.getByRole('switch', { name: 'Show Cell-signal observations' }),
     'valueChange',

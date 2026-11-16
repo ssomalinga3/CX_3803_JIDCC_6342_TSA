@@ -106,14 +106,7 @@ export function LayerSelectionScreen() {
                       { borderColor: selected ? '#007aff' : theme.backgroundElement },
                     ]}
                   >
-                    <View
-                      style={[
-                        styles.radio,
-                        { borderColor: selected ? '#007aff' : theme.textSecondary },
-                      ]}
-                    >
-                      {selected && <View style={styles.radioDot} />}
-                    </View>
+                    <RadioIndicator checked={selected} />
                     <Text style={[styles.presetLabel, { color: theme.text }]}>{option.label}</Text>
                   </Pressable>
                 );
@@ -271,9 +264,10 @@ function BasemapChoice() {
                     onPress={() => chooseBasemap(entry.id)}
                     style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
                   >
-                    <Text style={[styles.sourceLabel, { color: theme.text }]}>
-                      {basemap.id === entry.id ? '●' : '○'} {entry.name}
-                    </Text>
+                    <View style={styles.sourceHeading}>
+                      <RadioIndicator checked={basemap.id === entry.id} />
+                      <Text style={[styles.sourceLabel, { color: theme.text }]}>{entry.name}</Text>
+                    </View>
                     <Text style={[styles.description, { color: theme.textSecondary }]}>
                       {entry.description}
                     </Text>
@@ -363,9 +357,12 @@ function ElevationChoice({
               onPress={() => choose(enabled, key)}
               style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
             >
-              <Text style={[styles.sourceLabel, { color: theme.text }]}>
-                {source === key ? '●' : '○'} {terrainLabels[key]}
-              </Text>
+              <View style={styles.sourceHeading}>
+                <RadioIndicator checked={source === key} />
+                <Text style={[styles.sourceLabel, { color: theme.text }]}>
+                  {terrainLabels[key]}
+                </Text>
+              </View>
               <Text style={[styles.description, { color: theme.textSecondary }]}>
                 {terrainLimits[key]}
               </Text>
@@ -379,6 +376,18 @@ function ElevationChoice({
           </Text>
         </View>
       )}
+    </View>
+  );
+}
+
+function RadioIndicator({ checked }: { checked: boolean }) {
+  const theme = useTheme();
+  return (
+    <View
+      aria-hidden
+      style={[styles.radio, { borderColor: checked ? '#007aff' : theme.textSecondary }]}
+    >
+      {checked && <View style={styles.radioDot} />}
     </View>
   );
 }
@@ -436,6 +445,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sourceLabel: { fontSize: 16, fontWeight: '600', flexShrink: 1 },
+  sourceHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sourceOptions: { gap: 12 },
   sourceOption: { minHeight: 44, padding: 12, borderRadius: 10, gap: 6 },
 });
