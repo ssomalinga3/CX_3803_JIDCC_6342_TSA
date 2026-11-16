@@ -194,26 +194,20 @@ Local:    Expo/API client → Wrangler Worker → Docker PostGIS
 Deployed: Expo/API client → Worker → Hyperdrive → managed PostgreSQL/PostGIS
 ```
 
-Wrangler uses the local override to connect directly to PostgreSQL. Actual
-Hyperdrive pooling/caching are bypassed, so a local pass does not verify those
-features or production latency. The committed Hyperdrive ID is a local-only
-placeholder; production deployment is not configured in this PR.
+Wrangler's standard local override connects directly to Docker PostgreSQL and
+bypasses real Hyperdrive pooling/caching. The top-level zero binding ID is
+local-only. The explicit `production` environment now binds the shared account's
+Hyperdrive to Neon PostgreSQL 18/PostGIS, with query caching disabled and a
+read-only runtime login. The owner selected one hosted database without a
+persistent staging database. See the
+[hosting runbook](../docs/development/cloudflare-backend-runbook.md) for the actual
+resources, separate hosted commands, verification, CD enablement and recovery.
 
-Before enabling remote development or deployment, provision separate staging
-resources and record ownership, provider/region, budgets, backups, secrets, and
-cache policy under D-10. Disable Hyperdrive query caching initially, especially
-for future ownership/authorization/report reads. Do not rely on session settings
-surviving transaction pooling. Validate the actual Drizzle/PostGIS queries and
-latency through a staging deployment. A later `wrangler dev --remote --env staging`
-uses real remote resources and ignores the local override; a staging environment
-must first be configured explicitly.
-
-The [implementation plan](../docs/tasks/first-task-implementation-plan.md)
-records the broader hosting direction. [Architecture](../docs/architecture.md),
-[API](../docs/api.md), [data model](../docs/data-model.md), and
-[security](../docs/security.md) remain the domain references. Reporting/auth,
-R2/Queues/email, and production hosting are subsequent work. Public GIS reads
-are implemented as described in the [handoff](GIS-HANDOFF.md).
+Do not rely on session settings surviving Hyperdrive transaction pooling.
+Reporting/auth, S3/SES and proposed storage/queue/email replacements remain
+separate work. [Architecture](../docs/architecture.md), [API](../docs/api.md),
+[data model](../docs/data-model.md) and [security](../docs/security.md) remain the
+domain references. Public GIS reads are described in the [handoff](GIS-HANDOFF.md).
 
 References: [Express on Workers](https://developers.cloudflare.com/workers/tutorials/deploy-an-express-app/),
 [Hyperdrive local development](https://developers.cloudflare.com/hyperdrive/configuration/local-development/),
@@ -222,9 +216,16 @@ References: [Express on Workers](https://developers.cloudflare.com/workers/tutor
 ## Import the supplied Cascade Springs map
 
 After migrations, run `pnpm --dir backend db:import:source` from the workspace
-root. This repeatable transaction selects all seven source layers (69 features);
+root. This repeatable transaction selects all ten source layers (808 features);
 demo seeding is separate. To include selected data in Worker checks, use
 `GIS_SOURCE_MAP=1 pnpm backend:check`. See the
 [PDF extraction and selected import guide](../data/cascade-springs-gis/PDF-MAP.md).
 Python 3 is required for archived source-conversion fidelity tests. Regenerating
 PDF/trail datasets requires the locked development-only GIS environment.
+
+## Hosted Neon and Cloudflare deployment
+
+The [hosting runbook](../docs/development/cloudflare-backend-runbook.md) documents
+the deployed HTTPS API, root private env file, explicit `backend:hosted:*` commands,
+read-only Hyperdrive connection, CI-gated deployment workflow and verification.
+Local Docker commands remain separate from hosted operations.

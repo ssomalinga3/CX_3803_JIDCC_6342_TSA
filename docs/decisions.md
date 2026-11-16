@@ -42,6 +42,16 @@ The sources settle the main stack and feature direction, but do not settle the c
   do not establish per-pixel acquisition/resolution. See
   [terrain evidence and contracts](../data/cascade-springs-gis/TERRAIN.md).
 
+- **November 12, 2026 — D-10 initial hosted backend:** Project-owner direction
+  selects one hosted Neon PostgreSQL 18/PostGIS database named `cascade-springs`
+  and Cloudflare Workers in shared account `DCC-6342-TSAA`, without a persistent
+  staging database or required custom domain. Retain `pg`/Drizzle through
+  Hyperdrive with query caching disabled and a read-only runtime login. Explicit
+  hosted commands use root private Neon env variables; existing local/CI Docker
+  databases remain separate. The deployment workflow is prepared but requires
+  GitHub secrets, review/merge and enablement. Budget/recovery ownership and a
+  restore exercise remain open. See the [hosting runbook](development/cloudflare-backend-runbook.md).
+
 - **November 5, 2026 — D-08 J6-19 implementation reconciliation:** The layer
   chooser follows the dedicated screen already documented from Figma, with Map
   back, individual switches and Done, rather than the ticket's older drawer
