@@ -177,10 +177,11 @@ or app configuration was introduced by that integration slice.
 The Map tab now offers **Use my location**, requests foreground permission only
 after that action, and draws a blue position dot from `expo-location`. **Recenter
 on my location** centers on the latest fix and follows subsequent fresh fixes.
-It zooms in to level 15 when farther out, preserving any closer zoom. The selected
+It zooms in to level 15.5 when farther out, preserving any closer zoom. The selected
 button has a blue background. Dragging or pinching the map stops following;
-tap recenter again to resume. Zoom buttons preserve follow mode and subsequent
-fixes preserve the chosen zoom. **Return to preserve** stops following and
+tap recenter again to resume. Zoom buttons immediately zoom around the latest GPS fix, preserving its padded
+position on screen even while stationary. Subsequent fixes retain the requested zoom,
+including during an animation. **Return to preserve** stops following and
 returns to the initial viewport. Reported accuracy is displayed in meters, including coarse
 fixes when the OS grants approximate location.
 
@@ -227,8 +228,8 @@ Implementation follows the [SDK 57 location API](https://docs.expo.dev/versions/
    appears. Tap Use my location; verify the native explanation and deny it.
    Confirm browsing still works and the blue dot/recenter remain unavailable.
 2. Enable location in device Settings, return to Map and supply a simulated fix.
-   Confirm the blue dot and reported accuracy. At zoom below 15, tap recenter:
-   the camera zooms in to 15. Zoom closer and tap it again: the scale stays the
+   Confirm the blue dot and reported accuracy. At zoom below 15.5, tap recenter:
+   the camera zooms in to 15.5. Zoom closer and tap it again: the scale stays the
    same. Move the simulated position repeatedly: the camera follows, keeping
    the chosen zoom and the dot clear of the header/dock. The button is selected.
    Drag the map while moving: following stops immediately and the dot continues
@@ -285,11 +286,12 @@ this slice.
 
 ### Location-follow verification — November 16, 2026
 
-The follow change passes mobile lint, TypeScript, all 159 mobile tests (25 suites),
-including 15 new camera regressions, and JavaScript exports for iOS and Android.
+The follow change passes mobile lint, TypeScript, all 164 mobile tests (25 suites),
+including 20 new camera regressions, and JavaScript exports for iOS and Android.
 On iPhone 17 / iOS 26.3, the existing development client loaded this PR's Metro
-preview on port 8083. Recenter preserved a closer zoom; zoom buttons retained the
-selected follow state; moving a synthetic GPS fix moved the map while keeping
+preview on port 8083. Recenter preserved a closer zoom with a 15.5 default;
+both zoom buttons immediately kept a stationary GPS dot anchored, retaining the
+selected follow state. Moving a synthetic GPS fix moved the map while keeping
 the blue dot anchored in the visible viewport. The stale-fix state also cleared
 the selection. See the [active follow screenshot](../docs/images/ios26-location-follow.png).
 

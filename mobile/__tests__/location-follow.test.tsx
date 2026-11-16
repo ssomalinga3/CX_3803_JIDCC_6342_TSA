@@ -55,7 +55,7 @@ afterEach(() => {
   mockFocusState.focused = true;
 });
 
-test.each([13, 15, 18.5])(
+test.each([13, 15.5, 18.5])(
   'recenter at zoom %s only zooms in and selects follow mode',
   async (zoom) => {
     mockGetZoom.mockResolvedValue(zoom);
@@ -65,7 +65,7 @@ test.each([13, 15, 18.5])(
     expect(mockEaseTo).toHaveBeenLastCalledWith(
       expect.objectContaining({
         center: [-84.48, 33.72],
-        zoom: Math.max(15, zoom),
+        zoom: Math.max(15.5, zoom),
         padding: expect.objectContaining({ top: 169, bottom: expect.any(Number) }),
       }),
     );
@@ -73,24 +73,94 @@ test.each([13, 15, 18.5])(
   },
 );
 
-test('fresh fixes follow without resetting zoom; programmatic camera and zoom buttons keep following', async () => {
+test('fresh fixes keep the requested zoom; programmatic camera and zoom buttons keep following', async () => {
   const view = await readyMap();
   await userEvent.setup().press(recenter());
   await region(false);
   await region(false, 'regionIsChanging');
   await userEvent.setup().press(screen.getByRole('button', { name: 'Zoom in' }));
-  expect(mockZoomTo).toHaveBeenCalledWith(17, { duration: 200 });
+  expect(mockZoomTo).not.toHaveBeenCalled();
+  expect(mockEaseTo).toHaveBeenLastCalledWith({
+    center: [-84.48, 33.72],
+    zoom: 17,
+    padding: expect.any(Object),
+    duration: 200,
+  });
   mockEaseTo.mockClear();
   for (const longitude of [-84.481, -84.482]) {
     setFix(fix(longitude));
     await view.rerender(<MapScreen />);
     expect(mockEaseTo).toHaveBeenLastCalledWith({
       center: [longitude, 33.72],
+      zoom: 17,
       padding: expect.any(Object),
       duration: 300,
     });
   }
   expect(recenter()).toBeSelected();
+});
+
+test.each([
+  ['Zoom in', 17],
+  ['Zoom out', 15],
+] as const)(
+  '%s keeps stationary GPS centered without waiting for a new fix',
+  async (label, zoom) => {
+    await readyMap();
+    await userEvent.setup().press(recenter());
+    mockEaseTo.mockClear();
+    await userEvent.setup().press(screen.getByRole('button', { name: label }));
+    expect(mockEaseTo).toHaveBeenCalledTimes(1);
+    expect(mockEaseTo).toHaveBeenLastCalledWith({
+      center: [-84.48, 33.72],
+      zoom,
+      padding: expect.any(Object),
+      duration: 200,
+    });
+    expect(mockZoomTo).not.toHaveBeenCalled();
+    expect(recenter()).toBeSelected();
+  },
+);
+
+test('successive zoom taps build on the requested scale during native animation and respect the limit', async () => {
+  const view = await readyMap();
+  await userEvent.setup().press(recenter());
+  const user = userEvent.setup();
+  // Native getZoom still reports 16 while the earlier animation is in progress.
+  for (const zoom of [17, 18, 19, 19]) {
+    await user.press(screen.getByRole('button', { name: 'Zoom in' }));
+    expect(mockEaseTo).toHaveBeenLastCalledWith(expect.objectContaining({ zoom }));
+  }
+  setFix(fix(-84.481));
+  await view.rerender(<MapScreen />);
+  expect(mockEaseTo).toHaveBeenLastCalledWith(expect.objectContaining({ zoom: 19 }));
+});
+
+test('zoom after dragging browses the viewport without pulling it back to GPS', async () => {
+  await readyMap();
+  await userEvent.setup().press(recenter());
+  await region(true);
+  mockEaseTo.mockClear();
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Zoom in' }));
+  expect(mockEaseTo).not.toHaveBeenCalled();
+  expect(mockZoomTo).toHaveBeenCalledWith(17, { duration: 200 });
+});
+
+test('dragging cancels pending zoom rather than snapping back to GPS when its query resolves', async () => {
+  await readyMap();
+  await userEvent.setup().press(recenter());
+  let resolve!: (zoom: number) => void;
+  mockGetZoom.mockReturnValueOnce(
+    new Promise<number>((done) => {
+      resolve = done;
+    }),
+  );
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Zoom in' }));
+  await region(true);
+  mockEaseTo.mockClear();
+  await act(async () => resolve(16));
+  expect(mockEaseTo).not.toHaveBeenCalled();
+  expect(mockZoomTo).not.toHaveBeenCalled();
 });
 
 test.each(['regionWillChange', 'regionIsChanging'])(

@@ -144,10 +144,12 @@ and [acceptance paths](user-flows.md#public-layer-selection-acceptance-j6-19).
 J6-14 now adds an explicit Use my location action, foreground permission, a moving
 blue dot, reported accuracy, recenter-to-user, and a separate return-to-preserve
 control in the existing map layout. The November 16, 2026 owner clarification
-changes recenter into an explicit follow action: zoom in to level 15 if farther
+changes recenter into an explicit follow action: zoom in to level 15.5 if farther
 out, preserve closer zoom, then follow fresh fixes without resetting zoom.
 The selected location button has a blue background and accessible selected state.
 Dragging or pinching returns to manual browsing; zoom buttons retain following.
+While following, both zoom buttons center on the latest fix in the same camera
+animation; a stationary fix needs no new GPS update to restore its on-screen anchor.
 Return to preserve, stale/missing location, map failure, blur/background or location
 disable ends following, requiring another recenter tap after recovery.
 Denial preserves browsing; permanent denial offers Settings. Device

@@ -20,7 +20,7 @@ The sources settle the main stack and feature direction, but do not settle the c
 ## Resolved direction and documentation cautions
 
 - **November 16, 2026 — J6-14 location follow:** The owner requested that the
-  location button only zoom inward (default level 15; preserve closer zoom) and
+  location button only zoom inward (default level 15.5; preserve closer zoom) and
   follow the user's location until the viewport is dragged. Recenter explicitly
   enables follow; manual map gestures end it. Zoom buttons retain follow and
   later fixes preserve zoom. Return to preserve and unavailable location/map or

@@ -29,6 +29,7 @@ import { useLocationFollow } from '@/hooks/use-location-follow';
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
 const INITIAL_ZOOM = 15;
+const LOCATION_ZOOM = 15.5;
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 19;
 const MAP_STYLE = OFFLINE_STYLE ?? 'https://tiles.openfreemap.org/styles/liberty';
@@ -70,7 +71,7 @@ export default function PreserveMap() {
     location.fix,
     ready,
     locationPadding,
-    INITIAL_ZOOM,
+    LOCATION_ZOOM,
   );
   const snapshot = visibleSnapshot;
   const details =
@@ -137,12 +138,7 @@ export default function PreserveMap() {
   const locating = location.status === 'requesting' || location.status === 'searching';
   async function zoomBy(delta: number) {
     try {
-      const zoom = await map.current?.getZoom();
-      if (zoom !== undefined) {
-        camera.current?.zoomTo(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta)), {
-          duration: 200,
-        });
-      }
+      await locationFollow.zoomBy(delta, MIN_ZOOM, MAX_ZOOM);
     } catch {
       setLoadState('unavailable');
     }

@@ -15,6 +15,7 @@ export function useLocationFollow(
 ) {
   const [following, setFollowing] = useState(false);
   const active = useRef(false);
+  const followZoom = useRef<number | undefined>(undefined);
   const generation = useRef(0);
   const latest = useRef({ fix, ready, padding });
   // Reset the selection before rendering unavailable location/map controls.
@@ -22,6 +23,7 @@ export function useLocationFollow(
   const stop = useCallback(() => {
     generation.current += 1;
     active.current = false;
+    followZoom.current = undefined;
     setFollowing(false);
   }, []);
 
@@ -38,11 +40,12 @@ export function useLocationFollow(
     if (!fix || !ready) {
       generation.current += 1;
       active.current = false;
+      followZoom.current = undefined;
     } else if (active.current) {
-      // Omit zoom/bearing/pitch: fresh fixes move the center without resetting
-      // the visitor's chosen scale or interrupting zoom-button adjustments.
+      // Keep the requested scale if a fix arrives during a zoom animation.
       camera.current?.easeTo({
         center: [fix.coords.longitude, fix.coords.latitude],
+        zoom: followZoom.current,
         padding,
         duration: 300,
       });
@@ -58,9 +61,10 @@ export function useLocationFollow(
       // A drag, blur, lost fix, or newer tap can supersede the native query.
       if (request !== generation.current || !current.fix || !current.ready) return;
       if (zoom === undefined || !Number.isFinite(zoom)) return;
+      followZoom.current = Math.max(defaultZoom, zoom);
       camera.current?.easeTo({
         center: [current.fix.coords.longitude, current.fix.coords.latitude],
-        zoom: Math.max(defaultZoom, zoom),
+        zoom: followZoom.current,
         padding: current.padding,
         bearing: 0,
         pitch: 0,
@@ -75,5 +79,27 @@ export function useLocationFollow(
     }
   }
 
-  return { following, recenter, stop };
+  async function zoomBy(delta: number, minZoom: number, maxZoom: number) {
+    const request = generation.current;
+    const zoom = await map.current?.getZoom();
+    if (request !== generation.current || !latest.current.ready) return;
+    if (zoom === undefined || !Number.isFinite(zoom)) return;
+    const target = Math.min(maxZoom, Math.max(minZoom, (followZoom.current ?? zoom) + delta));
+    const { fix: currentFix, padding: currentPadding } = latest.current;
+    if (active.current && currentFix) {
+      followZoom.current = target;
+      // Zoom and center together, including while GPS is stationary. zoomTo
+      // alone uses the map's geometric center rather than the padded GPS anchor.
+      camera.current?.easeTo({
+        center: [currentFix.coords.longitude, currentFix.coords.latitude],
+        zoom: target,
+        padding: currentPadding,
+        duration: 200,
+      });
+    } else {
+      camera.current?.zoomTo(target, { duration: 200 });
+    }
+  }
+
+  return { following, recenter, stop, zoomBy };
 }
