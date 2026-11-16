@@ -265,6 +265,19 @@ Keep `.env.local`; rebuild the native client only when needed. Do not use
   Simulator localhost addressing will not work on a phone. Development HTTP
   transport depends on the installed native build; production requires HTTPS.
 - **Docker not ready:** wait for `docker info` to succeed, then rerun setup.
+- **Database unavailable / too many open files in system:** inspect the database
+  container's logs and health with `docker logs --tail 35 <db-container>` and
+  `docker inspect --format '{{json .State.Health}}' <db-container>`. Docker's
+  Linux VM shares its file-handle limit across containers. A leaking process in
+  another project's container can prevent PostgreSQL from accepting connections
+  and make `/ready` and GIS endpoints return 503. Read `/proc/sys/fs/file-nr`
+  inside an accessible Linux container: the first number is allocated handles,
+  the third is the global limit ([kernel reference](https://docs.kernel.org/admin-guide/sysctl/fs.html#file-max-file-nr)).
+  Identify the leaking process/container and coordinate its restart with its
+  owner; retain database volumes. Raising PostgreSQL's per-process `nofile`
+  limit does not release handles held by another process. After recovery,
+  confirm the database is healthy, `/ready` returns `database: ok`, and
+  `/api/v1/layers` returns the expected catalog before reloading the app.
 - **Missing Worker types:** rerun `pnpm backend:setup` before type checks.
 - **Empty GIS:** confirm you seeded the same database the Worker uses.
 - **Stale API URL:** restart this checkout's Metro and reload the app. Check for

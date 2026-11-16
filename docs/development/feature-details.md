@@ -1,5 +1,46 @@
 # Public feature details — J6-20
 
+## Android Done correction — J6-70, November 16, 2026
+
+[J6-70](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-70) reproduced on the
+existing Android 16 / API 36 ARM64 development client (`Cascade_API_36`). The
+full-screen native modal drew its header under the system status-bar touch area.
+Tapping the visible Done label left Waterfall details open, although Android
+Back dismissed them. The close callback was already wired correctly.
+Native captures show [the unresponsive label](../images/android-feature-details-before.png)
+and [the inset header after the fix](../images/android-feature-details-after.png).
+
+The Android header now adds the current top safe-area inset to its existing
+20-point padding. iOS keeps its native page-sheet spacing. This moves the entire
+Done target below the status bar/cutout without changing selection, camera,
+location, GIS requests or native configuration. The inset updates with layout
+changes; it is not a fixed status-bar height.
+
+Regression coverage checks Android's nonzero/zero inset layouts, inset changes,
+iOS page-sheet spacing and both dismissal callbacks. All 165 mobile tests, mobile
+lint/type checks, formatting, iOS/Android JavaScript exports and
+`git diff --check` passed. Existing map tests cover repeated selection and GPS
+watcher/camera invariance.
+
+Native Android verification uses this checkout's Metro on 8084 and the restored
+local Worker/PostGIS on 8787/55435. Repeated Waterfall/Bailey Art Plaza opening,
+Done and system Back dismissal passed, retaining the viewport and Visitor's
+3 layers / 59 features. Both dismissal paths also retained an enabled GPS session
+with synthetic emulator fixes and an available recenter control. The iOS 26.3 simulator loaded the same GIS map, but
+computer-use coordinate taps failed with `windowNotFoundAtPosition`; native iOS
+sheet interaction remains unverified. No new native compilation, physical-device,
+screen-reader or large-text certification is claimed. No API/schema change is
+required.
+
+During verification, Docker's shared Linux file-handle pool was exhausted by
+processes in another project's container. After its owner-approved restart,
+PostgreSQL became healthy, `/ready` returned `database: ok`, and all 10 layers /
+808 features were intact. See [local recovery guidance](local-startup.md#other-targets-and-troubleshooting).
+Temporary development GIS request overrides were removed; final native Android
+verification uses the real local database.
+
+## Original implementation record
+
 [J6-20](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-20) adds a reusable
 detail sheet for public GIS features. It starts from main `f4e3fbb` and uses the
 already-loaded catalog/GeoJSON; there are no API, database, dependency or native
