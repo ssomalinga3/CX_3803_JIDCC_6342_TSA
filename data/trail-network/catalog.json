@@ -1,7 +1,7 @@
 {
   "reference": "../../docs/design/references/cascade-springs-trail-network.png",
-  "status": "trails-context-and-terrain-integrated",
-  "note": "Park-sign transcription retained as reference. Supplied shapefile provides trails; PDF provides context. Two terrain source layers combine elevation_band and hillshade kinds; mobile groups them under one Elevation switch with a source dropdown. Difficulty stays unchanged by owner decision. Cell-signal integration remains pending.",
+  "status": "supplied-gis-integrated",
+  "note": "Park-sign transcription retained as reference. Supplied shapefile provides trails; PDF provides context. Two terrain source layers combine elevation_band and hillshade kinds; mobile groups them under one Elevation switch with a source dropdown. Difficulty stays unchanged by owner decision. Cell-signal screenshot recovery provides an approximate point layer, independent of live connectivity.",
   "trails": [
     {
       "trail_id": "springs",
@@ -130,6 +130,11 @@
       "layer_type": "hillshade",
       "geometry_types": ["Polygon"],
       "status": "bundled-terrain-footprint"
+    },
+    {
+      "layer_type": "signal_observation",
+      "geometry_types": ["Point"],
+      "status": "screenshot-recovered-approximate"
     }
   ],
   "landmark_kinds": [

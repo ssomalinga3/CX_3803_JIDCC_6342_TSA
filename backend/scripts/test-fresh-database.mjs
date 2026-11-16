@@ -40,6 +40,9 @@ try {
     'db:import:terrain',
     'db:import:terrain',
     'db:import:source',
+    'db:import:signal',
+    'db:import:signal',
+    'db:import:source',
     'test:integration',
     'test:worker',
   ]) {

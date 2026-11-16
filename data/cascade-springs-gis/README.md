@@ -1,5 +1,9 @@
 # Supplied Cascade Springs GIS sources
 
+**Current selection:** [Approximate cell-signal recovery](SIGNAL.md) adds 677
+source-class points to the existing nine layers / 131 features. Combined selection
+is ten layers / 808 features; no live connectivity measurements are collected.
+
 **PR 4 selection:** [Two-source terrain](TERRAIN.md) adds supplied-DTM and national
 USGS 3DEP elevation options under one switch and source dropdown (bands plus relief).
 The selected total is nine layers/131 features. The supplemental USGS GeoTIFF and
@@ -158,7 +162,7 @@ and rerun inspection. Review the regenerated report before replacing the committ
 `inspection.json`. Never resolve a hash failure by silently accepting new bytes.
 Do not use filesystem timestamps or Downloads as a handoff dependency.
 
-## Ingestion handoff and remaining decisions
+## Foundation ingestion handoff (historical)
 
 [INGESTION.md](INGESTION.md) defines property names, source identities, geometry
 ownership, derivation provenance, missing values, and replacement requirements

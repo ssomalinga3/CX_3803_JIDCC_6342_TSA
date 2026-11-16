@@ -101,6 +101,7 @@ try {
         ['cascade-map-buildings', 3],
         ['cascade-terrain-supplied', 29],
         ['cascade-terrain-usgs', 33],
+        ['cascade-cell-signal', 677],
       ]) {
         const response = await fetch(`${base}/api/v1/layers/${id}/features`);
         assert.equal(response.status, 200);

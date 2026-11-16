@@ -1,0 +1,53 @@
+{
+  "layer_id": "cascade-cell-signal",
+  "source_dataset": "csnp-cell-signal",
+  "source_file": "data/cascade-springs-gis/sources/Cell Signal Strength.png",
+  "source_sha256": "54684e263d249c374cb46e28d9d98c1edf26a063f70fcea347e4439166fbea9a",
+  "extraction_version": 1,
+  "image_size": [932, 662],
+  "feature_count": 677,
+  "properties": [
+    "name",
+    "feature_kind",
+    "isDemo",
+    "source_dataset",
+    "source_file",
+    "source_sha256",
+    "extraction_version",
+    "source_pixel",
+    "signal_class",
+    "positioning"
+  ],
+  "classes": [
+    {
+      "label": "< -120",
+      "color": "#ff0000",
+      "color_name": "red",
+      "recovered_count": 217
+    },
+    {
+      "label": "-120\u2013-117",
+      "color": "#ff9a00",
+      "color_name": "orange",
+      "recovered_count": 90
+    },
+    {
+      "label": "-117\u2013-113",
+      "color": "#f8ff00",
+      "color_name": "yellow",
+      "recovered_count": 116
+    },
+    {
+      "label": "-113\u2013-108",
+      "color": "#9dff00",
+      "color_name": "light green",
+      "recovered_count": 92
+    },
+    {
+      "label": "> -108",
+      "color": "#0b8e00",
+      "color_name": "dark green",
+      "recovered_count": 162
+    }
+  ]
+}
