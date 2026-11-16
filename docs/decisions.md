@@ -28,7 +28,8 @@ The sources settle the main stack and feature direction, but do not settle the c
   credentials in the app. Verify a provider-side zero-charge cap and actual
   Free-only account configuration before enabling a keyed source. Production
   eligibility, account evidence and offline coverage remain separate. See the
-  [J6-68 plan](tasks/basemap-options-plan.md).
+  [activation rules](security.md#zero-charge-rule-for-app-visible-keys) and
+  [J6-68 provider research](development/basemap-options.md#disabled-provider-research).
 
 - **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
   the source-similarity explanation inside the dropdown and suggested grouping

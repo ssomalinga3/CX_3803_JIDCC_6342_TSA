@@ -12,9 +12,9 @@ merged during development. GitHub requires at least two entries to create a
 native stack, so this PR extends the existing stack; it is the only unmerged
 entry. Its individual base is `infra/cloudflare-backend`, and the stack trunk
 remains `main`. The parent file tree stayed identical across automatic restacks
-and the final main merge; only ancestry changed. The original uncommitted
-[provider plan](../tasks/basemap-options-plan.md) is retained with its implementation
-amendment. No parent PR was merged by this feature.
+and the final main merge; only ancestry changed. The original provider plan is
+preserved in Git history and attached to J6-68; its remaining provider research
+is summarized below. No parent PR was merged by this feature.
 
 ## Enabled catalog and evidence
 
@@ -58,7 +58,7 @@ cache, tile relay, proxy or new pack implementation.
 MapTiler and Stadia remain primary keyed candidates; Thunderforest, Geoapify,
 ArcGIS and Jawg remain research candidates. **None is activated.** No actual
 Free-only account settings, native-app eligibility or public key was supplied.
-The [zero-charge gate](../tasks/basemap-options-plan.md#zero-charge-rule-for-app-visible-keys)
+The [zero-charge gate](../security.md#zero-charge-rule-for-app-visible-keys)
 requires dated official evidence and actual dedicated-account settings, including
 hard rejection at the free limit, no paid billing linkage, no payment/invoice or
 auto-upgrade/additional-usage path, and a public read-only map key. Public-key
@@ -66,6 +66,28 @@ values alone do not satisfy it; a billing alert or app-side counter is insuffici
 Do not add a provider to the shipped registry before clearing that gate and its
 native quality/attribution requirements. No keys are accepted by this release's
 registry, and no provider signup or billing changes were performed.
+
+### Disabled provider research
+
+These are research notes from November 13, 2026, not current eligibility or
+activation approvals. Recheck official terms, style catalogs and the actual
+account before implementation. Allowance units differ between providers, and
+styles share their account's allowance. Published free usage does not establish
+a spending cap; no quota figures are maintained as application configuration.
+
+| Candidate                | Styles to investigate                                                 | Outstanding evidence and original research links                                                                                                                                                                                                                                         |
+| ------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MapTiler Cloud           | Streets, Outdoor, Satellite, Hybrid                                   | Dedicated Free-only account, project eligibility, limit suspension and attribution. [Pricing](https://www.maptiler.com/cloud/pricing/), [limits](https://docs.maptiler.com/guides/account/sessions-vs-requests/), [terms](https://www.maptiler.com/terms/cloud/).                        |
+| Stadia Maps              | Alidade Smooth, Smooth Dark, OSM Bright, Stamen Toner, Stamen Terrain | Free eligibility, no payment method/additional usage, and rejection at exhaustion. Satellite and trial-only styles excluded. [Pricing](https://stadiamaps.com/pricing/), [limits](https://docs.stadiamaps.com/limits/), [upgrades](https://docs.stadiamaps.com/upgrading-subscription/). |
+| Thunderforest            | Outdoors, Landscape, OpenCycleMap, Atlas, Transport Dark              | Complete copied-key hard-stop guarantee and actual account evidence. [Pricing](https://www.thunderforest.com/pricing/), [terms](https://www.thunderforest.com/terms/), [styles](https://www.thunderforest.com/maps/).                                                                    |
+| Geoapify                 | OSM Bright, Positron, Dark Matter                                     | Documented no-charge hard cap; soft limits and no-card signup alone are insufficient. [Map pricing](https://www.geoapify.com/map-tiles/), [limits](https://www.geoapify.com/free-maps-api/), [terms](https://www.geoapify.com/terms-and-conditions/).                                    |
+| ArcGIS Location Platform | Imagery, Streets, Light Gray                                          | Enforceable zero-spend cap for every key-accessible service, MapLibre support and attribution. [Pricing](https://developers.arcgis.com/pricing/credits/), [styles](https://developers.arcgis.com/documentation/mapping-and-location-services/mapping/basemaps/arcgis-styles/).           |
+| Jawg                     | Streets, Light, Dark, Terrain                                         | Native-app eligibility, no-charge cutoff and supported styles; website eligibility alone is insufficient. [Pricing and eligibility](https://www.jawg.io/en/pricing/).                                                                                                                    |
+
+Provider-specific adapters must pass native rendering, glyph, attribution and
+recovery checks before activation. Additional provider/style counts remain
+uncommitted candidates, not a release promise. Offline prototype, durable cache
+and download/storage management remain with J6-35, J6-57 and J6-58.
 
 ## Rendering and recovery
 
