@@ -102,3 +102,23 @@ identities are approximate; two connections remain unnamed. The
 records evidence, uncertainty and reproducible vertex ranges. Full-network GIS,
 official identity and navigation approval remain open. The owner confirmed
 that the eight existing source points should be called landmarks in the app.
+
+## November 11, 2026 — D-05 supplied GIS source foundation
+
+The project owner requested integration of the supplied GIS folder and then
+implementation of PR 1 from the [stack plan](tasks/gis-data-integration-plan.md).
+The [source package](../data/cascade-springs-gis/README.md) retains the original
+archive, loose map PDF and signal image, with hashes and reproducible inspection.
+The [engineering ingestion contract](../data/cascade-springs-gis/INGESTION.md)
+uses source GlobalID UUIDs for segment identity, separates raw/derived attributes,
+records units and publication flags, and requires explicit ownership and atomic
+replacement in later PRs. Generic tables under D-12 remain the selected schema.
+
+This authorizes source preservation and the ingestion handoff, not a new source
+license, survey certification or public safety claim. Source widths are inches;
+blank difficulty and zero placeholders do not become normalized measurements.
+Pillars, PDF difficulty precedence (including the Springs discrepancy and
+conditional South Utoy guidance), terrain horizontal datum/alignment, hillshade
+registration, signal units/registration and redistribution rights remain open.
+No layer is imported or published by PR 1, and the current approximate data and
+legacy commands remain unchanged until PRs 2 and 3 implement supersession.

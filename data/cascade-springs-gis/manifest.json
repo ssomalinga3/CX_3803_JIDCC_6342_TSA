@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "package_id": "cascade-springs-gis-2026-11",
+  "preserved_on": "2026-11-11",
+  "inventory": {
+    "inputs": [
+      {
+        "path": "data/cascade-springs-gis/sources/CSNP_GISfiles.zip",
+        "bytes": 20423428,
+        "sha256": "0ed71645f3015e9e2724f823b4592799f47841bfdd63fe283ad1fd682818f214"
+      },
+      {
+        "path": "data/cascade-springs-gis/sources/CSNP Trail Map.pdf",
+        "bytes": 1710288,
+        "sha256": "3c6a6014d6f3da8b9b635cba129a437dd990b45c742809b5d30293d0a5aa29e4"
+      },
+      {
+        "path": "data/cascade-springs-gis/sources/Cell Signal Strength.png",
+        "bytes": 300059,
+        "sha256": "54684e263d249c374cb46e28d9d98c1edf26a063f70fcea347e4439166fbea9a"
+      }
+    ],
+    "archive_members": [
+      {
+        "path": "CSNP/",
+        "kind": "directory",
+        "bytes": 0,
+        "zip_modified_at": "2026-04-09T16:26:08",
+        "extract": true
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/",
+        "kind": "directory",
+        "bytes": 0,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/dblbnd.adf",
+        "kind": "file",
+        "bytes": 32,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "b8b125ea755295932f00fdda139fe3500b00313436bd939f6a9a0ec918870e6a"
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/hdr.adf",
+        "kind": "file",
+        "bytes": 308,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "31bc06c2314041b5dcbcbc2b017fdc2aa165b5de9198f3a7e0fd0304f9ff6b56"
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/prj.adf",
+        "kind": "file",
+        "bytes": 364,
+        "zip_modified_at": "2026-04-09T16:22:30",
+        "extract": true,
+        "sha256": "6f661422a3a918dd9135417705fd4b0b14801ab012023947b91f6a2fe9610366"
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/sta.adf",
+        "kind": "file",
+        "bytes": 32,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "9a0ed35cd5dd70a80a48b63cf88ac055e2a4b9b3f250b45345c4e40b1ab0696a"
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/w001001.adf",
+        "kind": "file",
+        "bytes": 31428448,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "2f81e565fd57f377e63914b5d25f4b80902c22dc86e9b6a02e42396e4fcafd99"
+      },
+      {
+        "path": "CSNP/csnp_dtm_2015/w001001x.adf",
+        "kind": "file",
+        "bytes": 15444,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "a32142168ce02da0f048d68fbdf8b01b7b293c060beb029d5728f4d4cdea5e52"
+      },
+      {
+        "path": "CSNP/HillshadeCSNP.png",
+        "kind": "file",
+        "bytes": 1549518,
+        "zip_modified_at": "2026-04-09T16:25:42",
+        "extract": true,
+        "sha256": "0f2de23eadd33e8e34e47cd7c57eba2c90a9d26c7dabf55ae4342fbd33409bd6"
+      },
+      {
+        "path": "CSNP/info/",
+        "kind": "directory",
+        "bytes": 0,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true
+      },
+      {
+        "path": "CSNP/info/arc.dir",
+        "kind": "file",
+        "bytes": 760,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "87e137ad040a929805ba22e13325ec12450e21b5068a6732be1348ccbede740e"
+      },
+      {
+        "path": "CSNP/info/arc0000.dat",
+        "kind": "file",
+        "bytes": 80,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "17563b652683b612bdf77873e0606eaa677c09fa450b019e12c510e6106ec5c7"
+      },
+      {
+        "path": "CSNP/info/arc0000.nit",
+        "kind": "file",
+        "bytes": 576,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "8485ed75cc3d9485e64fb7265367ff9be35d16b0d31112eb0390a16a5255e8fe"
+      },
+      {
+        "path": "CSNP/info/arc0001.dat",
+        "kind": "file",
+        "bytes": 80,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "3c6855f073e692a880772a0189cc2d5b2ab093605960ad997b63cdab5c102dbf"
+      },
+      {
+        "path": "CSNP/info/arc0001.nit",
+        "kind": "file",
+        "bytes": 576,
+        "zip_modified_at": "2026-04-09T16:22:28",
+        "extract": true,
+        "sha256": "26eaad5ea2aee627774a9699e01b339403c08a61c156a6d1b7c48edbc14b6449"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.cpg",
+        "kind": "file",
+        "bytes": 5,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.dbf",
+        "kind": "file",
+        "bytes": 126410,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "19d1c5b00fc3c415bccd3bfb10f9bd9dade061b0e98185bee796ba05acb7deb0"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.prj",
+        "kind": "file",
+        "bytes": 425,
+        "zip_modified_at": "2026-04-09T16:24:14",
+        "extract": true,
+        "sha256": "f2e7fb14d55bdd8d6a3bc2c272a48729d8f9d0ad72936e20eae6a9a81c2fccd0"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.sbn",
+        "kind": "file",
+        "bytes": 508,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "16cab45eb5b0f8998c96bd6177652f7030549c914dbccc67b29ec539bd230edf"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.sbx",
+        "kind": "file",
+        "bytes": 164,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "7c7f359cfbc74c5509b0389c3402a61789daa4c316d8565549d923d616344eb3"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.shp",
+        "kind": "file",
+        "bytes": 32532,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "67198fbed136275fdada69028eeff8de653c2dbc7132c5c190932d513f71fe7d"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.shp.xml",
+        "kind": "file",
+        "bytes": 105466,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "7c30b773de44aa17c661f57b34ed9acda901bdfd9f99f9200709c02730e6bdab"
+      },
+      {
+        "path": "CSNP/OfficialTrailsCSNP.shx",
+        "kind": "file",
+        "bytes": 388,
+        "zip_modified_at": "2026-04-09T16:24:16",
+        "extract": true,
+        "sha256": "1d9020db73aa4685d39d163f0f73678b7e1cb20b42e612e78e38b318e8a50fd5"
+      }
+    ]
+  },
+  "datasets": [
+    {
+      "id": "csnp-official-trails",
+      "input": "data/cascade-springs-gis/sources/CSNP_GISfiles.zip",
+      "archive_paths": ["CSNP/OfficialTrailsCSNP.*"],
+      "format": "ESRI Shapefile",
+      "dates": [
+        {
+          "value": "2025-12-30",
+          "meaning": "metadata creation",
+          "evidence": "shp.xml CreaDate",
+          "inferred": false
+        },
+        {
+          "value": "2026-04-09",
+          "meaning": "export",
+          "evidence": "shp.xml lineage Process Date",
+          "inferred": false
+        }
+      ],
+      "acquisition_date": null,
+      "crs": {
+        "authority": "EPSG:3857",
+        "evidence": "prj and shp.xml",
+        "coordinate_unit": "metre"
+      },
+      "units": { "AVG_WIDTH": "inch", "LENGTH_MI": "mile", "GRADE": null, "ELEV_GAIN": null },
+      "publication": {
+        "field": "PublishTra",
+        "public_value": "TRUE",
+        "nonpublic_value": "FALSE",
+        "observed_public": 36,
+        "unknown_value_policy": "reject conversion"
+      },
+      "source_identity": ["GlobalID", "SEGMENT_ID"],
+      "limits": [
+        "TRL_ID is not a unique route name",
+        "35 blank Difficulty values",
+        "3 zero AVG_WIDTH placeholders",
+        "all ELEV_GAIN, AvgSegment, Shape__L_1 values are zero",
+        "USE_LEVEL is blank",
+        "roughness is not difficulty",
+        "redistribution license and field accuracy unconfirmed"
+      ],
+      "geometry_owner": "trail centerline segments; prefer this over PDF trail strokes",
+      "relationships": ["csnp-trail-map", "csnp-dtm", "csnp-hillshade"],
+      "published_by_this_pr": false
+    },
+    {
+      "id": "csnp-trail-map",
+      "input": "data/cascade-springs-gis/sources/CSNP Trail Map.pdf",
+      "format": "layered geospatial PDF",
+      "dates": [
+        {
+          "value": "2026-04-14",
+          "meaning": "PDF creation",
+          "evidence": "PDF CreationDate D:20260414163216 (no timezone)",
+          "inferred": false
+        }
+      ],
+      "acquisition_date": null,
+      "crs": {
+        "description": "embedded WGS_1984_Web_Mercator projected WKT",
+        "coordinate_unit": "metre",
+        "gpts_axis_order": "latitude,longitude",
+        "page_unit": "point"
+      },
+      "geometry_owner": "boundary, context polygons/lines, and map landmark evidence; not replacement trail centerlines",
+      "relationships": ["csnp-official-trails", "csnp-hillshade", "csnp-cell-signal"],
+      "limits": [
+        "rounded GPTS anchors",
+        "PDF and drawing Y origins differ",
+        "legend overlaps map viewport",
+        "duplicate water paint passes are not distinct features",
+        "cartographic icons may be displaced",
+        "difficulty conflicts require reconciliation"
+      ],
+      "publication": {
+        "field": null,
+        "status": "owner-authorized integration; per-layer extraction review pending"
+      },
+      "published_by_this_pr": false
+    },
+    {
+      "id": "csnp-dtm",
+      "input": "data/cascade-springs-gis/sources/CSNP_GISfiles.zip",
+      "archive_paths": ["CSNP/csnp_dtm_2015/", "CSNP/info/"],
+      "format": "Esri Arc/Info binary grid (AIG), with supporting info files",
+      "dates": [
+        {
+          "value": "2015",
+          "meaning": "possible dataset year",
+          "evidence": "directory name only",
+          "inferred": true
+        }
+      ],
+      "acquisition_date": null,
+      "crs": {
+        "projection": "Transverse Mercator",
+        "ellipsoid": "GRS80",
+        "horizontal_datum": null,
+        "coordinate_unit": "US survey foot (GDAL interpretation)",
+        "central_meridian_degrees": -84.16666666666667,
+        "latitude_of_origin_degrees": 30,
+        "scale_factor": 0.9999,
+        "false_easting_m": 700000,
+        "false_northing_m": 0
+      },
+      "units": {
+        "vertical": "US survey foot",
+        "vertical_reference": "NAVD88 height; prj.adf VCS 6360",
+        "metres_per_us_survey_foot": "1200/3937"
+      },
+      "geometry_owner": "elevation samples; not supplied trail ELEV_GAIN values",
+      "relationships": ["csnp-hillshade", "csnp-official-trails"],
+      "limits": [
+        "horizontal datum unresolved; no EPSG assignment or WGS84 alignment certified",
+        "retain nodata mask",
+        "info is supporting data, not a publishable layer",
+        "do not serialize millions of samples as GeoJSON"
+      ],
+      "publication": { "field": null, "status": "alignment and bounded output design pending" },
+      "published_by_this_pr": false
+    },
+    {
+      "id": "csnp-hillshade",
+      "input": "data/cascade-springs-gis/sources/CSNP_GISfiles.zip",
+      "archive_paths": ["CSNP/HillshadeCSNP.png"],
+      "format": "PNG",
+      "dates": [],
+      "acquisition_date": null,
+      "crs": null,
+      "units": { "image": "pixel" },
+      "geometry_owner": "reference relief image only until registration",
+      "relationships": ["csnp-dtm", "csnp-trail-map"],
+      "limits": [
+        "no embedded transform or supplied world file",
+        "DTM bounds must not be assumed to be image bounds",
+        "requires documented registration controls and overlay review"
+      ],
+      "publication": { "field": null, "status": "registration pending" },
+      "published_by_this_pr": false
+    },
+    {
+      "id": "csnp-cell-signal",
+      "input": "data/cascade-springs-gis/sources/Cell Signal Strength.png",
+      "format": "PNG screenshot",
+      "dates": [],
+      "acquisition_date": null,
+      "crs": null,
+      "units": { "image": "pixel", "signal": null },
+      "classes": ["< -120", "-120–-117", "-117–-113", "-113–-108", "> -108"],
+      "geometry_owner": "recoverable approximate class observations after registration; no live device measurements",
+      "relationships": ["csnp-trail-map"],
+      "limits": [
+        "no raw positions or exact readings",
+        "carrier, units, device and survey date unknown",
+        "legend and occluded dots need explicit handling",
+        "requires control points, residuals and independent alignment review",
+        "not a continuous coverage or service guarantee"
+      ],
+      "publication": { "field": null, "status": "registration and extraction review pending" },
+      "published_by_this_pr": false
+    }
+  ]
+}

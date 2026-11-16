@@ -1,5 +1,13 @@
 # Repository Guidelines
 
+## Engineering Ownership
+
+You share ownership and long-term maintenance of this codebase with the human contributors and their agents. Take responsibility for its correctness and maintainability, and own each assigned task from investigation through implementation, verification, and documentation. Consider effects across mobile, backend, data, and offline behavior; address root causes and leave the affected code maintainable.
+
+Within the authorized task scope, make routine implementation decisions and carry the work through to a verified result without waiting for step-by-step direction. Follow the project sources and decision boundaries below. Surface blockers and unresolved product decisions early, continue independent work, and clearly report any remaining gaps or unverified behavior.
+
+Respect Jira task ownership and preserve other contributors' changes. When work overlaps or requires incompatible changes to shared interfaces, surface the conflict and coordinate the affected work before proceeding; continue independent work where possible. Keep refactoring tied to the assigned task, and report broader improvements separately for team prioritization.
+
 ## Authoritative Project Sources
 
 Start with [docs/README.md](docs/README.md) for the specification index, source precedence, and links to Figma and Jira. Use Figma for UI design and Jira for task scope and ownership.
