@@ -39,8 +39,8 @@ deduplication. The fixture's pillar is test metadata, not a production assignmen
 Every combination is applied, reopened and repeated in reverse order, ending
 with all layers restored. Assertions cover exact render-source IDs, no duplicate
 features, visible versus hidden detail hits, independent stored choices and one
-legend entry per trail. All-off removes the GIS source while keeping basemap
-zoom available. The entire sequence must make exactly four fetch calls: one
+legend entry per trail. All-off retains an empty GIS source so native terrain
+insertion targets remain stable, while keeping basemap zoom available. The entire sequence must make exactly four fetch calls: one
 catalog and one collection per layer. Toggles, details and reopening must not
 request location, start a GPS watcher, move the camera or mutate API payloads.
 

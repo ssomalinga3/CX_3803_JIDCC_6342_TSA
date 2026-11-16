@@ -76,13 +76,12 @@ test('all layer combinations survive repeated apply/reopen cycles through the re
         ...(mask & 2 ? ['landmarks/shared'] : []),
         ...(mask & 4 ? ['boundary/shared'] : []),
       ];
-      if (expectedIds.length) {
-        const data = screen.getByTestId('public-gis-source').props
-          .data as GisSnapshot['collection'];
-        expect(data.features.map((feature) => feature.id)).toEqual(expectedIds);
-        expect(new Set(data.features.map((feature) => feature.id)).size).toBe(expectedIds.length);
-      } else {
-        expect(screen.queryByTestId('public-gis-source')).not.toBeOnTheScreen();
+      // Empty sources retain native raster insertion targets when all layers
+      // are hidden, but must contain no hidden geometry.
+      const data = screen.getByTestId('public-gis-source').props.data as GisSnapshot['collection'];
+      expect(data.features.map((feature) => feature.id)).toEqual(expectedIds);
+      expect(new Set(data.features.map((feature) => feature.id)).size).toBe(expectedIds.length);
+      if (!expectedIds.length) {
         expect(
           screen.getByText('All GIS layers are hidden. Basemap browsing remains available.'),
         ).toBeOnTheScreen();
