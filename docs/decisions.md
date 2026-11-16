@@ -140,3 +140,21 @@ Big Beech Spur supplies `easy`. Width units are inches and lengths are geodesic
 segment measurements. This implements the engineering contract without treating
 PDF difficulty observations as approval. Licensing, surveyed accuracy, safety
 tolerances, pillars, PDF precedence and raster/signal registration remain open.
+
+## November 12, 2026 — D-05 PDF context and difficulty policy (PR 3)
+
+The owner requested PR 3 from the supplied GIS stack and explicitly selected
+“Leave difficulty unchanged.” The supplied PDF therefore provides context and
+15 landmark symbols, but no route-level difficulty fallback. Springs Easy in
+the PDF conflicts with the prior Moderate sign transcription; South Utoy has
+conditional uphill-to-Battle-Ridge guidance. These observations remain evidence,
+not segment-level defaults. PR 2 colors/attributes remain unchanged.
+
+[The extraction/reconciliation record](../data/cascade-springs-gis/PDF-MAP.md)
+defines projected registration, per-layer ownership, shared lock (6342, 2),
+legacy replacement and source IDs. The hand-drawn boundary is superseded,
+Waterfall has one physical marker with both source records, and unmatched My Maps
+annotations retain explicit source labels. Spring vs Frog Pond / Spring physical
+identity remains unresolved. Generic `building` and polygon `road` kinds extend
+the logical contract without new tables. Pillars, licensing, safety tolerances,
+field accuracy and terrain/signal registration remain open.

@@ -102,9 +102,9 @@ No new physical tables, inferred pillars, or empty placeholder layers are added.
 
 The [trail-network contract](design/trail-network.md#storage-and-exchange) defines
 shared typed properties for named route segments, difficulty, color, landmarks,
-preserve/protective boundaries, water, natural areas and roads. These fit the
-existing generic geometry/JSON tables without migration. GIS is awaiting delivery;
-the planning catalog does not publish empty layers or create inferred geometry.
+preserve/protective boundaries, water, natural areas, roads and buildings. These fit the
+existing generic geometry/JSON tables without migration. Supplied trails and PDF context are integrated; terrain/signal work is pending.
+The planning catalog does not publish empty layers or create inferred geometry.
 
 The later owner-authorized [approximate trail sections](../data/cascade-springs/README.md#approximate-trail-sections)
 use existing JSON properties and LineStrings without a migration. Named sections
@@ -113,3 +113,16 @@ route ID during re-import. `name_assignment`, `name_source`, `source_feature_id`
 `source_name`, and inclusive source vertex ranges record derivation and uncertainty.
 Unassigned connections keep the generic source-property contract without a guessed
 trail identity. Original source artifacts and point IDs remain unchanged.
+
+## Supplied PDF map properties (PR 3)
+
+The [PDF extraction contract](../data/cascade-springs-gis/PDF-MAP.md) uses existing
+JSON/geometry columns. Logical `building` supports Polygon/MultiPolygon, and
+`road` additionally supports polygon footprints; no physical table or migration
+is required. PDF-derived features retain source hash, content group, source
+path references or symbol anchor/bbox, and positional limitations.
+`landmark_kind: source_annotation` distinguishes unmatched My Maps information.
+The matched Waterfall stores its original My Maps feature intact in inert
+`source_annotations`. Explicit per-kind collections replace six owned layers
+atomically under the same lock as supplied trails. Null pillars and unchanged
+segment difficulty remain intentional.

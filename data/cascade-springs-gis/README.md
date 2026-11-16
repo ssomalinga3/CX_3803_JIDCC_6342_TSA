@@ -1,5 +1,7 @@
 # Supplied Cascade Springs GIS sources
 
+**PR 3 selection:** see [PDF map integration](PDF-MAP.md) for the six extracted/context layers, landmark reconciliation, commands and alignment evidence.
+
 **Current integration:** [PR 2 supplied trails](TRAILS.md) now replaces active
 approximate trail geometry. The preservation notes below describe PR 1; original
 inputs and their manifest remain unchanged.

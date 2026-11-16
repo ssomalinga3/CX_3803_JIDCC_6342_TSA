@@ -9,7 +9,7 @@ try {
   );
   await importSourceMap(localDatabaseUrl(), data);
   console.log(
-    'Cascade Springs selected sources imported (36 supplied trail segments, 8 My Maps landmarks; safe to rerun).',
+    'Cascade Springs selected sources imported (36 supplied trail segments, 33 PDF/context and reconciled landmark features; safe to rerun).',
   );
 } catch {
   console.error('Source map import failed. Check the snapshot, PostGIS and migrations.');

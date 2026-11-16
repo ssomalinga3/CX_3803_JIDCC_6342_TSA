@@ -23,7 +23,11 @@ function returnToMap() {
 const descriptions: Record<string, string> = {
   trail: 'Trail routes and named sections.',
   boundary: 'Area outlines and boundaries.',
-  landmark: 'Points of interest and landmarks.',
+  landmark: 'Map symbols and retained source annotations.',
+  water: 'Streams and water footprints from the supplied map.',
+  natural_area: 'Natural-area footprints from the supplied map.',
+  road: 'Road footprints from the supplied map.',
+  building: 'Building footprints from the supplied map.',
 };
 
 export function LayerSelectionScreen() {

@@ -1,9 +1,10 @@
 # Cascade Springs source map
 
-**Current selection (PR 2):** `db:import:source` publishes 36 supplied shapefile
-segments plus these eight unchanged My Maps landmarks. It cannot restore the
-approximate sections described in this historical record. See
-[current commands and replacement policy](../cascade-springs-gis/TRAILS.md).
+**Current selection (PR 3):** `db:import:source` publishes 36 supplied trail
+segments and six PDF/reconciled context layers. All eight My Maps annotation
+records are retained: Waterfall is merged into one PDF marker and seven unmatched
+annotations keep their IDs/coordinates. Neither source nor legacy boundary import
+can restore approximate geometry. See [current commands and replacement policy](../cascade-springs-gis/PDF-MAP.md).
 The original KML/GeoJSON and approximate-section helper remain archival evidence.
 
 Snapshot supplied for this project by the project owner on November 4, 2026.

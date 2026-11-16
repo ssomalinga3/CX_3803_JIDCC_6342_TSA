@@ -93,7 +93,12 @@ try {
       assert.ok(layers.some((layer) => layer.layerId === 'cascade-map-trails' && !layer.isDemo));
       for (const [id, count] of [
         ['cascade-map-trails', 36],
-        ['cascade-map-landmarks', 8],
+        ['cascade-map-landmarks', 22],
+        ['cascade-map-boundary', 1],
+        ['cascade-map-water', 2],
+        ['cascade-map-natural-areas', 2],
+        ['cascade-map-roads', 3],
+        ['cascade-map-buildings', 3],
       ]) {
         const response = await fetch(`${base}/api/v1/layers/${id}/features`);
         assert.equal(response.status, 200);

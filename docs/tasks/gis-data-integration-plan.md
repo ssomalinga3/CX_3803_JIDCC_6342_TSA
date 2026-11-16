@@ -1,7 +1,7 @@
 # Supplied GIS data integration: stacked PR plan
 
-Prepared November 11, 2026. Status: **PRs 1–2 implemented; PRs 3–5 planned**.
-PR 2 imports supplied trail segments; the original source-preservation slice
+Prepared November 11, 2026. Status: **PRs 1–3 implemented; PRs 4–5 planned**.
+PRs 2–3 import supplied trails and PDF geographic context; the original source-preservation slice
 did not import datasets. This document is the handoff for
 fresh agents implementing the stack; it is not evidence that the proposed
 behavior or verification is already complete.
@@ -646,3 +646,59 @@ guessed-boundary importer, lock coordination, the helper's single-geometry-type
 limit, generic renderer/legend behavior, missing building classification, and
 which PDF extraction artifacts do not exist yet. PR 3 must close those integration
 gaps as part of its selected-source replacement; do not assume PR 2 already did.
+
+## PR 3 completion record
+
+Implemented on `gis/03-pdf-map-layers`, stacked on
+[PR 2 #30](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/30).
+The [PDF map handoff](../../data/cascade-springs-gis/PDF-MAP.md) documents exact
+commands, layer/feature IDs, 15-symbol reconciliation table, registration
+method/residuals, source limits and owner-confirmed unchanged difficulty.
+
+Committed `pdf-map.geojson` has one boundary, two water polygons, two natural-area
+polygons, three road footprints, three building footprints and 22 landmark/source
+annotation points (15 PDF symbols plus seven unmatched My Maps annotations).
+Waterfall retains its original My Maps feature on one PDF marker. The two spring
+references remain explicitly unresolved. Supplied trails remain unchanged; the
+selected total is seven layers/69 features. Original source bytes are unchanged.
+
+The converter uses the PDF's embedded spherical Mercator registration, explicit
+vertical-origin handling, projected interpolation, 0.1-point curve tolerance,
+0.001-point precision union, holes and viewport clipping. Committed review
+evidence overlays the extracted context and shapefile on the PDF. All 1,901 trail
+vertices compare at median 0.118 m / p95 0.220 m / max 0.265 m to the nearest PDF
+trail stroke, without a fitted correction; this is not field accuracy evidence.
+
+`db:import:source` replaces all seven selected layers atomically. New
+`db:import:pdf` and legacy `db:import:boundary` select the same six PDF/context
+layers. All share `(6342, 2)` with trail-only import, preventing legacy downgrade.
+Runtime contracts add `building` and road polygons without new tables. Rendering,
+chooser descriptions, detail allowlists, hit priority and disclaimers distinguish
+context/POIs/annotations while retaining trail key, GPS and camera behavior.
+
+Verification: 19 GIS tests and exact PDF snapshot reproducibility on macOS and
+Linux (Python 3.12.13 / 3.12.12, same locked GIS dependencies); fresh disposable
+PostGIS/Worker checks including
+concurrent legacy replay, stale removal, complete rollback, membership, public/
+private and bbox reads; backend/Worker builds; repository formatting, lint,
+typechecks, 90 backend unit tests, all 107 backend tests in the disposable
+database run, 99 mobile tests and both platform JavaScript exports passed.
+Markdown rendering/relative links and `git diff --check` were also checked.
+
+Existing iPhone 16 Plus / iOS 18.6 client on Metro 8082 / Worker 8788 showed
+69 features with location off. Zoom revealed labels and context styling. Hiding
+water changed 69→67 and restoring it returned 69 without moving the zoomed camera.
+Screenshots: [overview](../images/ios-pdf-map-layers.png),
+[labels](../images/ios-pdf-map-labels.png), [chooser](../images/ios-pdf-map-chooser.png).
+Android native execution, new native compilation, manual permission-denial and
+native feature-sheet tapping remain unverified. Visual Markdown browser preview
+was blocked by local-file URL security policy; HTML rendering and local-link checks passed. Coordinate taps still fail with
+`noWindowsAvailable`; automated details/GPS tests pass. No durable offline cache
+or safety approval is introduced. The local selected dataset was refreshed;
+existing services remain running.
+
+Next: branch PR 4 from `gis/03-pdf-map-layers`; read the PDF handoff and PR 4
+section. The embedded PDF transform is not a terrain/hillshade registration.
+Terrain datum/units/alignment, signal registration, source licensing and field
+verification remain open. Keep difficulty unchanged per the owner's November 12
+response; do not add PDF route fallbacks in later slices without a new decision.

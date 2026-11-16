@@ -53,10 +53,9 @@ offline persistence/restart and refresh UX remain mobile work under D-06.
 
 ## Supplied source snapshot (November 4, 2026)
 
-**Current selection:** [PR 2](../data/cascade-springs-gis/TRAILS.md) replaces the
-earlier approximate trail sections with 36 supplied segments and retains eight
-My Maps landmarks. Both import commands select the supplied trail snapshot;
-geometry is validated/reprojected before publication. This still adds no device
+**Current selection:** [PR 3](../data/cascade-springs-gis/PDF-MAP.md) selects 36
+supplied trail segments and six PDF/reconciled context layers (69 features total).
+Legacy commands cannot restore approximations. This still adds no device
 cache, first-launch offline coverage, report queue or restart/retry persistence.
 The historical source record below describes the original import.
 

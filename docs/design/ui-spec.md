@@ -187,3 +187,14 @@ disappears at each end. The scroll hint remains available to assistive technolog
 without instructional text in the visible heading. Repeated
 sections share one row; missing routes are omitted. Boundary and landmark styling
 is unchanged. Figma remains the reference for the surrounding app layout.
+
+## PDF context progress — November 12, 2026
+
+PR 3 retains the existing map/chooser/detail structure, with independent water,
+natural-area, road and building layers plus reconciled landmarks. Context uses
+distinct colors and cannot enter the trail key. Landmark labels appear at detail
+zoom; source annotations are gray and explicitly labeled. The existing Disclaimers
+tab explains cartographic positions and the unresolved spring identity. No pillar
+assignments or PDF difficulty defaults are added. The Figma chooser frame was
+reviewed for structure; this does not claim complete visual matching. See the
+[extraction and evidence record](../../data/cascade-springs-gis/PDF-MAP.md).

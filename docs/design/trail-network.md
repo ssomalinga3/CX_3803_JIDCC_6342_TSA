@@ -18,19 +18,18 @@ names on the existing partial route are now authorized. The
 assigns seven approximate identities without changing coordinates; ambiguous
 connections remain unnamed. This does not replace the full-network GIS request.
 
-## Inventory awaiting GIS
+## Inventory and arrival status
 
-**Current arrival status:** PR 2 integrates supplied shapefile trail geometry.
-The [catalog](../../data/trail-network/catalog.json) marks its nine trail families
-as `supplied-gis`, with source counts and one unnamed segment; remaining context
-layers still await extraction. Sign difficulty/color values below remain
-reference evidence, not defaults for missing source attributes. See
-[route mapping, replacement policy and evidence](../../data/cascade-springs-gis/TRAILS.md).
+**Current arrival status:** PR 2 integrates supplied trail segments; PR 3
+extracts PDF boundaries, water, natural areas, roads, buildings and landmark
+symbols. The [catalog](../../data/trail-network/catalog.json) records delivered
+families and source counts without publishing placeholders. Sign difficulty/color
+values below remain reference evidence. The owner kept difficulty unchanged;
+see [PDF map policy and evidence](../../data/cascade-springs-gis/PDF-MAP.md).
+Terrain and cell-signal integration remain pending.
 
-The [planning catalog](../../data/trail-network/catalog.json) records the sign's
-trail names, difficulty labels, approximate color names, layer families and
-landmark categories. Every entry is marked `awaiting-gis`. It is not a seed,
-GeoJSON collection or API catalog, and no placeholder layers are published.
+The catalog is a planning/reference inventory, not a seed, GeoJSON collection
+or API catalog.
 
 | Trail / route family | Sign difficulty | Sign color reference |
 | --- | --- | --- |
@@ -72,12 +71,13 @@ properties remain compatible and are not retroactively reclassified.
 
 | Feature kind | Geometry | Additional properties |
 | --- | --- | --- |
-| `trail` | LineString / MultiLineString | Required `trail_id`; optional `difficulty` (`easy`, `moderate`, `difficult`), hex `color`, `length_m`, `surface_type` |
+| `trail` | LineString / MultiLineString | Optional `trail_id` (absent on unnamed source segments); optional `difficulty` (`easy`, `moderate`, `difficult`), hex `color`, `length_m`, `surface_type` |
 | `boundary` | Polygon / MultiPolygon | `boundary_kind`: `preserve` or `protective` |
 | `landmark` | Point / MultiPoint | `landmark_kind` from the catalog |
 | `water` | LineString / MultiLineString / Polygon / MultiPolygon | `water_kind`: `stream` or `water_body` |
 | `natural_area` | Polygon / MultiPolygon | Common properties |
-| `road` | LineString / MultiLineString | Common properties |
+| `road` | LineString / MultiLineString / Polygon / MultiPolygon | Common properties; PDF roads are footprints |
+| `building` | Polygon / MultiPolygon | Common properties; PDF building group |
 
 All features carry `name` and `feature_kind`, with optional plain-text
 `description` and `source_url`. Missing difficulty, surface, color or measured
@@ -90,7 +90,8 @@ pillar. Pillar assignments and protected-layer access remain D-05/D-02 decisions
 
 Render natural areas/water and roads as context, preserve/protective boundaries
 with distinguishable outlines, named trail strokes above background fills, and
-landmark symbols/labels above trails. Trail colors identify routes; difficulty
+landmark labels above trails. PR 3 keeps marker circles beneath trail strokes so
+the network remains legible; point hit priority is retained. Trail colors identify routes; difficulty
 uses text as well as any visual treatment. White Gateway Trail needs a contrasting
 casing. Keep legend colors/symbols and feature details consistent with displayed
 features; show unknown difficulty as unknown rather than easy.
@@ -159,7 +160,7 @@ color pass if the approximate-name sections are already imported.
 The fresh-database suite passes 47 backend tests, including a test-only round trip
 through PostGIS/API for shared route IDs, optional difficulty, color, surface and
 length attributes, both boundary kinds, landmark categories and multi-geometries
-across the planned feature families. The inventory check confirms all routes are
+across the planned feature families. At that time, the inventory check confirmed all routes were
 awaiting GIS and each planned layer matches the shared geometry contract. No
 full-network geometry or renderer changes were introduced in that structure-only
 verification. The later approximate-name slice is documented in the section

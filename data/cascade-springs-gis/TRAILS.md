@@ -1,5 +1,9 @@
 # Supplied trails (PR 2)
 
+**Current PR 3 selection:** the [PDF map slice](PDF-MAP.md) supersedes this
+record’s eight-landmark/approximate-boundary handoff. Combined source import now
+publishes seven layers/69 features. Trail-only behavior remains unchanged.
+
 `cascade-map-trails` now uses 36 supplied shapefile segments instead of the ten
 approximate My Maps sections. This slice is stacked on
 [PR 1 #29](https://github.com/ssomalinga3/CX_3803_JIDCC_6342_TSA/pull/29).

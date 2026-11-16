@@ -119,3 +119,14 @@ PostGIS/API round trips, rollback, concurrent replay, stale cleanup and legacy
 command regression checks. UI details must allowlist supported attributes with
 units. Preserve existing camera/toggle/location-denied flows. No durable offline
 cache or report-retry behavior is implied by this source package.
+
+## Implemented PR 3 supersession
+
+The preceding PR 1/2 requirements describe the historical handoff. The
+[implemented PDF contract](PDF-MAP.md) supersedes the eight-point writer and
+separate boundary lock: combined source import now selects seven layers/69
+features, while PDF and legacy-boundary imports select six layers/33 features.
+All conflicting writers use `(6342, 2)`. Every My Maps record remains recoverable;
+Waterfall is nested on the PDF marker and seven unmatched annotations retain
+original geometry. Buildings use their own logical kind and roads accept polygon
+footprints. Original inputs and generic physical tables remain unchanged.

@@ -103,3 +103,15 @@ render above boundaries and landmarks; device position remains a separate source
 New catalog IDs default visible, unknown IDs are ignored, and applied choices
 survive an in-session retry. Nothing is persisted across application restarts.
 See [layer selection verification](development/layer-selection.md).
+
+### Supplied PDF context (PR 3)
+
+The [PDF pipeline](../data/cascade-springs-gis/PDF-MAP.md) uses the locked GIS
+development environment to extract georeferenced context and reconcile landmarks.
+Runtime imports read committed GeoJSON; PDFs, image extraction and GIS libraries
+do not enter mobile bundles. Source/PDF/legacy-boundary/trail commands share lock
+`(6342, 2)`; source import replaces all selected layers in one transaction.
+The native renderer distinguishes context kinds, excludes context lines from the
+trail legend, keeps trail strokes above context/marker circles, and adds closer
+zoom landmark labels. Existing chooser, snapshot, camera, GPS and offline
+architecture remain unchanged.
