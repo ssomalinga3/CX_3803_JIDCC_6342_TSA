@@ -89,6 +89,11 @@ copy is added to the shared disclaimers source (`mobile/src/data/disclaimers.ts`
 and surfaced by the Disclaimers tab (`mobile/src/app/(tabs)/disclaimers.tsx`), not by
 adding inline text to other screens.
 
+Owner-requested exception for PR 4: the Elevation source dropdown includes a
+short explanation of why both sources look similar and concise source limits.
+The explanation belongs beside the source choice, not in a new Disclaimers entry.
+Existing detailed terrain caveats remain in Disclaimers.
+
 ## Implementation progress — November 1, 2026
 
 The mobile Map tab now implements the native online basemap foundation of J6-14:
@@ -118,9 +123,10 @@ fixtures, not approved navigation or a completed J6-14/J6-19 flow.
 J6-19 implements the documented Choose GIS Layers screen in a route above the
 map tabs: Map back, descriptive cards, individual switches and Done. Switches
 edit a draft; Done applies it and other return actions cancel it. Applied choices
-live in memory for this app session. All public catalog layers are independently
-selectable, including trails. Names come from validated public metadata; short
-descriptions explain the layer type. Human, Social, Environmental and Economic
+live in memory for this app session. Public layers are independently selectable,
+including trails; PR 4 groups the two alternative terrain sources under one
+Elevation switch and source dropdown. Names come from validated public metadata;
+short descriptions explain the layer type. Human, Social, Environmental and Economic
 badges appear only when supplied; today's source catalog has no pillar values.
 No Cultural mapping or unavailable dataset is invented.
 
@@ -198,3 +204,21 @@ tab explains cartographic positions and the unresolved spring identity. No pilla
 assignments or PDF difficulty defaults are added. The Figma chooser frame was
 reviewed for structure; this does not claim complete visual matching. See the
 [extraction and evidence record](../../data/cascade-springs-gis/PDF-MAP.md).
+
+## Two-source terrain progress — November 12, 2026
+
+The owner authorized approximate supplied terrain and requested a separately
+attributed national public elevation option. The chooser has one Elevation switch
+and a source dropdown containing USGS 3DEP and Supplied DTM, with USGS selected
+by default. Only one source's generalized 20 ftUS bands, labels and regenerated
+relief renders at a time. Switching elevation off remembers the source; Done
+applies the draft and Back cancels it. An unavailable source falls back to the
+remaining public option. Expanding the dropdown reveals source limitations and
+“Why they look similar”: sampled differences are small relative to the bands,
+and shared survey origins remain unconfirmed. Choosing a source leaves the
+dropdown open; tap the source button to collapse it. This explanation is in the dropdown;
+the original two detailed source caveats remain in Disclaimers.
+Terrain renders below context/trails, never enters the trail key, and cannot take
+priority over a trail/landmark hit. Bands are labeled at zoom 17; camera/GPS semantics are unchanged.
+The live Figma chooser frame `32:40` was reviewed for screen structure. See the
+[terrain evidence](../../data/cascade-springs-gis/TERRAIN.md); no 3D view is added.

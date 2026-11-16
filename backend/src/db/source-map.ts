@@ -2,9 +2,14 @@ import type { FeatureCollection } from '../modules/gis/types.js';
 import { replaceLayers, type ImportLayerSpec } from './gis-import.js';
 import { officialTrailLayer, readOfficialTrails } from './official-trails.js';
 import { pdfMapLayers, pdfMapReplacements, readPdfMap } from './pdf-map.js';
+import { terrainLayers, terrainReplacements, readTerrainMap } from './terrain-map.js';
 
 export const sourceMapUrl = 'https://www.google.com/maps/d/viewer?mid=1Q5BTcAcUwxp9Y320UwsszoCLO0k';
-export const sourceMapLayers: readonly ImportLayerSpec[] = [officialTrailLayer, ...pdfMapLayers];
+export const sourceMapLayers: readonly ImportLayerSpec[] = [
+  officialTrailLayer,
+  ...pdfMapLayers,
+  ...terrainLayers,
+];
 
 /** Validate the dataset-specific ingestion contract before opening a transaction. */
 export function validateSourceMap(value: unknown): FeatureCollection {
@@ -67,5 +72,6 @@ export async function importSourceMap(connectionString: string, value: unknown):
   await replaceLayers(connectionString, 2, [
     { layer: officialTrailLayer, collection: readOfficialTrails() },
     ...pdfMapReplacements(readPdfMap()),
+    ...terrainReplacements(readTerrainMap()),
   ]);
 }

@@ -39,12 +39,14 @@ export function featureText(value: unknown, limit = 4000): string {
 }
 
 function priority(feature: GisFeature): number {
+  if (feature.properties.feature_kind === 'elevation_band') return 3;
+  if (feature.properties.feature_kind === 'hillshade') return 6;
   const type = feature.geometry.type;
   if (type.includes('Point')) return 0;
   if (type.includes('Line') || feature.properties.feature_kind === 'trail') return 1;
   // Specific context footprints should be selectable inside large preserve/natural areas.
   const kind = feature.properties.feature_kind;
-  return kind === 'boundary' ? 4 : kind === 'natural_area' ? 3 : 2;
+  return kind === 'boundary' ? 5 : kind === 'natural_area' ? 4 : 2;
 }
 
 // Resolve only IDs from the native hit-test; all displayed data comes from the
@@ -78,10 +80,24 @@ export function featureDetails(snapshot: GisSnapshot, id: string): FeatureDetail
     ['Source annotation', properties.source_name],
     ['Source segment', properties.source_segment_id],
     ['Source', layer?.source],
+    ['Elevation source', properties.source],
+    ['Vertical reference', properties.vertical_datum],
   ];
   for (const [label, value] of attributes) {
     const text = featureText(value, label === 'Source' ? 1000 : 200);
     if (text) fields.push({ label, value: text });
+  }
+  if (
+    typeof properties.elevation_min_ft_us === 'number' &&
+    Number.isFinite(properties.elevation_min_ft_us) &&
+    typeof properties.elevation_max_ft_us === 'number' &&
+    Number.isFinite(properties.elevation_max_ft_us) &&
+    properties.elevation_max_ft_us > properties.elevation_min_ft_us
+  ) {
+    fields.push({
+      label: 'Elevation band',
+      value: `${properties.elevation_min_ft_us}–${properties.elevation_max_ft_us} ftUS`,
+    });
   }
   if (
     typeof properties.average_width_in === 'number' &&

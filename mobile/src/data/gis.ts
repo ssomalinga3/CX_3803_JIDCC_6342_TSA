@@ -5,6 +5,7 @@ import type {
   Layer,
   LayerCatalog,
 } from '../../../backend/src/modules/gis/types';
+import { validateTerrainAssets } from '@/data/terrain';
 
 export type GisSnapshot = {
   layers: Layer[];
@@ -194,6 +195,7 @@ export async function loadPublicGis(value: string, signal: AbortSignal): Promise
       }),
     ),
   };
+  validateTerrainAssets(layers, collection.features);
   return {
     layers,
     collection,

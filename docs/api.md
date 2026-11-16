@@ -147,3 +147,21 @@ limits. Waterfall retains the complete old My Maps feature in inert
 HTML with explicit source labels. Clients must render descriptions as text and
 never execute source markup or fetch linked media. Difficulty remains unchanged
 by owner decision; no PDF fallback or safety semantics are added.
+
+## Two-source terrain selection (PR 4)
+
+The [terrain contract](../data/cascade-springs-gis/TERRAIN.md) adds public catalog
+IDs `cascade-terrain-supplied` and `cascade-terrain-usgs`, both `layerType: terrain`.
+Each returns Polygon `elevation_band` features plus one `hillshade` image-footprint
+feature. The selected total becomes nine layers/131 features. Bbox, privacy,
+content type and cache headers remain unchanged; there is no raster HTTP route.
+
+Band properties include `elevation_min_ft_us`, `elevation_max_ft_us`,
+`vertical_datum`, `source`, `source_dataset`, `source_sha256`,
+`horizontal_registration` and `dataset_version`. Heights describe 20 ftUS display
+intervals, not measured ascent. A hillshade adds `raster_key` and
+`raster_sha256`; its ring defines ordered image corners. Clients supporting this
+contract must match dataset version, source/image hashes and exact footprint to
+their bundled descriptor before rendering. Arbitrary image URLs are not supported.
+Metadata and app assets must be released together. The API does not serve files
+under `data/` or turn bundled image availability into an offline catalog.
