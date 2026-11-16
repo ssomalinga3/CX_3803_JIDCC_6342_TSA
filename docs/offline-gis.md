@@ -140,3 +140,13 @@ in Visitor and retain applied preset/visibility overrides only in memory. API
 retry preserves that session choice and new recognized catalog entries follow
 the preset. This is not offline download selection or a durable preference/cache;
 base-map and queued-report requirements remain unchanged.
+
+## Online basemap choices (J6-68)
+
+The nine keyless basemaps are online choices, with normal provider/device HTTP
+caching only. Switching styles does not download a region or update cached GIS.
+The existing configured offline-prototype style remains a separate selectable
+source and keeps its download controls. Online health probes do not gate that
+cached path. Session-only basemap choices reset to Standard after restart; choose
+the configured offline map explicitly when using its saved pack. No new provider
+is opted into offline bulk downloads, and no server cache/proxy is introduced.

@@ -67,3 +67,16 @@ not authentication/authorization roles. They are never sent as permission claims
 to the backend and do not expose private layers, reports, custom recipients or
 media. Every public layer remains manually selectable in each preset. Existing
 server access checks remain authoritative. See [preset behavior](development/layer-presets.md).
+
+## Basemap providers (J6-68)
+
+Enabled basemaps use public keyless provider endpoints directly. Tile requests
+reveal the viewed area to that provider; GPS coordinates are not separately sent,
+and neither viewport coordinates nor provider request URLs enter application logs.
+The registry accepts no arbitrary visitor URL or credential. No administrative
+credential or billing setting is added to Expo public configuration. Keyed
+providers remain disabled until their dedicated Free account, read-only public
+key, eligibility and provider-enforced zero-charge cap are evidenced under the
+[activation gate](../docs/tasks/basemap-options-plan.md#zero-charge-rule-for-app-visible-keys).
+The app cannot enforce a copied key's spend cap. Offline download authorization
+continues to use the separate existing prototype configuration.

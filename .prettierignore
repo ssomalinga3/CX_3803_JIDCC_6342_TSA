@@ -20,3 +20,6 @@ docs/design/
 
 .wrangler/
 backend/worker-configuration.d.ts
+
+# Local worktrees and verification artifacts are not project sources.
+.work/

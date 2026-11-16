@@ -6,6 +6,7 @@ import {
   Map,
   type CameraRef,
   type MapRef,
+  type ViewState,
 } from '@maplibre/maplibre-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -19,7 +20,8 @@ import { gisLayerProps, terrainLayerProps, deviceLocationLayerProps } from '@/da
 import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
-import { OFFLINE_STYLE } from '@/data/offline-basemap';
+import { DEFAULT_BASEMAP } from '@/data/basemaps';
+import { useBasemapLoad } from '@/hooks/use-basemap-load';
 import { trailPresentation } from '@/data/trail-presentation';
 import { terrainAssets, visibleTerrainKeys } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
@@ -30,8 +32,6 @@ const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
 const INITIAL_ZOOM = 15;
 const MIN_ZOOM = 2;
 const MAX_ZOOM = 19;
-const MAP_STYLE = OFFLINE_STYLE ?? 'https://tiles.openfreemap.org/styles/liberty';
-type LoadState = 'loading' | 'ready' | 'unavailable';
 const EMPTY_GIS: GisSnapshot['collection'] = { type: 'FeatureCollection', features: [] };
 
 export default function PreserveMap() {
@@ -40,23 +40,21 @@ export default function PreserveMap() {
   const dockBottom = insets.bottom;
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
-  const { gis, visibleSnapshot, hidden } = useMapGis();
+  const { gis, visibleSnapshot, hidden, basemap, chooseBasemap } = useMapGis();
+  const viewport = useRef<ViewState>({
+    center: PRESERVE_CENTER,
+    zoom: INITIAL_ZOOM,
+    bearing: 0,
+    pitch: 0,
+    bounds: [0, 0, 0, 0],
+  });
+  const basemapLoad = useBasemapLoad(basemap, viewport);
+  const loadState = basemapLoad.status;
   const location = useMapLocation();
   const [settingsFailed, setSettingsFailed] = useState(false);
   const [dockHeight, setDockHeight] = useState(160);
-  const [attempt, setAttempt] = useState(0);
-  const [loadState, setLoadState] = useState<LoadState>('loading');
   const [selection, setSelection] = useState<{ snapshot: GisSnapshot; id: string }>();
   useFocusEffect(useCallback(() => () => setSelection(undefined), []));
-
-  useEffect(() => {
-    // A first launch without a connection must not leave an endless spinner.
-    const timeout = setTimeout(
-      () => setLoadState((state) => (state === 'loading' ? 'unavailable' : state)),
-      20000,
-    );
-    return () => clearTimeout(timeout);
-  }, [attempt]);
 
   const ready = loadState === 'ready';
   const snapshot = visibleSnapshot;
@@ -75,7 +73,12 @@ export default function PreserveMap() {
   const bounds = originalSnapshot?.bounds;
   const visibilityChanged = useRef(false);
   const fittedHidden = useRef(hidden);
+  const previousBasemap = useRef(basemap);
   useEffect(() => {
+    if (previousBasemap.current !== basemap) {
+      previousBasemap.current = basemap;
+      visibilityChanged.current = true;
+    }
     if (fittedHidden.current !== hidden) {
       fittedHidden.current = hidden;
       visibilityChanged.current = true;
@@ -109,7 +112,17 @@ export default function PreserveMap() {
         });
       }
     }
-  }, [ready, bounds, originalSnapshot, dockBottom, dockHeight, insets.top, location.fix, hidden]);
+  }, [
+    ready,
+    bounds,
+    originalSnapshot,
+    dockBottom,
+    dockHeight,
+    insets.top,
+    location.fix,
+    hidden,
+    basemap,
+  ]);
   const locationMessage = {
     off: 'Browse the map · Location off',
     requesting: 'Checking location permission…',
@@ -131,23 +144,26 @@ export default function PreserveMap() {
         });
       }
     } catch {
-      setLoadState('unavailable');
+      basemapLoad.failed();
     }
   }
 
   return (
     <View style={styles.container}>
       <Map
-        key={attempt}
         ref={map}
         testID="preserve-map"
         style={styles.map}
-        mapStyle={MAP_STYLE}
+        mapStyle={basemapLoad.style}
         attribution
         attributionPosition={{ bottom: dockBottom + dockHeight + 8, left: 12 }}
         compassPosition={{ top: insets.top + 108, right: 24 }}
-        onDidFinishRenderingMapFully={() => setLoadState('ready')}
-        onDidFailLoadingMap={() => setLoadState('unavailable')}
+        onDidFinishRenderingMapFully={basemapLoad.rendered}
+        onDidFailLoadingMap={basemapLoad.failed}
+        onRegionDidChange={(event) => {
+          viewport.current = event.nativeEvent;
+          if (event.nativeEvent.userInteraction) visibilityChanged.current = true;
+        }}
       >
         <Camera
           ref={camera}
@@ -486,6 +502,12 @@ export default function PreserveMap() {
         )}
       </Map>
 
+      <Text
+        accessibilityLabel={`Base map attribution: ${basemap.attribution}`}
+        style={[styles.attribution, { bottom: dockBottom + dockHeight + 36 }]}
+      >
+        {basemap.attribution}
+      </Text>
       <View pointerEvents="none" style={[styles.tabBackdrop, { height: dockBottom }]} />
 
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
@@ -556,11 +578,21 @@ export default function PreserveMap() {
             <Text style={styles.subtitle}>Map unavailable. Check your connection.</Text>
             <Pressable
               accessibilityRole="button"
+              accessibilityLabel="Use Standard map"
+              onPress={() => {
+                if (basemap.id === DEFAULT_BASEMAP) basemapLoad.retry();
+                else chooseBasemap(DEFAULT_BASEMAP);
+              }}
+              style={styles.secondaryAction}
+            >
+              <Text style={styles.secondaryText}>Use Standard map</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
               accessibilityLabel="Retry loading map"
               onPress={() => {
-                fittedSnapshot.current = undefined;
-                setLoadState('loading');
-                setAttempt((value) => value + 1);
+                visibilityChanged.current = true;
+                basemapLoad.retry();
               }}
               style={styles.retry}
             >
@@ -742,6 +774,16 @@ function MapButton({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f2f7' },
   map: { flex: 1 },
+  attribution: {
+    position: 'absolute',
+    left: 12,
+    right: 80,
+    backgroundColor: '#ffffffed',
+    borderRadius: 4,
+    padding: 3,
+    fontSize: 10,
+    color: '#242424',
+  },
   overlay: { position: 'absolute', left: 16, right: 16, alignItems: 'flex-start' },
   header: {
     backgroundColor: '#fff',

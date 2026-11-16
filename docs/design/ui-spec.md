@@ -267,3 +267,22 @@ preset again resets those differences. All public layer switches remain availabl
 in every view. Refresh retains applied choices, while a fresh provider starts in
 Visitor. Preset labels do not assert an authenticated role or promise private data.
 This supersedes the older all-new-layer-visible policy for default selection.
+
+## Base map source menu (J6-68)
+
+Above the GIS controls, a Base map card shows provider and style and a single
+expandable Choose base map button, following the existing Elevation source control.
+Provider headings contain accessible single-choice rows with 44-point minimum
+hit targets. Selecting a row applies immediately and collapses the menu. The
+owner confirmed this behavior during implementation; Done, swipe and system back
+retain choices. Start a fresh app session with OpenFreeMap Standard (Liberty).
+The menu is scrollable, works independently of GIS availability and does not
+change overlay counts, presets, elevation, camera or location consent.
+
+Only eligible configured styles appear. Source loading/failure stays separate
+from GIS and GPS status. Failed loading offers explicit Retry and Use Standard
+map, preserving camera and overlays. Provider attribution remains readable and
+accessible above the map dock, with complete source credits in the native map
+attribution control. Basemap age/accuracy/privacy caveats live in Disclaimers.
+The original Figma layer chooser and current Elevation control are the interaction
+references; no new Figma basemap frame is claimed.

@@ -273,3 +273,12 @@ network-disabled device behavior remain unverified. Background/permission
 revocation and cleanup are covered with native mocks, which do not establish
 device acceptance. Offline map persistence and off-trail warnings are not part of
 this slice.
+
+## Basemap choices
+
+Choose GIS Layers → Base map offers five OpenFreeMap and four USGS choices.
+Changes apply immediately and are independent of the GIS API and overlay presets.
+Standard remains the fresh-session default. No provider key is needed. See
+[setup, provider eligibility and native verification](../docs/development/basemap-options.md).
+The existing offline style remains an explicit configured source when enabled;
+these online choices do not authorize new offline downloads.

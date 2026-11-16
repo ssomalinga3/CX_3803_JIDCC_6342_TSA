@@ -30,8 +30,8 @@ credentials.json
 *.log
 .DS_Store
 
-# Reproducible GIS inspection environment and intermediates
-/.work/gis-data/
+# Local worktrees, reproducible GIS inspection and intermediates
+/.work/
 /tools/gis/.venv/
 __pycache__/
 

@@ -14,6 +14,11 @@ export type Disclaimer = {
 
 export const disclaimers: readonly Disclaimer[] = [
   {
+    id: 'basemaps',
+    title: 'Base map sources',
+    body: 'OpenFreeMap uses OpenMapTiles and OpenStreetMap data. USGS National Map sources provide topography, aerial photography and shaded relief; they are separate from the supplied preserve GIS and the Elevation overlay. Imagery is not live satellite coverage: service metadata lists mainly NAIP aerial photography from 2017–2021 for the continental US, refreshed June 2024; the exact preserve acquisition date is unverified. Topographic and relief service refresh dates are September 2026 and September 2025, not local acquisition dates. Close zoom enlarges existing USGS detail rather than adding resolution. Roads and trails drawn by providers are background context, not approved preserve routes. Sources can differ in age, alignment and availability. Online tile requests disclose the viewed area to the chosen provider; GPS is not separately uploaded. These choices do not download an offline map.',
+  },
+  {
     id: 'cell-signal',
     title: 'Cell-signal observations',
     body: 'Colored dots are 677 recoverable samples from the supplied Cell Signal Strength screenshot, registered approximately to map controls. The five labels reproduce its legend classes; units, exact readings, carrier, device and survey date are unknown. Withheld basemap controls disagree by up to about 28 m, and annotation symbols by about 31 m; these are cartographic comparisons, not GPS or survey accuracy. The northern boundary differs between maps, and some samples lie beyond the control area. Overlapping, obscured or ambiguous dots are omitted. Positions and classes are uncertain. These observations do not show current connectivity or guarantee service and are not a continuous coverage map. The app does not collect cellular measurements.',
