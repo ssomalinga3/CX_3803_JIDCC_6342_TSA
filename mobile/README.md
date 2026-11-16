@@ -180,7 +180,7 @@ The separate Use my location button is removed. Later taps recenter and resume
 following; `expo-location` supplies the blue position dot.
 It zooms in to level 15.5 when farther out, preserving any closer zoom. The selected
 button has a blue background. The existing `expo-symbols` package supplies iOS
-`location` / `location.fill` and Android `my_location`, neutral while browsing and
+`location` / `location.fill` and Android `near_me`, neutral while browsing and
 blue while following. Acquisition shows a busy spinner and disables duplicate taps.
 Dragging or pinching the map stops following;
 tap recenter again to resume. Zoom buttons immediately zoom around the latest GPS fix, preserving its padded
@@ -313,7 +313,7 @@ after one tap, with no separate Use my location action. See the
 [active follow screenshot](../docs/images/ios26-location-follow.png).
 Optical alignment was also checked on iOS for both variants: outline down 1 point,
 filled left 1 / down 2 points. Android centers the glyph layout within the icon box;
-its symmetric target gets no asymmetric iOS offset. The spinner and 52-point
+the selected `near_me` arrow replaces the original Android crosshair. The spinner and 52-point
 button retain their original alignment and touch area. The Android emulator was
 restarted and opened this preview during that check, using the running local API
 on port 8792. Its unbundled emulator window was unavailable to the visual automation

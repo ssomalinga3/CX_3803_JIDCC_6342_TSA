@@ -555,7 +555,7 @@ export default function PreserveMap() {
             <SymbolView
               name={{
                 ios: locationFollow.following ? 'location.fill' : 'location',
-                android: 'my_location',
+                android: 'near_me',
                 web: 'my_location',
               }}
               size={27}
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 30, color: '#1c1c1e' },
   // Android SymbolView renders Text inside its fixed-size box. Center the glyph
-  // layout as well as the box; the symmetric target needs no horizontal nudge.
+  // layout as well as the box instead of aligning the font line to its top edge.
   locationIcon: { alignItems: 'center', justifyContent: 'center' },
   // The SF arrows carry more visual weight toward their upper-right tip.
   // Values are points; keep the spinner and the 52-point hit target centered.

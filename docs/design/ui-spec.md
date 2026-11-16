@@ -149,7 +149,7 @@ out, preserve closer zoom, then follow fresh fixes without resetting zoom.
 The single location control requests permission on tap when location is off, then
 centers and follows its first fresh fix without another tap. Remove the separate
 Use my location button. Use `expo-symbols`: iOS `location` / `location.fill` and
-Android `my_location`, neutral while browsing and blue when following. The selected
+Android `near_me`, neutral while browsing and blue when following. The selected
 button also has a blue background and accessible selected state. Acquisition shows
 a spinner with busy/disabled state; denial retains status text and deliberate retry,
 and blocked access opens Settings from the icon or the visible recovery action.
