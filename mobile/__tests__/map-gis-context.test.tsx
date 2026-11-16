@@ -9,6 +9,7 @@ function ReadLayers() {
   return (
     <View>
       <Text>{gis.status}</Text>
+      {gis.refreshFailed && <Text>Refresh failed; retained layers</Text>}
       <Text>{visibleSnapshot?.layers.map((layer) => layer.layerId).join(',')}</Text>
       <Button title="Hide trails" onPress={() => applyHidden(new Set(['trails', 'private']))} />
       <Button title="Refresh catalog" onPress={gis.retry} />
@@ -43,7 +44,8 @@ test('shares one GIS load across route content changes; choices survive refresh 
     expect(load).toHaveBeenCalledTimes(2);
     load.mockRejectedValueOnce(new Error('offline'));
     await userEvent.setup().press(screen.getByRole('button', { name: 'Refresh catalog' }));
-    expect(await screen.findByText('error')).toBeOnTheScreen();
+    expect(await screen.findByText('Refresh failed; retained layers')).toBeOnTheScreen();
+    expect(screen.getByText('landmarks,boundary,new-layer')).toBeOnTheScreen();
     await userEvent.setup().press(screen.getByRole('button', { name: 'Hide trails' }));
     load.mockResolvedValue(snapshot);
     await userEvent.setup().press(screen.getByRole('button', { name: 'Refresh catalog' }));

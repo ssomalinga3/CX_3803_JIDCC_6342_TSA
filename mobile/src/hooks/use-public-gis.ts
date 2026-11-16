@@ -12,13 +12,15 @@ export type GisState =
     }
   | { status: 'ready' | 'empty'; snapshot: GisSnapshot; savedAt?: number; refreshFailed?: boolean };
 
-function available(snapshot: GisSnapshot, savedAt?: number): GisState {
+type AvailableGisState = Extract<GisState, { snapshot: GisSnapshot }>;
+
+function available(snapshot: GisSnapshot, savedAt?: number): AvailableGisState {
   return { status: snapshot.collection.features.length ? 'ready' : 'empty', snapshot, savedAt };
 }
 
 export function usePublicGis(apiUrl: string | undefined) {
   const [attempt, setAttempt] = useState(0);
-  const latest = useRef<{ url: string; state: GisState } | undefined>(undefined);
+  const latest = useRef<{ url: string; state: AvailableGisState } | undefined>(undefined);
   const [result, setResult] = useState<{
     url: string | undefined;
     attempt: number;
