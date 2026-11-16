@@ -70,7 +70,11 @@ permission. Recenter uses the latest fix; subsequent fixes move the dot while
 preserving manual browsing. Denial does not block the map. On blur/background or
 explicit disable, subscriptions and the displayed fix are cleared. On return,
 permission is checked again without a new automatic prompt. A 30-second display
-freshness default removes expired dots/recentering until GPS recovers. See the
+freshness default removes expired dots/recentering until GPS recovers. The local
+[simulator walking panel](../development/macos-android.md#walk-with-spoofed-gps)
+provides joystick/keyboard movement, speed and custom starting coordinates through
+the native iOS/Android GPS feeds for manual checks, separately or together. It
+does not bypass app permission or establish the open off-trail tolerance. See the
 [mobile GPS acceptance checklist](../../mobile/README.md#acceptance-checks) for
 permission, Settings recovery, simulated movement, lifecycle and network cases.
 

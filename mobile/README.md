@@ -10,6 +10,10 @@ The iOS instructions and verification below remain available for macOS teammates
 
 ## First-time iOS Simulator setup
 
+For interactive GPS walking on iOS, Android or both together, run `pnpm sim:walk`
+from the workspace root. The [walking panel guide](../docs/development/macos-android.md#walk-with-spoofed-gps)
+covers joystick/keyboard movement, speed, starting positions and disconnecting.
+
 **Primary verification target: iOS 26.** Choose an iPhone running iOS 26 for daily
 development and acceptance checks. The existing `Cascade iOS 26` device runs
 iOS 26.3 on an iPhone 17. Older iOS runtimes are supplemental compatibility checks;

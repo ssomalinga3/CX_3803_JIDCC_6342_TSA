@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cascade · GPS walk</title>
+    <link rel="stylesheet" href="/panel.css" />
+    <script src="/panel.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="eyebrow">CASCADE SPRINGS / DEVELOPER TOOLS</span>
+        <h1>Take a test walk.</h1>
+        <p>One joystick. The same walk on iOS and Android.</p>
+      </header>
+      <section class="connection" aria-label="Simulator connection">
+        <div>
+          <label class="eyebrow" for="platform">TARGET DEVICES</label>
+          <select id="platform">
+            <option value="both">iOS + Android together</option>
+            <option value="ios">iOS Simulator only</option>
+            <option value="android">Android Emulator only</option>
+          </select>
+          <p id="device">Not connected</p>
+        </div>
+        <button id="connect">Connect</button><button id="clear" disabled>Disconnect</button>
+      </section>
+      <p id="error" role="alert"></p>
+      <div class="workspace">
+        <section class="steering" aria-label="Walking controls">
+          <div class="section-heading">
+            <h2>Walking control</h2>
+            <span id="motion">Standing still</span>
+          </div>
+          <div
+            id="joystick"
+            role="group"
+            tabindex="0"
+            aria-label="Drag or use arrow keys to walk. North is up."
+          >
+            <span class="north">N</span><span class="east">E</span><span class="south">S</span
+            ><span class="west">W</span>
+            <div id="stick"></div>
+          </div>
+          <div class="dpad" aria-label="Hold a direction to walk">
+            <button data-east="0" data-north="1" aria-label="Walk north">↑</button>
+            <button data-east="-1" data-north="0" aria-label="Walk west">←</button>
+            <button id="pause" aria-label="Pause walking">■</button>
+            <button data-east="1" data-north="0" aria-label="Walk east">→</button>
+            <button data-east="0" data-north="-1" aria-label="Walk south">↓</button>
+          </div>
+          <p class="hint">
+            Drag the stick or hold arrows / WASD. Release to stop.<br />Space pauses. Switching away
+            from this panel pauses walking.
+          </p>
+          <label class="speed-label" for="speed"
+            >Speed <output id="speed-value">1.4 m/s · 5.0 km/h</output></label
+          >
+          <input id="speed" type="range" min="0.2" max="5" step="0.1" value="1.4" />
+          <div class="presets">
+            <button data-speed="0.7">Slow</button><button data-speed="1.4">Walk</button
+            ><button data-speed="3">Jog</button><button data-speed="5">Run</button>
+          </div>
+        </section>
+        <section class="position" aria-label="Simulated position">
+          <h2>Current position</h2>
+          <dl>
+            <dt>Latitude</dt>
+            <dd id="latitude">—</dd>
+            <dt>Longitude</dt>
+            <dd id="longitude">—</dd>
+            <dt>Distance walked</dt>
+            <dd id="distance">0.0 m</dd>
+          </dl>
+          <form id="position-form">
+            <h2>Start somewhere else</h2>
+            <label for="start-latitude">Latitude</label
+            ><input
+              id="start-latitude"
+              type="number"
+              min="-85"
+              max="85"
+              step="any"
+              value="33.7176"
+              required
+            />
+            <label for="start-longitude">Longitude</label
+            ><input
+              id="start-longitude"
+              type="number"
+              min="-180"
+              max="180"
+              step="any"
+              value="-84.4792"
+              required
+            />
+            <button type="submit">Set starting position</button>
+          </form>
+          <button id="reset">Reset to preserve center</button>
+          <p class="hint">
+            In Cascade, tap <strong>Use my location</strong> and allow access, then recenter to see
+            your walk. The camera stays where you put it.
+          </p>
+        </section>
+      </div>
+      <footer>
+        Local test tool · Affects location for all apps on the selected devices.<br />Pause keeps
+        fresh stationary fixes. Disconnect clears iOS spoofing; Android retains its last fix until
+        replaced or the emulator is cold-booted. No route is saved.
+      </footer>
+    </main>
+  </body>
+</html>
