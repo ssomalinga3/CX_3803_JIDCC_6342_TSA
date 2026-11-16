@@ -15,6 +15,13 @@
       "when": 1793574845347,
       "tag": "0001_public-gis-layers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794512388048,
+      "tag": "0002_report-persistence",
+      "breakpoints": true
     }
   ]
 }
