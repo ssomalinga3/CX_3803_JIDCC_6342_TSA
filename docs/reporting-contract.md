@@ -1,12 +1,17 @@
 # Guest reporting contract
 
-**Status: proposed for team review.** [J6-27](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-27) is the decision record for reporting. The request and response examples below describe proposed behavior. Guest submission and the privacy of custom-recipient reports are established requirements. [API](api.md) · [Security](security.md) · [Open decisions](decisions.md) · [Offline queue](offline-gis.md)
+**Status: partially approved November 16, 2026.** The owner selected the recommended installation-scoped guest-access and photo/GPS policies below. Remaining API, routing, retry and retention details are proposed for review under [J6-27](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-27). Guest submission and the privacy of custom-recipient reports are established requirements. [API](api.md) · [Security](security.md) · [Open decisions](decisions.md) · [Offline queue](offline-gis.md)
+
+The [November 16 foundation review](development/reporting-foundation.md) separates
+the remaining decisions from the already merged J6-28 persistence implementation
+and records its verification boundaries. That implementation does not approve
+the remaining contract details or expose a report-submission endpoint.
 
 ## Guest ownership and submission identity
 
 - Generate a random UUID for each submission and a separate cryptographically random 256-bit guest secret on the device before the first upload. Keep both across retries. A guest sends the secret in the HTTPS authorization header. An authenticated reporter uses their verified account session.
 - Scope guest access to that report. The server stores a digest of the secret and checks it on replay and any owner detail or media request. The report ID, submission UUID, and recipient address carry no authority. Keep the secret out of URLs, receipts, notifications, analytics, and logs.
-- Store the guest secret in platform secure storage. The proposed first release supports access from the originating installation. Cross-device recovery and account linking require a separate decision. Confirm the user-facing recovery expectation before approving D-01.
+- Store the guest secret in platform secure storage. The owner-approved first release supports access from the originating installation only, using a separate 256-bit secret per report and its server-side digest. Explain that a lost installation/credential has no recovery path in this release. Cross-device recovery is deferred to [J6-71](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-71), coordinated with J6-41; account linking and the recovery mechanism remain separate decisions.
 - A submission UUID identifies one accepted report. A caller with valid owner proof receives the original receipt for an identical replay. A different payload from the same owner returns `409 SUBMISSION_CONFLICT`. A caller with different owner proof receives a generic failure without receipt or report details.
 
 ## Request and receipt
@@ -28,7 +33,7 @@ Example metadata for a custom report where the visitor declined location access:
 }
 ```
 
-- For a consented fix, use a GeoJSON Point with finite longitude and latitude in that order and omit `location_unavailable_reason`. For a missing fix, use `location: null` and one of `permission_denied`, `unavailable`, or `not_shared`. The proposed flow lets the visitor review and submit a report without coordinates. Keep capture time and server acceptance time separate.
+- For a consented fix, use a GeoJSON Point with finite longitude and latitude in that order and omit `location_unavailable_reason`. For a missing fix, use `location: null` and one of `permission_denied`, `unavailable`, or `not_shared`. The owner-approved capture policy lets the visitor review and submit a report without coordinates. Keep capture time and server acceptance time separate.
 - For `park` mode, the server looks up the category's approved destination and rejects a client-supplied custom recipient list. For `custom` mode, accept only the explicitly reviewed, nonempty list. Validate and deduplicate the addresses consistently. Persist the effective destination with the accepted report so configuration changes cannot alter an existing delivery.
 - Keep custom reports and attachments outside staff lists, search, details, exports, mutations, and notifications, including for park administrators. Send each custom recipient a separate notification so addresses remain private. A delivery failure preserves the original mode and recipients.
 - Use `201` for first acceptance and `200` for an identical authorized replay. Both return the same receipt. A receipt confirms storage. Notification delivery has its own state and may still be pending.
@@ -44,9 +49,19 @@ Example metadata for a custom report where the visitor declined location access:
 
 ## Photo handling
 
-The proposed starting limits for review are **1–3 photos**, **5 MiB per photo**, **16 MiB total request**, **4,096 pixels per edge**, and **12 million pixels per decoded image**. Confirm these limits and whether text-only reports belong in the first release under D-04. Enforce request and decode limits on the server and surface validation before upload where possible.
+The owner-approved first-release limits are **1–3 JPEG/PNG photos**, **5 MiB per photo**, **16 MiB total request**, **4,096 pixels per edge**, and **12 million pixels per decoded image**. At least one photo is required; text-only reports are outside this initial policy. Missing GPS is allowed with an explicit reason. Enforce request and decode limits on the server and surface validation before upload where possible.
 
 Accept JPEG and PNG by decoded content. Convert unsupported device formats to JPEG on the device when possible, and let the user replace the photo if conversion fails. Keep the approved converted files for retries. Strip image metadata before storage. Use the user-reviewed location field as the source of report coordinates. Store stable references to private objects and issue expiring media access only after authorization.
+
+PostgreSQL stores `observation_image.object_key` references, not photo bytes.
+The [J6-29 local photo service](development/report-photos.md) now validates and
+sanitizes files, with private local-disk storage for Node development tooling
+and an in-memory adapter for Worker tests. Its CLI removes its temporary copies
+after checking. No HTTP upload/submission route or mobile capture is registered.
+A private S3 adapter, bucket name/region and real cloud integration remain
+outstanding. Persistence tests use placeholder keys until J6-30 connects accepted
+references. Durable on-device photos remain J6-33. Map imagery and bundled GIS
+assets are separate from report photos.
 
 ## Acceptance, retries, and local storage
 
@@ -73,12 +88,12 @@ Use `400` for malformed requests, `401` for missing authorization, a generic `40
 
 ## Decisions for review
 
-| Decision | Review outcome needed                                                                                           |
-| -------- | --------------------------------------------------------------------------------------------------------------- |
-| D-01     | Approve report-scoped guest access and the recovery experience.                                                 |
-| D-03     | Confirm park categories and destinations, custom recipient rules, and who may access report media.              |
-| D-04     | Confirm photo limits, conversion, text-only behavior, and submission with missing GPS.                          |
-| D-07     | Approve the replay and acceptance rules, retry bounds, and handling of uncertain notification delivery.         |
-| D-09     | Confirm device protection, access-log settings, retention and deletion for drafts, accepted records, and media. |
+| Decision | Review outcome needed                                                                                                                               |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-01     | Installation-scoped report-secret access approved; cross-device recovery deferred to J6-71. Account/session and later recovery details remain open. |
+| D-03     | Confirm park categories and destinations, custom recipient rules, and who may access report media.                                                  |
+| D-04     | Initial photo limits/conversion, photo-required capture and missing-GPS submission approved. Private media access mechanics remain open.            |
+| D-07     | Approve the replay and acceptance rules, retry bounds, and handling of uncertain notification delivery.                                             |
+| D-09     | Confirm device protection, access-log settings, retention and deletion for drafts, accepted records, and media.                                     |
 
 Record approvals in [the decision register](decisions.md). The dependent tickets should verify concurrent replay, guest isolation, hidden custom reports and media, missing GPS, failed uploads, lost receipts, and offline restart against the agreed contract.

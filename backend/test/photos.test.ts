@@ -1,0 +1,332 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { deflateSync } from 'node:zlib';
+import { decode, encode } from 'fast-png';
+import jpeg from 'jpeg-js';
+import { preparePhoto, readPhoto } from '../src/modules/reports/photos.js';
+import { PHOTO_LIMITS, PhotoError } from '../src/modules/reports/photo-errors.js';
+import {
+  createPhotoService,
+  type PrivatePhotoStore,
+  type StoredPhoto,
+} from '../src/modules/reports/photo-storage.js';
+import {
+  customPng,
+  jpegWithExif,
+  PIXELS,
+  pngWithChunk,
+  pngChunk,
+  sampleJpeg,
+  samplePng,
+  tiffOrientation,
+  upload,
+} from './fixtures/photos.js';
+
+describe('report photo validation and sanitization', () => {
+  it('decodes PNG content, preserves alpha and hashes original versus sanitized bytes', async () => {
+    const input = pngWithChunk('tEXt', Buffer.from('GPS\0synthetic-private-location'));
+    const photo = await preparePhoto(input);
+    expect(photo).toMatchObject({ contentType: 'image/png', width: 2, height: 3 });
+    expect(decode(photo.bytes, { checkCrc: true }).data).toEqual(PIXELS);
+    expect(Buffer.from(photo.bytes).toString()).not.toContain('synthetic-private-location');
+    expect(photo.sourceSha256).toBe(createHash('sha256').update(input).digest('hex'));
+    expect(photo.sha256).not.toBe(photo.sourceSha256);
+    expect(decode(photo.bytes).text).toEqual({});
+  });
+
+  it('decodes JPEG, applies EXIF rotation, and drops EXIF/comments/trailing payloads', async () => {
+    const input = Buffer.concat([jpegWithExif(6), Buffer.from('private-trailing-payload')]);
+    const photo = await preparePhoto(input);
+    expect(photo).toMatchObject({ contentType: 'image/jpeg', width: 3, height: 2 });
+    const decoded = jpeg.decode(photo.bytes);
+    expect(decoded.width).toBe(3);
+    expect(decoded.height).toBe(2);
+    expect(decoded.comments).toBeUndefined();
+    expect(Buffer.from(photo.bytes).includes(Buffer.from('Exif\0\0'))).toBe(false);
+    expect(Buffer.from(photo.bytes).toString()).not.toContain('private');
+  });
+
+  it.each([
+    [1, [0, 1, 2, 3, 4, 5]],
+    [2, [1, 0, 3, 2, 5, 4]],
+    [3, [5, 4, 3, 2, 1, 0]],
+    [4, [4, 5, 2, 3, 0, 1]],
+    [5, [0, 2, 4, 1, 3, 5]],
+    [6, [4, 2, 0, 5, 3, 1]],
+    [7, [5, 3, 1, 4, 2, 0]],
+    [8, [1, 3, 5, 0, 2, 4]],
+  ])('preserves visible pixels for EXIF orientation %i', async (orientation, order) => {
+    const photo = await preparePhoto(pngWithChunk('eXIf', tiffOrientation(orientation)));
+    const pixels = decode(photo.bytes).data;
+    expect(Array.from(pixels)).toEqual(
+      order.flatMap((index) => Array.from(PIXELS.subarray(index * 4, index * 4 + 4))),
+    );
+    expect(Buffer.from(photo.bytes).toString()).not.toContain('eXIf');
+  });
+
+  it('normalizes 16-bit grayscale and indexed PNGs without losing transparency', async () => {
+    const grayscale = encode({
+      width: 1,
+      height: 1,
+      channels: 2,
+      depth: 16,
+      data: new Uint16Array([65535, 32768]),
+    });
+    expect(Array.from(decode((await preparePhoto(grayscale)).bytes).data)).toEqual([
+      255, 255, 255, 128,
+    ]);
+    const palette = Buffer.from(
+      encode({
+        width: 2,
+        height: 1,
+        channels: 1,
+        depth: 8,
+        data: new Uint8Array([0, 1]),
+        palette: [
+          [255, 0, 0],
+          [0, 255, 0],
+        ],
+      }),
+    );
+    // Build the indexed alpha table explicitly: fixture encoding must preserve palette indices.
+    const start = palette.indexOf(Buffer.from('IDAT')) - 4;
+    const transparent = Buffer.concat([
+      palette.subarray(0, start),
+      pngChunk('tRNS', Uint8Array.from([255, 0])),
+      palette.subarray(start),
+    ]);
+    expect(Array.from(decode((await preparePhoto(transparent)).bytes).data)).toEqual([
+      255, 0, 0, 255, 0, 255, 0, 0,
+    ]);
+  });
+
+  it.each([
+    Buffer.from('<svg>private</svg>'),
+    Buffer.from('GIF89a'),
+    Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+  ])('rejects non-images and signature-only spoofs with a fixed error', async (bytes) => {
+    await expect(preparePhoto(bytes)).rejects.toBeInstanceOf(PhotoError);
+    await expect(preparePhoto(bytes)).rejects.toMatchObject({ status: 415 });
+  });
+
+  it('rejects corrupt/truncated image content and animated PNG instead of silently losing frames', async () => {
+    const corrupt = samplePng();
+    corrupt[corrupt.length - 1] = corrupt[corrupt.length - 1]! ^ 1;
+    for (const bytes of [
+      corrupt,
+      samplePng().subarray(0, 40),
+      sampleJpeg().subarray(0, 100),
+      pngWithChunk('acTL', Buffer.alloc(8)),
+    ]) {
+      await expect(preparePhoto(bytes)).rejects.toMatchObject({ status: 415 });
+    }
+  });
+
+  it.each([
+    [4097, 1],
+    [1, 4097],
+    [4000, 4000],
+    [0, 1],
+  ])('rejects dimensions %i×%i before decoding', async (width, height) => {
+    const header = samplePng().subarray(16, 29);
+    header.writeUInt32BE(width, 0);
+    header.writeUInt32BE(height, 4);
+    await expect(
+      preparePhoto(customPng(header, deflateSync(Buffer.alloc(1)))),
+    ).rejects.toMatchObject({ code: 'PHOTO_DIMENSIONS' });
+    const jpg = sampleJpeg();
+    const frame = jpg.indexOf(Buffer.from([0xff, 0xc0]));
+    jpg.writeUInt16BE(height, frame + 5);
+    jpg.writeUInt16BE(width, frame + 7);
+    await expect(preparePhoto(jpg)).rejects.toMatchObject({ code: 'PHOTO_DIMENSIONS' });
+  });
+
+  it('accepts the edge limit and rejects a PNG expansion bomb', async () => {
+    const edge = encode({ width: 4096, height: 1, channels: 4, data: new Uint8Array(4096 * 4) });
+    expect((await preparePhoto(edge)).width).toBe(4096);
+    const bomb = customPng(samplePng().subarray(16, 29), deflateSync(Buffer.alloc(1_000_000)));
+    await expect(preparePhoto(bomb)).rejects.toMatchObject({ code: 'INVALID_PHOTO' });
+  });
+
+  it('supports interlaced and packed grayscale pixels and ignores compressed private metadata', async () => {
+    const interlaced = encode(
+      { width: 2, height: 3, data: PIXELS, channels: 4 },
+      { interlace: 'Adam7' },
+    );
+    expect(decode((await preparePhoto(interlaced)).bytes).data).toEqual(PIXELS);
+    const header = samplePng().subarray(16, 29);
+    header.writeUInt32BE(2, 0);
+    header.writeUInt32BE(1, 4);
+    header[8] = 1;
+    header[9] = 0;
+    const monochrome = customPng(header, deflateSync(Buffer.from([0, 0x80])));
+    expect(Array.from(decode((await preparePhoto(monochrome)).bytes).data)).toEqual([
+      255, 255, 255, 255, 0, 0, 0, 255,
+    ]);
+    const metadata = pngWithChunk(
+      'zTXt',
+      Buffer.concat([Buffer.from('Private\0\0'), deflateSync(Buffer.alloc(1_000_000, 65))]),
+    );
+    const sanitized = await preparePhoto(metadata);
+    expect(decode(sanitized.bytes).text).toEqual({});
+    expect(decode(sanitized.bytes).data).toEqual(PIXELS);
+  });
+
+  it('bounds streamed bytes and closes the iterator immediately on excess input', async () => {
+    let closed = false,
+      readTail = false;
+    async function* tooLarge() {
+      try {
+        yield Buffer.alloc(PHOTO_LIMITS.bytes);
+        yield Buffer.alloc(1);
+        readTail = true;
+      } finally {
+        closed = true;
+      }
+    }
+    await expect(readPhoto(tooLarge())).rejects.toMatchObject({ code: 'PHOTO_TOO_LARGE' });
+    expect(closed).toBe(true);
+    expect(readTail).toBe(false);
+    await expect(preparePhoto(Buffer.alloc(PHOTO_LIMITS.bytes + 1))).rejects.toMatchObject({
+      code: 'PHOTO_TOO_LARGE',
+    });
+  });
+});
+
+describe('private guest photo staging', () => {
+  const context = { submissionId: randomUUID(), guestSecret: '1'.repeat(64) };
+  const otherGuest = { ...context, guestSecret: '2'.repeat(64) };
+  function storage() {
+    const objects = new Map<string, StoredPhoto>();
+    const writes: string[] = [];
+    const store: PrivatePhotoStore = {
+      async put(key, photo) {
+        writes.push(key);
+        if (objects.has(key)) throw new Error('collision');
+        objects.set(key, photo);
+      },
+      async get(key) {
+        return objects.get(key) ?? null;
+      },
+      async delete(key) {
+        objects.delete(key);
+      },
+    };
+    return { store, objects, writes };
+  }
+
+  it('stages ordered sanitized photos, reveals only safe references, and isolates ownership', async () => {
+    const { store, objects } = storage();
+    const service = createPhotoService(store);
+    const references = await service.stage(context, [upload(), upload(sampleJpeg())]);
+    expect(references.map((photo) => photo.contentType)).toEqual(['image/png', 'image/jpeg']);
+    expect(JSON.stringify(references)).not.toContain(context.guestSecret);
+    expect(references[0]).not.toHaveProperty('ownerDigest');
+    expect(references[0]).not.toHaveProperty('bytes');
+    expect(objects.size).toBe(2);
+    const access = await service.issueAccess(context, references[0]!.objectKey, 1000);
+    await expect(service.read(context, access)).resolves.toMatchObject({
+      contentType: 'image/png',
+    });
+    for (const intruder of [otherGuest, { ...context, submissionId: randomUUID() }]) {
+      await expect(service.issueAccess(intruder, access.objectKey, 1000)).rejects.toMatchObject({
+        code: 'PHOTO_UNAVAILABLE',
+      });
+      await expect(service.read(intruder, access)).rejects.toMatchObject({
+        code: 'PHOTO_UNAVAILABLE',
+      });
+      await expect(service.discard(intruder, [access.objectKey])).rejects.toMatchObject({
+        code: 'PHOTO_UNAVAILABLE',
+      });
+    }
+    expect(objects.size).toBe(2);
+    await service.discard(
+      context,
+      references.map((photo) => photo.objectKey),
+    );
+    await service.discard(
+      context,
+      references.map((photo) => photo.objectKey),
+    );
+    expect(objects.size).toBe(0);
+  });
+
+  it('rejects forged, expired and restart-invalidated grants', async () => {
+    const { store } = storage();
+    let now = 1000;
+    const service = createPhotoService(store, () => now);
+    const [photo] = await service.stage(context, [upload()]);
+    const access = await service.issueAccess(context, photo!.objectKey, 100);
+    await expect(service.read(context, { ...access, expiresAt: 999999 })).rejects.toMatchObject({
+      code: 'PHOTO_UNAVAILABLE',
+    });
+    await expect(service.read(context, { ...access, token: 'bad' })).rejects.toMatchObject({
+      code: 'PHOTO_UNAVAILABLE',
+    });
+    const restarted = createPhotoService(store, () => now);
+    await expect(restarted.read(context, access)).rejects.toMatchObject({
+      code: 'PHOTO_UNAVAILABLE',
+    });
+    await expect(restarted.issueAccess(context, photo!.objectKey, 100)).resolves.toHaveProperty(
+      'token',
+    );
+    now = access.expiresAt;
+    await expect(service.read(context, access)).rejects.toMatchObject({
+      code: 'PHOTO_UNAVAILABLE',
+    });
+  });
+
+  it('validates count, credentials and the whole batch before writing anything', async () => {
+    const { store, writes } = storage();
+    const service = createPhotoService(store);
+    for (const uploads of [[], [upload(), upload(), upload(), upload()]]) {
+      await expect(service.stage(context, uploads)).rejects.toMatchObject({
+        code: 'INVALID_PHOTO_COUNT',
+      });
+    }
+    await expect(service.stage({ ...context, guestSecret: '' }, [upload()])).rejects.toMatchObject({
+      code: 'PHOTO_UNAVAILABLE',
+    });
+    await expect(
+      service.stage(context, [upload(), upload(Buffer.from('bad-photo'))]),
+    ).rejects.toMatchObject({ code: 'UNSUPPORTED_PHOTO' });
+    async function* broken() {
+      yield samplePng();
+      throw new Error('private path / GPS');
+    }
+    await expect(service.stage(context, [broken()])).rejects.toMatchObject({
+      message: 'INVALID_PHOTO',
+    });
+    expect(writes).toEqual([]);
+  });
+
+  it('cleans both acknowledged and ambiguously written objects after a storage failure', async () => {
+    const { store, objects } = storage();
+    let count = 0;
+    store.put = async (key, photo) => {
+      objects.set(key, photo);
+      if (++count === 2) throw new Error('private-bucket');
+    };
+    await expect(
+      createPhotoService(store).stage(context, [upload(), upload()]),
+    ).rejects.toMatchObject({ message: 'PHOTO_STORAGE_UNAVAILABLE' });
+    expect(objects.size).toBe(0);
+  });
+
+  it('surfaces cleanup failures for retry without returning raw dependency errors', async () => {
+    const { store } = storage();
+    store.put = async () => {
+      throw new Error('private-bucket');
+    };
+    store.delete = async () => {
+      throw new Error('private-bucket');
+    };
+    try {
+      await createPhotoService(store).stage(context, [upload()]);
+      throw new Error('expected failure');
+    } catch (error) {
+      expect(error).toBeInstanceOf(PhotoError);
+      expect(error).toMatchObject({ message: 'PHOTO_CLEANUP_REQUIRED', status: 503 });
+      expect((error as PhotoError).cleanupKeys).toHaveLength(1);
+    }
+  });
+});

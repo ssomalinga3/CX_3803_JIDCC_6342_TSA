@@ -18,6 +18,8 @@ Cascade Springs Nature Conservancy Smart GIS: Mapping Atlanta's Ecological Core.
 | [Architecture diagram source](diagrams/architecture.puml) | Editable PlantUML supplied with the assignment request |
 | [Backend package](../backend/README.md) | How to run, build, test, and verify the Node/TypeScript server |
 | [Local startup commands](development/local-startup.md) | Complete PostGIS, Worker API, Metro, and iOS Simulator startup and verification |
+| [Reporting foundation review](development/reporting-foundation.md) | J6-27 decision review, J6-28 persistence evidence and reproducible PostGIS checks |
+| [Local report-photo processing](development/report-photos.md) | J6-29 validation, sanitization, private local storage and Worker checks without S3 |
 | [Layer selection verification](development/layer-selection.md) | J6-19 behavior, iOS smoke evidence, screenshots and remaining acceptance checks |
 | [Layer-toggle acceptance](development/layer-toggle-acceptance.md) | J6-21 client-to-component regression and remaining native visual/performance checks |
 | [Natural map rendering order](development/map-layer-order.md) | Native z-order policy, stable raster slots and overlapping-feature priority |

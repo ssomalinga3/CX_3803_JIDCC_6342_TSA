@@ -47,7 +47,15 @@ Persist the custom delivery mode and recipients with the report and its offline 
   logging policies before handling real visitor locations. See the
   [request-error contract](api.md#implemented-request-error-responses).
 - Read needed EXIF GPS/time on submission, then strip unnecessary sensitive image metadata before storage. EXIF coordinates are optional evidence, not a replacement for report location.
-- Restrict uploads to JPEG/PNG and enforce a configured maximum size. Exact image count, byte/dimension limits, and handling of unsupported phone formats are open in D-04.
+- The approved initial capture policy requires 1–3 JPEG/PNG photos, 5 MiB each,
+  16 MiB total request, at most 4,096 pixels per edge and 12 million decoded
+  pixels. Missing GPS is allowed with an explicit reason; convert unsupported
+  device formats on device where possible. The
+  [local photo service](development/report-photos.md) enforces file/count/decode
+  limits and strips metadata while physically preserving EXIF orientation. It
+  authorizes staged reads/deletion with the guest's report-scoped secret and does
+  not collect EXIF GPS/time. The future HTTP adapter must enforce the complete
+  multipart limit; S3 uploads and mobile capture remain unimplemented.
 - Do not make the S3 bucket public or persist expiring presigned URLs as durable image identifiers.
 - Offline reports include photos and precise locations on the device. Their storage protection, retention, deletion, and sign-out behavior need an explicit policy (D-09).
 

@@ -21,6 +21,12 @@ Baseline: S1 pp. 6–9 and S5; feature scope: S3. Source links are in the [speci
 
 The backend is one server application with separate responsibilities, not a microservice deployment. The mobile application accesses server data through the API. Database, S3, and SES credentials belong on the server. The [supplied component diagram](diagrams/architecture.puml) uses arrows from a dependent to its dependency.
 
+The [local J6-29 photo service](development/report-photos.md) separates image
+validation/sanitization and ownership from private storage. Node development
+tooling can use a private disk adapter; an isolated Worker test uses memory.
+Neither is production photo storage. S3 remains the selected production target,
+with its adapter/configuration and J6-30 submission integration still pending.
+
 ## Main interactions
 
 1. **Map:** UI requests layers through the API client. REST API → GIS module → data access → PostGIS. Results become GeoJSON or vector tiles, are cached where supported, and are rendered by the native map.
