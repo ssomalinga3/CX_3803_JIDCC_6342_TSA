@@ -19,6 +19,20 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 16, 2026 — J6-27 guest access and capture policy:** The owner selected
+  the recommended first-release approach: a separate cryptographically random
+  256-bit secret per report in platform secure storage, with only its digest on
+  the server and access from the originating installation. Cross-device recovery
+  is deferred to [J6-71](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-71),
+  coordinated with J6-41. The owner also approved 1–3 JPEG/PNG photos, 5 MiB each,
+  16 MiB total request, 4,096 pixels per edge and 12 million decoded pixels;
+  require a photo, convert unsupported formats on device where possible, strip
+  metadata before storage and allow missing GPS with an explicit reason.
+  See the [reporting contract](reporting-contract.md). This partially resolves
+  D-01/D-04; account/session implementation, park category/destination values,
+  recipient/media authorization, numerical retry/lease bounds and retention
+  periods remain open. It does not provision S3 or implement uploads.
+
 - **November 16, 2026 — J6-14 location follow:** The owner requested that the
   location button only zoom inward (default level 15.5; preserve closer zoom) and
   follow the user's location until the viewport is dragged. Recenter explicitly

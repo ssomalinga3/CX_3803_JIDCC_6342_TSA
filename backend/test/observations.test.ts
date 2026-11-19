@@ -84,6 +84,115 @@ integration('report persistence with real PostGIS', () => {
     ).resolves.toEqual({ kind: 'conflict' });
   });
 
+  it('scopes account-owned receipts to the verified account', async () => {
+    const input = report({ owner: { kind: 'account', accountId: 'report-test-owner' } });
+    const created = await acceptObservation(url, input);
+    expect(created.kind).toBe('created');
+    const replay = await acceptObservation(url, input);
+    expect(replay).toEqual({ ...created, kind: 'replay' });
+    await expect(
+      acceptObservation(url, { ...input, owner: { kind: 'account', accountId: 'other-account' } }),
+    ).resolves.toEqual({ kind: 'unavailable' });
+    await expect(
+      acceptObservation(url, { ...input, owner: { kind: 'guest', secretDigest: '1'.repeat(64) } }),
+    ).resolves.toEqual({ kind: 'unavailable' });
+  });
+
+  it('does not let a competing guest overwrite the winning submission', async () => {
+    const input = report();
+    const other = { ...input, owner: { kind: 'guest' as const, secretDigest: '3'.repeat(64) } };
+    const inputs = [input, other];
+    const results = await Promise.all(inputs.map((value) => acceptObservation(url, value)));
+    expect(results.map(({ kind }) => kind).sort()).toEqual(['created', 'unavailable']);
+    const winner = results.findIndex(({ kind }) => kind === 'created');
+    const stored = await withDatabase(url, (db) =>
+      db
+        .select()
+        .from(observation)
+        .where(eq(observation.clientSubmissionId, input.clientSubmissionId)),
+    );
+    expect(stored).toHaveLength(1);
+    expect(stored[0]!.guestSecretDigest).toBe(
+      (inputs[winner]!.owner as { kind: 'guest'; secretDigest: string }).secretDigest,
+    );
+    expect(results[1 - winner]).toEqual({ kind: 'unavailable' });
+  });
+
+  it('retains the accepted destination and capture time when replay routing has changed', async () => {
+    const input = report({ destination: { mode: 'park', recipient: 'original@example.test' } });
+    const accepted = await acceptObservation(url, input);
+    expect(accepted.kind).toBe('created');
+    // The prepared payload digest excludes resolved server routing. A later configuration
+    // change must not reroute or modify an already accepted, otherwise identical request.
+    const replay = await acceptObservation(url, {
+      ...input,
+      destination: { mode: 'park', recipient: 'replacement@example.test' },
+      objectKeys: ['private/retry-attempt/photo'],
+    });
+    expect(replay).toEqual({ ...accepted, kind: 'replay' });
+    const stored = await withDatabase(url, (db) =>
+      db
+        .select()
+        .from(observation)
+        .where(eq(observation.clientSubmissionId, input.clientSubmissionId)),
+    );
+    expect(stored[0]).toMatchObject({
+      recipients: ['original@example.test'],
+      capturedAt: input.capturedAt,
+      location: null,
+      locationUnavailableReason: 'not_shared',
+    });
+    const photos = await withDatabase(url, (db) =>
+      db
+        .select()
+        .from(observationImage)
+        .where(eq(observationImage.observationId, stored[0]!.observationId))
+        .orderBy(observationImage.position),
+    );
+    expect(photos.map(({ objectKey }) => objectKey)).toEqual(input.objectKeys);
+    expect(Object.keys((replay as { receipt: object }).receipt).sort()).toEqual([
+      'acceptedAt',
+      'clientSubmissionId',
+      'observationId',
+    ]);
+  });
+
+  it.each([
+    ['neither owner', { guestSecretDigest: null }],
+    ['both owners', { accountId: 'report-test-owner' }],
+    ['malformed guest digest', { guestSecretDigest: 'invalid' }],
+    ['malformed payload digest', { payloadDigest: 'invalid' }],
+    ['missing location explanation', { locationUnavailableReason: null }],
+    ['unknown location explanation', { locationUnavailableReason: 'unknown' }],
+    ['empty custom destinations', { recipients: [] }],
+    ['empty recipient', { recipients: [''] }],
+    [
+      'multiple park destinations',
+      { deliveryMode: 'park', recipients: ['a@test.invalid', 'b@test.invalid'] },
+    ],
+    ['unknown delivery mode', { deliveryMode: 'unknown' }],
+  ] satisfies [string, Partial<typeof observation.$inferInsert>][])(
+    'rejects invalid persisted state: %s',
+    async (_name, invalid) => {
+      const input = report();
+      await expect(
+        withDatabase(url, (db) =>
+          db.insert(observation).values({
+            clientSubmissionId: input.clientSubmissionId,
+            guestSecretDigest: '1'.repeat(64),
+            payloadDigest: input.payloadDigest,
+            categoryId: input.categoryId,
+            capturedAt: input.capturedAt,
+            locationUnavailableReason: 'not_shared',
+            deliveryMode: 'custom',
+            recipients: ['recipient@example.test'],
+            ...invalid,
+          }),
+        ),
+      ).rejects.toThrow();
+    },
+  );
+
   it('rolls back the report when a photo reference fails and allows a clean retry', async () => {
     const input = report();
     await expect(
@@ -110,5 +219,14 @@ integration('report persistence with real PostGIS', () => {
     const after = await request(app).get('/api/v1/layers').expect(200);
     expect(after.body).toEqual(before.body);
     expect(after.text).not.toContain(input.clientSubmissionId);
+    for (const layer of after.body.layers) {
+      const features = await request(app)
+        .get(`/api/v1/layers/${layer.layerId}/features`)
+        .expect(200);
+      expect(features.text).not.toContain(input.clientSubmissionId);
+      expect(features.text).not.toContain(input.note);
+      expect(features.text).not.toContain('recipient@example.test');
+      expect(features.text).not.toContain('guest_secret_digest');
+    }
   });
 });

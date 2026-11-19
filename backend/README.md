@@ -1,5 +1,10 @@
 # Backend: local Workers + PostGIS
 
+For report-photo validation, sanitization and private local storage without S3,
+see [local report-photo processing](../docs/development/report-photos.md).
+Run `pnpm --dir backend photos:check /absolute/path/to/photo.jpg` from the root.
+This development check does not submit a report or upload to the cloud.
+
 Current GIS selection: `pnpm --dir backend db:import:source` atomically imports
 36 supplied trails, 33 PDF/context features, 62 terrain features and 677 approximate
 signal samples across ten layers. `db:import:trails`, `db:import:pdf`,
