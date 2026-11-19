@@ -1,5 +1,19 @@
 # User flows and acceptance
 
+## 3D terrain and trails (J6-54)
+
+GIS Layers → **Map view → 3D terrain** replaces Map in place with the existing
+USGS ground model, covered public trails and optional foreground location.
+Pan, zoom, rotate/tilt/recenter/follow; dragging stops follow. Location controls
+retain permission denial, Settings recovery, off/stale behavior; a fix outside
+terrain coverage cannot recenter the bounded model. Switching modes alone never
+requests GPS. **2D map** restores its camera, basemap and overlay choices.
+Blur/background releases WebView and its rendering worker; return recreates its
+last camera. Default 2D startup does not evaluate the large 3D asset modules. Saved trails
+and bundled assets support offline restart after a successful GIS load; the
+session starts in 2D. Missing/unsupported/render failure has return/retry within 15 seconds.
+See [acceptance and native evidence](../development/terrain-3d.md).
+
 These flows follow the [existing Figma prototype](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=0-1), supplemented by S3 stories and S4 scenarios. Use the [UI specification's direct frame links](ui-spec.md#screens-and-interactions) for screen structure and the [Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog) for implementation tracking. They describe expected behavior, not completed functionality.
 
 S8 confirms that all capture/submission flows below support guests without account creation or sign-in. Custom-recipient reports are private from park administrators, including their photos, metadata, and recipient lists.

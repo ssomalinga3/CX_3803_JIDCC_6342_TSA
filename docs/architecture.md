@@ -4,6 +4,19 @@ Baseline: S1 pp. 6–9 and S5; feature scope: S3. Source links are in the [speci
 
 ## Components and ownership
 
+The [J6-54 3D mode](development/terrain-3d.md) bundles MapLibre GL JS in a WebView
+that replaces Map in place, selected in GIS settings. Its sources are the bounded
+USGS DEM/surface (3× original width/height), allowlisted public trails, selected
+basemap tiles and consented device position. Separate DEM hillshade renders
+above tile colors and below labels/trails/position. The
+native 2D viewport is retained hidden at full size; return recreates its surface
+with the saved camera and selected GIS. Blur/background
+releases the WebView. Android's browser visibility event also disposes WebGL and
+workers before any deferred native unmount; foreground creates a new generation.
+2D startup reads a small coverage manifest, deferring the large 3D payloads until
+visible use and skipping full 3D trail preparation. Location stays local; no
+bridge coordinates enter logs.
+
 | Component | Technology | Responsibility |
 | --- | --- | --- |
 | Mobile application | React Native, Expo, TypeScript; native iOS components where appropriate | Shared map, navigation, education, report capture, permissions, local state |
@@ -26,7 +39,7 @@ The backend is one server application with separate responsibilities, not a micr
 1. **Map:** UI requests layers through the API client. REST API → GIS module → data access → PostGIS. Results become GeoJSON or vector tiles, are cached where supported, and are rendered by the native map.
 2. **Report:** A guest or signed-in reporter captures an image, consented location/time, category, and optional note. API client sends multipart data. Reporting validates the submission, persists its delivery/access mode with private images and report records, then requests email through the adapter. Custom mode sends only to explicitly listed recipients and excludes park administrators from record/media access and notifications (S8).
 3. **Offline:** Cached maps remain available. S3 story 9 adds a durable report queue alongside the GIS cache; it is not explicitly shown in S5. On reconnect, queued reports use the same report API with duplicate-safe reconciliation.
-4. **3D:** Enter a separate WebView rendering context when requested. S1 chooses this approach for terrain support and limits its layers because of performance and integration costs. This is a recorded project rationale, not a claim about every future MapLibre release.
+4. **3D:** GIS settings select a separate WebView rendering context in the existing Map screen. S1 chooses the renderer; the November 18 owner clarification places it in the existing map and includes foreground location. Terrain and trails remain the only GIS layers. This is a recorded project rationale, not a claim about every future MapLibre release.
 
 ## Implementation boundaries
 

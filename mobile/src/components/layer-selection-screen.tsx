@@ -42,8 +42,9 @@ const descriptions: Record<string, string> = {
 export function LayerSelectionScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { gis, hidden, terrainSource, preset, applyChoices } = useMapGis();
+  const { gis, hidden, terrainSource, preset, applyChoices, mapMode, chooseMapMode } = useMapGis();
   const snapshot = gis.snapshot;
+  const optionsDisabled = mapMode === '3d';
   const layers = snapshot?.layers ?? [];
   const customized = isCustomized(layers, preset, hidden);
   const terrainLayers = layers.filter((layer) =>
@@ -78,142 +79,190 @@ export function LayerSelectionScreen() {
         <Text style={[styles.description, { color: theme.textSecondary }]}>
           Changes appear on your map immediately.
         </Text>
-        <BasemapChoice />
-        {OFFLINE_STYLE && (Platform.OS === 'android' || Platform.OS === 'ios') && (
-          <OfflineBasemapControls mapStyle={OFFLINE_STYLE} />
-        )}
-        {snapshot && layers.length > 0 && (
-          <View style={[styles.card, { backgroundColor: theme.background }]}>
-            <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
-              Layer presets
+        <BasemapChoice disabled={false} />
+        {/* Keep the same native parent when opacity changes. Android Fabric
+            otherwise reparents offscreen choices while the bottom mode control
+            is being pressed, which can race ScrollView child attachment. */}
+        <View
+          collapsable={false}
+          style={[styles.options, optionsDisabled && styles.disabledOptions]}
+        >
+          {OFFLINE_STYLE && (Platform.OS === 'android' || Platform.OS === 'ios') && (
+            <OfflineBasemapControls mapStyle={OFFLINE_STYLE} disabled={optionsDisabled} />
+          )}
+          {snapshot && layers.length > 0 && (
+            <View style={[styles.card, { backgroundColor: theme.background }]}>
+              <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
+                Layer presets
+              </Text>
+              <Text style={[styles.description, { color: theme.textSecondary }]}>
+                Choose a starting set, then adjust any layer.
+              </Text>
+              <View style={styles.presetRow}>
+                {layerPresets.map((option) => {
+                  const selected = preset === option.id && !customized;
+                  return (
+                    <Pressable
+                      key={option.id}
+                      accessibilityRole="radio"
+                      accessibilityLabel={`Use ${option.label} preset`}
+                      accessibilityState={{ checked: selected, disabled: optionsDisabled }}
+                      disabled={optionsDisabled}
+                      accessibilityHint="Updates your map immediately"
+                      onPress={() => applyChoices(option.id, hiddenForPreset(layers, option.id))}
+                      style={[
+                        styles.presetOption,
+                        { borderColor: selected ? '#007aff' : theme.backgroundElement },
+                      ]}
+                    >
+                      <RadioIndicator checked={selected} />
+                      <Text style={[styles.presetLabel, { color: theme.text }]}>
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text
+                accessibilityLiveRegion="polite"
+                style={[styles.description, { color: theme.textSecondary }]}
+              >
+                {customized
+                  ? `Customized from ${layerPresets.find((p) => p.id === preset)!.label}`
+                  : layerPresets.find((p) => p.id === preset)!.description}
+              </Text>
+            </View>
+          )}
+          {gis.status === 'loading' && (
+            <ActivityIndicator accessibilityLabel="Loading GIS layer choices" />
+          )}
+          {gis.status === 'unconfigured' && (
+            <Text style={{ color: theme.textSecondary }}>
+              GIS layers are not configured. You can still browse the basemap.
             </Text>
-            <Text style={[styles.description, { color: theme.textSecondary }]}>
-              Choose a starting set, then adjust any layer.
+          )}
+          {gis.status === 'error' && (
+            <View style={styles.status}>
+              <Text style={{ color: theme.textSecondary }}>
+                GIS layers unavailable. Check your connection.
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Retry GIS layer choices"
+                disabled={optionsDisabled}
+                onPress={gis.retry}
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>Retry</Text>
+              </Pressable>
+            </View>
+          )}
+          {snapshot && (
+            <Text accessibilityLiveRegion="polite" style={{ color: theme.textSecondary }}>
+              {selectedCount} of {choiceCount} layers selected
             </Text>
-            <View style={styles.presetRow}>
-              {layerPresets.map((option) => {
-                const selected = preset === option.id && !customized;
-                return (
-                  <Pressable
-                    key={option.id}
-                    accessibilityRole="radio"
-                    accessibilityLabel={`Use ${option.label} preset`}
-                    accessibilityState={{ checked: selected }}
+          )}
+          {snapshot && layers.length === 0 && (
+            <Text style={{ color: theme.textSecondary }}>No public GIS layers available.</Text>
+          )}
+          {otherLayers.map((layer) => {
+            const name = featureText(layer.name, 200) || 'GIS layer';
+            const pillar = ['Human', 'Social', 'Environmental', 'Economic'].includes(
+              layer.pillar ?? '',
+            )
+              ? layer.pillar
+              : null;
+            return (
+              <View
+                key={layer.layerId}
+                style={[styles.card, { backgroundColor: theme.background }]}
+              >
+                <View style={styles.row}>
+                  <Text style={[styles.name, { color: theme.text }]}>{name}</Text>
+                  <Switch
+                    style={{ minHeight: 44 }}
+                    accessibilityLabel={`Show ${name}`}
                     accessibilityHint="Updates your map immediately"
-                    onPress={() => applyChoices(option.id, hiddenForPreset(layers, option.id))}
+                    value={!hidden.has(layer.layerId)}
+                    disabled={optionsDisabled}
+                    accessibilityState={{ disabled: optionsDisabled }}
+                    onValueChange={(enabled) => {
+                      const next = new Set(hidden);
+                      if (enabled) next.delete(layer.layerId);
+                      else next.add(layer.layerId);
+                      applyChoices(preset, next);
+                    }}
+                  />
+                </View>
+                <Text style={[styles.description, { color: theme.textSecondary }]}>
+                  {Object.hasOwn(descriptions, layer.layerType)
+                    ? descriptions[layer.layerType]
+                    : 'Features available in this layer.'}
+                </Text>
+                {layer.layerType === 'terrain' && (
+                  <Text style={[styles.description, { color: theme.textSecondary }]}>
+                    {featureText(layer.source, 300)}
+                  </Text>
+                )}
+                {pillar && (
+                  <Text
                     style={[
-                      styles.presetOption,
-                      { borderColor: selected ? '#007aff' : theme.backgroundElement },
+                      styles.badge,
+                      { color: theme.text, backgroundColor: theme.backgroundElement },
                     ]}
                   >
-                    <RadioIndicator checked={selected} />
-                    <Text style={[styles.presetLabel, { color: theme.text }]}>{option.label}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <Text
-              accessibilityLiveRegion="polite"
-              style={[styles.description, { color: theme.textSecondary }]}
-            >
-              {customized
-                ? `Customized from ${layerPresets.find((p) => p.id === preset)!.label}`
-                : layerPresets.find((p) => p.id === preset)!.description}
-            </Text>
-          </View>
-        )}
-        {gis.status === 'loading' && (
-          <ActivityIndicator accessibilityLabel="Loading GIS layer choices" />
-        )}
-        {gis.status === 'unconfigured' && (
-          <Text style={{ color: theme.textSecondary }}>
-            GIS layers are not configured. You can still browse the basemap.
-          </Text>
-        )}
-        {gis.status === 'error' && (
-          <View style={styles.status}>
-            <Text style={{ color: theme.textSecondary }}>
-              GIS layers unavailable. Check your connection.
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Retry GIS layer choices"
-              onPress={gis.retry}
-              style={styles.action}
-            >
-              <Text style={styles.actionText}>Retry</Text>
-            </Pressable>
-          </View>
-        )}
-        {snapshot && (
-          <Text accessibilityLiveRegion="polite" style={{ color: theme.textSecondary }}>
-            {selectedCount} of {choiceCount} layers selected
-          </Text>
-        )}
-        {snapshot && layers.length === 0 && (
-          <Text style={{ color: theme.textSecondary }}>No public GIS layers available.</Text>
-        )}
-        {otherLayers.map((layer) => {
-          const name = featureText(layer.name, 200) || 'GIS layer';
-          const pillar = ['Human', 'Social', 'Environmental', 'Economic'].includes(
-            layer.pillar ?? '',
-          )
-            ? layer.pillar
-            : null;
-          return (
-            <View key={layer.layerId} style={[styles.card, { backgroundColor: theme.background }]}>
-              <View style={styles.row}>
-                <Text style={[styles.name, { color: theme.text }]}>{name}</Text>
-                <Switch
-                  style={{ minHeight: 44 }}
-                  accessibilityLabel={`Show ${name}`}
-                  accessibilityHint="Updates your map immediately"
-                  value={!hidden.has(layer.layerId)}
-                  onValueChange={(enabled) => {
-                    const next = new Set(hidden);
-                    if (enabled) next.delete(layer.layerId);
-                    else next.add(layer.layerId);
-                    applyChoices(preset, next);
-                  }}
-                />
+                    {pillar}
+                  </Text>
+                )}
               </View>
-              <Text style={[styles.description, { color: theme.textSecondary }]}>
-                {Object.hasOwn(descriptions, layer.layerType)
-                  ? descriptions[layer.layerType]
-                  : 'Features available in this layer.'}
-              </Text>
-              {layer.layerType === 'terrain' && (
-                <Text style={[styles.description, { color: theme.textSecondary }]}>
-                  {featureText(layer.source, 300)}
+            );
+          })}
+          {snapshot && terrainLayers.length > 0 && (
+            <ElevationChoice
+              layers={terrainLayers}
+              hidden={hidden}
+              source={terrainSource}
+              disabled={optionsDisabled}
+              onChange={(next, source) => applyChoices(preset, next, source)}
+            />
+          )}
+        </View>
+        <View style={[styles.card, { backgroundColor: theme.background }]}>
+          <Text accessibilityRole="header" style={[styles.name, { color: theme.text }]}>
+            Map view
+          </Text>
+          <View style={styles.presetRow}>
+            {(['2d', '3d'] as const).map((mode) => (
+              <Pressable
+                key={mode}
+                accessibilityRole="radio"
+                accessibilityLabel={mode === '2d' ? 'Use 2D map' : 'Use 3D terrain map'}
+                accessibilityState={{ checked: mapMode === mode }}
+                accessibilityHint="Replaces the map immediately and keeps your location preference"
+                onPress={() => chooseMapMode(mode)}
+                style={[
+                  styles.presetOption,
+                  { borderColor: mapMode === mode ? '#007aff' : theme.backgroundElement },
+                ]}
+              >
+                <RadioIndicator checked={mapMode === mode} />
+                <Text style={[styles.presetLabel, { color: theme.text }]}>
+                  {mode === '2d' ? '2D map' : '3D terrain'}
                 </Text>
-              )}
-              {pillar && (
-                <Text
-                  style={[
-                    styles.badge,
-                    { color: theme.text, backgroundColor: theme.backgroundElement },
-                  ]}
-                >
-                  {pillar}
-                </Text>
-              )}
-            </View>
-          );
-        })}
-        {snapshot && terrainLayers.length > 0 && (
-          <ElevationChoice
-            layers={terrainLayers}
-            hidden={hidden}
-            source={terrainSource}
-            onChange={(next, source) => applyChoices(preset, next, source)}
-          />
-        )}
+              </Pressable>
+            ))}
+          </View>
+          <Text style={[styles.description, { color: theme.textSecondary }]}>
+            3D shows your base map on USGS terrain, preserve trails and your location when enabled.
+            Other GIS layer choices apply to 2D.
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-function BasemapChoice() {
+function BasemapChoice({ disabled }: { disabled: boolean }) {
   const theme = useTheme();
   const { basemap, chooseBasemap } = useMapGis();
   const [expanded, setExpanded] = useState(false);
@@ -226,7 +275,8 @@ function BasemapChoice() {
         accessibilityRole="button"
         accessibilityLabel="Choose base map"
         accessibilityValue={{ text: `${basemap.provider} · ${basemap.name}` }}
-        accessibilityState={{ expanded }}
+        accessibilityState={{ expanded, disabled }}
+        disabled={disabled}
         onPress={() => setExpanded(!expanded)}
         style={[styles.sourceButton, { borderColor: theme.textSecondary }]}
       >
@@ -260,7 +310,8 @@ function BasemapChoice() {
                     accessibilityRole="radio"
                     accessibilityLabel={`Use ${entry.provider} ${entry.name} base map`}
                     accessibilityHint={`${entry.description} Updates your map immediately.`}
-                    accessibilityState={{ checked: basemap.id === entry.id }}
+                    accessibilityState={{ checked: basemap.id === entry.id, disabled }}
+                    disabled={disabled}
                     onPress={() => chooseBasemap(entry.id)}
                     style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
                   >
@@ -292,11 +343,13 @@ function ElevationChoice({
   hidden,
   source,
   onChange,
+  disabled,
 }: {
   layers: GisSnapshot['layers'];
   hidden: ReadonlySet<string>;
   source: TerrainKey;
   onChange: (hidden: ReadonlySet<string>, source: TerrainKey) => void;
+  disabled: boolean;
 }) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
@@ -319,6 +372,8 @@ function ElevationChoice({
           accessibilityLabel="Show Elevation"
           accessibilityHint="Updates your map immediately"
           value={enabled}
+          disabled={disabled}
+          accessibilityState={{ disabled }}
           onValueChange={(value) => choose(value, source)}
         />
       </View>
@@ -329,7 +384,8 @@ function ElevationChoice({
         accessibilityRole="button"
         accessibilityLabel="Choose elevation source"
         accessibilityValue={{ text: terrainLabels[source] }}
-        accessibilityState={{ expanded }}
+        accessibilityState={{ expanded, disabled }}
+        disabled={disabled}
         onPress={() => setExpanded(!expanded)}
         style={[styles.sourceButton, { borderColor: theme.textSecondary }]}
       >
@@ -353,7 +409,8 @@ function ElevationChoice({
               accessibilityRole="radio"
               accessibilityLabel={`Use ${terrainLabels[key]} elevation`}
               accessibilityHint={terrainLimits[key]}
-              accessibilityState={{ checked: source === key }}
+              accessibilityState={{ checked: source === key, disabled }}
+              disabled={disabled}
               onPress={() => choose(enabled, key)}
               style={[styles.sourceOption, { backgroundColor: theme.backgroundElement }]}
             >
@@ -398,6 +455,8 @@ const styles = StyleSheet.create({
   action: { minHeight: 44, minWidth: 44, justifyContent: 'center' },
   actionText: { color: '#007aff', fontSize: 17, fontWeight: '600' },
   content: { padding: 20, gap: 16 },
+  options: { gap: 16 },
+  disabledOptions: { opacity: 0.45 },
   title: { fontSize: 28, fontWeight: '700' },
   description: { fontSize: 16, lineHeight: 23 },
   card: { padding: 18, borderRadius: 16, gap: 10 },

@@ -233,6 +233,25 @@ assignments or PDF difficulty defaults are added. The Figma chooser frame was
 reviewed for structure; this does not claim complete visual matching. See the
 [extraction and evidence record](../../data/cascade-springs-gis/PDF-MAP.md).
 
+## 3D terrain and trails — November 18, 2026
+
+The owner confirmed 3D terrain/trails using existing USGS data, then requested
+foreground user location and an in-place map replacement through **GIS Layers →
+Map view → 2D map / 3D terrain**. There is no map-entry button or new route.
+Map view is the final card, below the original GIS options. In 3D, presets,
+overlay and 2D elevation options stay visible but dimmed and disabled; selecting
+2D re-enables their saved choices. Base map stays available in both modes. The
+owner requested 3× model width/height, the currently selected map tiles draped
+over the surface, and natural terrain shading. Elevation-derived hillshade sits
+below labels/trails/GPS without changing the true height scale. The mode
+selector and Done remain active in both modes.
+Terrain uses true vertical scale. Pan, zoom, tilt/rotation, shared location
+follow/recenter, Return to preserve and Tilt controls operate on the active
+renderer. Location permission/denial/off/staleness semantics remain shared;
+outside-coverage fixes have an explicit message. Other GIS layers are excluded
+from 3D and their 2D choices/camera remain. Errors have retry and Use 2D controls.
+New contours are deferred. See [implementation](../development/terrain-3d.md).
+
 ## Two-source terrain progress — November 12, 2026
 
 The owner authorized approximate supplied terrain and requested a separately

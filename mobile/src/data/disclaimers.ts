@@ -14,6 +14,11 @@ export type Disclaimer = {
 
 export const disclaimers: readonly Disclaimer[] = [
   {
+    id: 'terrain-3d',
+    title: '3D terrain',
+    body: 'The 3D map uses a separate preserved USGS 3DEP subset covering three times the original width and height, with NAVD88 metre heights at true vertical scale. Elevation is resampled for a bounded display; its export date is not an acquisition date. Selected basemap tiles are draped over the ground, with elevation-derived hillshade to reveal slopes. Tile imagery, vegetation and conditions are not live. Trail lines follow the terrain surface and are not measured ascent. The bundled terrain can work with saved trails offline; online tiles need connectivity and fall back to terrain when unavailable. First use needs a successful GIS load. This is an approximate orientation model, not a survey or safety assessment.',
+  },
+  {
     id: 'basemaps',
     title: 'Base map sources',
     body: 'OpenFreeMap uses OpenMapTiles and OpenStreetMap data. USGS National Map sources provide topography, aerial photography and shaded relief; they are separate from the supplied preserve GIS and the Elevation overlay. Imagery is not live satellite coverage: service metadata lists mainly NAIP aerial photography from 2017–2021 for the continental US, refreshed June 2024; the exact preserve acquisition date is unverified. Topographic and relief service refresh dates are September 2026 and September 2025, not local acquisition dates. Close zoom enlarges existing USGS detail rather than adding resolution. Roads and trails drawn by providers are background context, not approved preserve routes. Sources can differ in age, alignment and availability. Online tile requests disclose the viewed area to the chosen provider; GPS is not separately uploaded. These choices do not download an offline map.',

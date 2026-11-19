@@ -1,5 +1,9 @@
 # Cascade Springs mobile
 
+For J6-54's **GIS Layers → Map view → 3D terrain** mode, WebView requires fresh iOS
+and Android development builds. See [3D setup and acceptance](../docs/development/terrain-3d.md)
+for bundled asset generation, offline behavior, rebuilds and verification.
+
 Expo SDK 57 / React Native 0.86 / TypeScript starter application. The Map tab renders an initial native basemap preview; follow the team's Figma prototype and [project specifications](../docs/README.md) when feature work begins.
 
 For EAS cloud compilation, the Android Emulator, Metro and the local GIS Worker
