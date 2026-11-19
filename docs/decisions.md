@@ -1,5 +1,11 @@
 # Open decisions and source reconciliation
 
+## Report navigation (J6-72, November 19, 2026)
+
+The project owner requested a bottom navigation Report tab. Place it between Map
+and Explore and retain the map shortcut to the same route and shared draft.
+This updates the prototype's map-only entry point. My Reports remains J6-42.
+
 ## November 19, 2026 — hosted reporting
 
 Hosted custom-recipient submissions are enabled with labeled development categories;

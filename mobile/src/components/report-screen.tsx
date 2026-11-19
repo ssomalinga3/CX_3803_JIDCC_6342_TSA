@@ -21,8 +21,7 @@ import { normalizeReportRecipient, ReportFailure } from '@/data/reporting';
 
 const blue = '#007aff';
 function map() {
-  if (router.canGoBack()) router.back();
-  else router.replace('/');
+  router.replace('/');
 }
 
 export function ReportScreen() {
