@@ -28,16 +28,17 @@ jitter-buffered on/off-trail detection it depends on. Numeric tolerances are
   | Consecutive fixes    | 3     | ≈3 s at the 1 s watch interval, both directions |
 
   Distances use a local equirectangular projection, accurate well under a meter
-  at preserve scale. Stale GPS hides the indicator and clears partial confirmation
-  in either direction, while retaining the last confirmed assessment. Turning
-  location off or backgrounding resets the assessment.
+  at preserve scale. Any GPS gap (stale fix, map blur, backgrounding or location
+  off) hides the indicator and restarts confirmation, but keeps the last
+  confirmed assessment. Replacing the live or cached GIS snapshot applies to the
+  next fix without resetting the assessment.
 
 - **UI:** a non-blocking card below the map header. The map, controls, dock and
   all active layers stay usable. **Got it** is the large primary action and
   receives screen-reader focus; it closes the card until the visitor returns to
-  a trail and leaves again. This dismissal survives map blur, GPS interruptions,
-  backgrounding and replacement of the live or cached GIS snapshot; an unknown
-  assessment does not re-arm the reminder. **Don't show again** is a quieter text
+  a trail (or leaves the preserve) and then leaves a trail again. Only a fresh
+  fix ends a dismissal, so GPS gaps and GIS refreshes do not re-arm it, and a
+  single fix near a trail cannot either. **Don't show again** is a quieter text
   button that stops the card on this device. While off-trail the dock also shows a subtle
   "Off trail" status line, independent of the card preference. The card yields
   to the feature-detail sheet.
@@ -49,8 +50,8 @@ jitter-buffered on/off-trail detection it depends on. Numeric tolerances are
   simulated walk (on trail → woods → back) using the supplied trail data.
 - `mobile/__tests__/off-trail-warning.test.tsx`: map-screen integration for the
   card, focus, Got it re-arming, Don't show again persistence across restarts,
-  dismissal across map blur/GIS refresh, stale-GPS confirmation restart in both
-  directions, outside-preserve silence, stale/off location, and unchanged
+  dismissal across map blur/GIS refresh, a jittery fix after a GPS gap, leaving
+  the preserve, stale-GPS confirmation restart in both directions, outside-preserve silence, stale/off location, and unchanged
   displayed layers.
 - Positions come from `mobile/__tests__/fixtures/off-trail.ts`, derived from
   the committed supplied geometry rather than hard-coded coordinates.
@@ -87,6 +88,6 @@ Not verified: VoiceOver focus landing on **Got it** on a device (covered by a
 Jest test only), Android, physical-device GPS accuracy, and field tolerance
 tuning (D-05).
 
-React Compiler is enabled in the app but not in Jest. The hook therefore keys its
-render-phase state on the stable input collection rather than derived geometry,
+React Compiler is enabled in the app but not in Jest. The hook's render-phase
+update therefore compares only the location fix object, never derived geometry,
 whose identity is not stable across compiler re-renders.

@@ -12,13 +12,6 @@ import {
 import { readOffTrailWarningHidden, saveOffTrailWarningHidden } from '@/data/off-trail-preference';
 import type { LocationStatus } from '@/hooks/use-map-location';
 
-type Tracked = {
-  fix: LocationObject | undefined;
-  /** The input collection; derived geometry identity is not stable under React Compiler. */
-  collection: GisSnapshot['collection'] | undefined;
-  state: OffTrailState;
-};
-
 /**
  * Evaluates on/off-trail entirely on the device. Coordinates are never sent,
  * stored or logged; only the boolean "don't show again" choice is persisted.
@@ -29,32 +22,27 @@ export function useOffTrail(
   collection: GisSnapshot['collection'] | undefined,
 ) {
   const geometry = useMemo(() => offTrailGeometry(collection), [collection]);
-  const [tracked, setTracked] = useState<Tracked>({
-    fix: undefined,
-    collection: undefined,
+  const [tracked, setTracked] = useState<{ fix?: LocationObject; state: OffTrailState }>({
     state: INITIAL_OFF_TRAIL,
   });
   const [dismissed, setDismissed] = useState(false);
-  // A stale fix keeps the confirmed assessment, but breaks consecutive-fix confirmation.
-  const keep = locationStatus === 'stale';
   const current = locationStatus === 'ready' ? fix : undefined;
-  if (keep && tracked.state.pending > 0) {
-    setTracked({ ...tracked, state: { ...tracked.state, pending: 0 } });
-  } else if (!keep && (tracked.fix !== current || tracked.collection !== collection)) {
-    const base = tracked.collection === collection ? tracked.state : INITIAL_OFF_TRAIL;
+  if (tracked.fix !== current) {
+    // Any GPS gap (stale, blur, background, off) keeps the confirmed assessment
+    // but restarts consecutive-fix confirmation.
     const state = current
-      ? nextOffTrailState(base, geometry, {
+      ? nextOffTrailState(tracked.state, geometry, {
           longitude: current.coords.longitude,
           latitude: current.coords.latitude,
           accuracy: current.coords.accuracy,
         })
-      : INITIAL_OFF_TRAIL;
+      : { ...tracked.state, pending: 0 };
     // Derive during render so the indicator never lags a fix by a frame.
-    setTracked({ fix: current, collection, state });
-    // Unknown assessments (blur, GPS loss, GIS refresh) do not end a dismissed departure.
-    if (state.status === 'on-trail' && dismissed) setDismissed(false);
+    setTracked({ fix: current, state });
+    // A fresh fix back on a trail or outside the preserve ends a dismissed departure.
+    if (current && state.status !== 'off-trail' && dismissed) setDismissed(false);
   }
-  const status: OffTrailStatus = keep ? 'unknown' : tracked.state.status;
+  const status: OffTrailStatus = current ? tracked.state.status : 'unknown';
 
   const [warningHidden, setWarningHidden] = useState(readOffTrailWarningHidden);
   return {

@@ -205,6 +205,29 @@ test.each(['departure', 'return'] as const)(
   },
 );
 
+test('one near-trail fix after a GPS gap does not re-arm "Got it"', async () => {
+  const view = await render(<MapScreen />);
+  await walkTo(view, points.offTrail);
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Got it' }));
+  location.mockReturnValue({ status: 'off', enable: jest.fn(), disable: jest.fn() });
+  await view.rerender(<MapScreen />);
+  // A single jittery fix near a trail is not a confirmed return.
+  await walkTo(view, points.onTrail, 1);
+  await walkTo(view, points.offTrail);
+  expect(screen.getByTestId('off-trail-status')).toBeOnTheScreen();
+  expect(card()).toBeNull();
+});
+
+test('leaving the preserve ends a dismissed departure', async () => {
+  const view = await render(<MapScreen />);
+  await walkTo(view, points.offTrail);
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Got it' }));
+  await walkTo(view, points.outside, 1);
+  // Re-entering through the woods, without touching a trail, is a new departure.
+  await walkTo(view, points.offTrail);
+  expect(card()).toBeOnTheScreen();
+});
+
 test('visitors outside the preserve are never told they left the trail', async () => {
   const view = await render(<MapScreen />);
   await walkTo(view, points.outside);
