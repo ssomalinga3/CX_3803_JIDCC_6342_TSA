@@ -1,4 +1,6 @@
 import { layersRouter } from './modules/gis/layers.router.js';
+import { reportsRouter } from './modules/reports/reports.router.js';
+import type { ReportSubmissionService } from './modules/reports/submissions.js';
 import type { LayersRepository } from './modules/gis/types.js';
 import express, {
   type ErrorRequestHandler,
@@ -10,6 +12,7 @@ import express, {
 export interface AppDependencies {
   layers?: LayersRepository;
   checkReadiness?: () => Promise<void>;
+  reporting?: ReportSubmissionService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -45,16 +48,20 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   });
 
   app.use('/api/v1/layers', layersRouter(dependencies.layers));
+  if (dependencies.reporting) app.use('/api/v1', reportsRouter(dependencies.reporting));
 
   // Fallback 404 using the structured error envelope from docs/api.md.
   app.use((_req: Request, res: Response) => {
-    res.status(404).json({
-      error: {
-        code: 'NOT_FOUND',
-        message: 'Resource not found',
-        fields: {},
-      },
-    });
+    res
+      .set('Cache-Control', 'no-store')
+      .status(404)
+      .json({
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Resource not found',
+          fields: {},
+        },
+      });
   });
 
   // Express's default handler logs raw errors (including parser input). Keep

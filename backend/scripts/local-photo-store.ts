@@ -7,7 +7,7 @@ import {
   type PrivatePhotoStore,
   type StoredPhoto,
 } from '../src/modules/reports/photo-storage.js';
-import { PHOTO_LIMITS } from '../src/modules/reports/photo-errors.js';
+import { PHOTO_LIMITS, PhotoError } from '../src/modules/reports/photo-errors.js';
 
 export async function createLocalPhotoStore(root: string): Promise<PrivatePhotoStore> {
   if (!path.isAbsolute(root)) throw new Error('Photo directory must be absolute');
@@ -40,7 +40,19 @@ export async function createLocalPhotoStore(root: string): Promise<PrivatePhotoS
           flag: 'wx',
         });
         // A complete object becomes visible atomically; existing nonempty objects cannot be replaced.
-        await rename(temporary, target);
+        try {
+          await rename(temporary, target);
+        } catch (error) {
+          if (
+            error &&
+            typeof error === 'object' &&
+            'code' in error &&
+            (error.code === 'EEXIST' || error.code === 'ENOTEMPTY')
+          ) {
+            throw new PhotoError('PHOTO_OBJECT_EXISTS', 409);
+          }
+          throw error;
+        }
       } finally {
         await rm(temporary, { recursive: true, force: true });
       }

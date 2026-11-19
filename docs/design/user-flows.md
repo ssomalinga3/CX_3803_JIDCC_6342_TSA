@@ -4,6 +4,11 @@ These flows follow the [existing Figma prototype](https://www.figma.com/design/z
 
 S8 confirms that all capture/submission flows below support guests without account creation or sign-in. Custom-recipient reports are private from park administrators, including their photos, metadata, and recipient lists.
 
+The [November 18 backend slice](../development/custom-reports.md) verifies custom
+submission, explicit missing-GPS reasons, accepted replay, owner conflicts and
+upload/outbox failures. Mobile capture/review, permission denial on-device and
+offline restart/retry are still pending; API tests do not establish these paths.
+
 | Flow | Steps and observable outcome | Exceptions / decisions |
 | --- | --- | --- |
 | Navigate a trail | Open app → shared map with trails/boundaries → permit location → see moving blue dot → pan/zoom/recenter. Trail boundaries remain clear with other layers enabled; off-trail indication follows the agreed tolerance. | Denied permission preserves map browsing. Missing GPS and missing network have distinct feedback. Tolerance remains open. S3 stories 1, 3. |

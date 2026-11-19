@@ -54,8 +54,13 @@ Persist the custom delivery mode and recipients with the report and its offline 
   [local photo service](development/report-photos.md) enforces file/count/decode
   limits and strips metadata while physically preserving EXIF orientation. It
   authorizes staged reads/deletion with the guest's report-scoped secret and does
-  not collect EXIF GPS/time. The future HTTP adapter must enforce the complete
-  multipart limit; S3 uploads and mobile capture remain unimplemented.
+  not collect EXIF GPS/time. The development HTTP adapter enforces the complete
+  multipart limit. The [AWS SDK S3 adapter](development/s3-report-photos.md)
+  now implements private encrypted storage and owner-checked presigned access;
+  [Custom-only local HTTP uploads](development/custom-reports.md) are implemented;
+  mobile capture remains unimplemented. A live synthetic
+  check verified bucket public-access blocks, guest isolation, anonymous denial,
+  signed expiry and deletion. SMTP delivery uses separate server credentials.
 - Do not make the S3 bucket public or persist expiring presigned URLs as durable image identifiers.
 - Offline reports include photos and precise locations on the device. Their storage protection, retention, deletion, and sign-out behavior need an explicit policy (D-09).
 
@@ -66,6 +71,16 @@ All mobile/API exchange uses HTTPS/TLS. SES notifications use authenticated SMTP
 Validate and sanitize text, coordinates, category references, and uploaded files on the server. Proposed implementation safeguards: parameterized SQL, server-derived identity/status, content-based image validation rather than trusting extensions, and safe encoding when displaying report notes or generating email. Automated report moderation is out of scope, but these validation requirements are not moderation.
 
 ## Required verification
+
+The current custom-only development release has explicit HTTP regressions for
+private parser/validation/dependency errors and silent application output,
+including console methods and stdout/stderr. Accepted custom records leave the
+public GIS catalog and collections unchanged. Unimplemented report list, detail,
+media, export, notification and mutation routes fail closed; untrusted client
+role headers add no access. Reporting-disabled route misses are also no-store.
+These tests do not exercise authenticated staff sessions: staff authentication
+and report surfaces are not implemented. They must retain these boundaries when
+introduced. See [acceptance evidence](development/custom-reports.md#acceptance-verification).
 
 Check that unauthorized requests cannot view staff reports, alter statuses, export records, or obtain private media access; public layer requests cannot expose restricted features; invalid/oversized uploads are rejected; denied device permissions have usable fallbacks; location is absent from logs; and expired media links stop working. Authentication/session implementation, password policy, abuse limits, retention, and complete staff permissions are unresolved in D-01, D-02, D-04, and D-09.
 

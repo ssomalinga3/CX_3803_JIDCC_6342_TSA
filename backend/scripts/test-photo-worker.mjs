@@ -79,31 +79,37 @@ try {
     { width: 2, height: 1, data: pixels, comments: ['synthetic-private-marker'] },
     90,
   ).data;
-  for (const [body, type] of [
-    [png, 'image/png'],
-    [jpg, 'image/jpeg'],
-  ]) {
-    const response = await fetch(base, {
-      method: 'POST',
-      body,
-      signal: AbortSignal.timeout(15000),
-    });
-    assert.equal(response.status, 200);
-    const result = await response.json();
-    assert.equal(result.contentType, type);
-    assert.equal(result.width, 2);
-    assert.equal(result.height, 1);
-    assert.equal(result.isolated, true);
-    assert.equal(result.cleaned, true);
-    const bytes = Buffer.from(result.bytes, 'base64');
-    assert.equal(bytes.includes(Buffer.from('synthetic-private-marker')), false);
-    if (type === 'image/png') assert.deepEqual(Array.from(decode(bytes).data), Array.from(pixels));
-    else assert.equal(jpeg.decode(bytes).width, 2);
-  }
+  for (const adapter of ['memory', 's3'])
+    for (const [body, type] of [
+      [png, 'image/png'],
+      [jpg, 'image/jpeg'],
+    ]) {
+      const response = await fetch(base, {
+        method: 'POST',
+        headers: { 'x-photo-store': adapter },
+        body,
+        signal: AbortSignal.timeout(15000),
+      });
+      assert.equal(response.status, 200, JSON.stringify(await response.clone().json()));
+      const result = await response.json();
+      assert.equal(result.contentType, type);
+      assert.equal(result.width, 2);
+      assert.equal(result.height, 1);
+      assert.equal(result.isolated, true);
+      assert.equal(result.cleaned, true);
+      assert.equal(result.signedExpiry, adapter === 's3' ? '60' : null);
+      const bytes = Buffer.from(result.bytes, 'base64');
+      assert.equal(bytes.includes(Buffer.from('synthetic-private-marker')), false);
+      if (type === 'image/png')
+        assert.deepEqual(Array.from(decode(bytes).data), Array.from(pixels));
+      else assert.equal(jpeg.decode(bytes).width, 2);
+    }
   const invalid = await fetch(base, { method: 'POST', body: '<svg>spoof</svg>' });
   assert.equal(invalid.status, 415);
   assert.deepEqual(await invalid.json(), { error: 'UNSUPPORTED_PHOTO' });
-  console.log('Worker JPEG/PNG decode, sanitization, ownership and cleanup checks passed.');
+  console.log(
+    'Worker JPEG/PNG decode, sanitization, ownership, cleanup and AWS SDK signing checks passed.',
+  );
 } finally {
   if (child.exitCode === null && child.signalCode === null) {
     const exited = once(child, 'exit');

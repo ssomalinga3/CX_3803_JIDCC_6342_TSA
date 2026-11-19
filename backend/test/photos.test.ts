@@ -312,6 +312,26 @@ describe('private guest photo staging', () => {
     expect(objects.size).toBe(0);
   });
 
+  it('preserves an existing object when a create-only write confirms a key conflict', async () => {
+    const { store, objects } = storage();
+    let count = 0;
+    const existing = { ...(await preparePhoto(samplePng())), ownerDigest: '2'.repeat(64) };
+    let conflictingKey = '';
+    store.put = async (key, photo) => {
+      if (++count === 2) {
+        conflictingKey = key;
+        objects.set(key, existing);
+        throw new PhotoError('PHOTO_OBJECT_EXISTS', 409);
+      }
+      objects.set(key, photo);
+    };
+    await expect(
+      createPhotoService(store).stage(context, [upload(), upload()]),
+    ).rejects.toMatchObject({ code: 'PHOTO_STORAGE_UNAVAILABLE' });
+    expect([...objects.keys()]).toEqual([conflictingKey]);
+    expect(objects.get(conflictingKey)).toBe(existing);
+  });
+
   it('surfaces cleanup failures for retry without returning raw dependency errors', async () => {
     const { store } = storage();
     store.put = async () => {

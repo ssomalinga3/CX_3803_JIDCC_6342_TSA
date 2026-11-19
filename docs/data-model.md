@@ -56,8 +56,13 @@ identifier or report-scoped guest digest, a request digest, and ordered private
 object references. The accepted row keeps the effective routing mode and
 recipient addresses together. The internal repository records the report and
 its image references in one transaction, and returns only receipt fields on a
-matching authorized replay. No report routes are registered. J6-27 approval
-still governs the guest credential and replay contract before API integration.
+matching authorized replay. The development-only J6-30 custom API now adds
+`report_submission` owner/payload reservations, `report_upload_attempt` object
+intents/leases and `report_notification` work unique per observation/recipient.
+Acceptance writes reports, ordered images and pending notifications in one
+transaction. Failed/expired attempts retain object intent for reconciliation.
+See [current behavior and limits](development/custom-reports.md); production
+routing, retention and scheduled cleanup remain open.
 
 The diagram does not define all nullability, lengths, deletion rules, timestamp timezone semantics, or indexes. Proposed constraints are foreign-key integrity, controlled pillar/status values, valid spatial geometries, and spatial indexes for viewport queries. Record the final constraints in migrations and shared contracts.
 
