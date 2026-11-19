@@ -69,7 +69,8 @@ corrections and retries add actions. This does not claim three taps.
 **Drafts persist on this installation.** [J6-33 storage](offline-report-drafts.md)
 encrypts metadata/photos and recovers the reviewed request after restart.
 Wait for the saved indication before closing while editing. Explicit submission
-awaits a durable snapshot before uploading. J6-34 owns automatic reconnect sending.
+awaits a durable snapshot before uploading. [J6-34 reconnect sync](report-reconnect.md)
+automatically retries submitted reports while the app is active and connected.
 Owner history and cross-device recovery remain J6-42/J6-71.
 
 ## Build and local use

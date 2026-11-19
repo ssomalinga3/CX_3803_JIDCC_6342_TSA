@@ -50,7 +50,7 @@ export function ReportScreen() {
     review: 'Review report',
     sending: 'Submitting',
     accepted: 'Report accepted',
-    error: 'Couldn’t submit',
+    error: draft.autoRetry ? 'Waiting to send' : 'Couldn’t submit',
   }[step];
   const category = options?.categories.find((c) => c.category_id === fields.categoryId);
   const canEdit = !locked && !busy && !locating;
@@ -468,7 +468,7 @@ export function ReportScreen() {
         </View>
         <View style={card}>
           <Text style={secondary}>
-            Your report details and photos are kept in this app session.{' '}
+            Your report details and photos are saved on this device.{' '}
             {locked
               ? 'Retry this same report before making changes.'
               : 'Review the details and submit again.'}
@@ -485,6 +485,12 @@ export function ReportScreen() {
             !!remaining,
           )}
           {remaining > 0 && <Text style={secondary}>Retry available in {remaining}s</Text>}
+          {draft.autoRetry && (
+            <Text style={secondary}>
+              Waiting to send. This report will retry automatically when a connection is available
+              and the app is open.
+            </Text>
+          )}
           {button('Back to Map', map, false, true)}
         </View>
       </>
