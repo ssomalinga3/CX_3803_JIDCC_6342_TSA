@@ -67,7 +67,8 @@ PostgreSQL stores `observation_image.object_key` references, not photo bytes.
 The [J6-29 local photo service](development/report-photos.md) now validates and
 sanitizes files, with private local-disk storage for Node development tooling
 and an in-memory adapter for Worker tests. Its CLI removes its temporary copies
-after checking. Mobile capture remains unimplemented.
+after checking. The [mobile form](development/mobile-reporting.md) now connects
+capture/review and session retries; durable device recovery remains separate.
 The [private S3 adapter](development/s3-report-photos.md) now uses the AWS SDK
 for conditional encrypted writes, validated reads and owner-authorized presigned
 downloads. Bucket configuration remains in ignored server settings. The November

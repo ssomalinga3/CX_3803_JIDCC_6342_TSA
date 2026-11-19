@@ -58,7 +58,8 @@ Persist the custom delivery mode and recipients with the report and its offline 
   multipart limit. The [AWS SDK S3 adapter](development/s3-report-photos.md)
   now implements private encrypted storage and owner-checked presigned access;
   [Custom-only local HTTP uploads](development/custom-reports.md) are implemented;
-  mobile capture remains unimplemented. A live synthetic
+  the [mobile form](development/mobile-reporting.md) now supports reviewed capture
+  and session retries. A live synthetic
   check verified bucket public-access blocks, guest isolation, anonymous denial,
   signed expiry and deletion. SMTP delivery uses separate server credentials.
 - Do not make the S3 bucket public or persist expiring presigned URLs as durable image identifiers.

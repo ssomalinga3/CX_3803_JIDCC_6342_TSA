@@ -1,5 +1,13 @@
 # Open decisions and source reconciliation
 
+## November 18, 2026 — J6-31 mobile development flow
+
+The owner confirmed Figma route-first reporting and documenting actual taps from
+Report an Issue through submit, counting permission/camera interactions separately.
+Do not claim three taps or remove consent/review to meet older source wording.
+Custom-only development routing continues. The owner subsequently deferred
+Android and selected iOS verification for this task. See [flow and evidence](development/mobile-reporting.md).
+
 ## November 18, 2026 — initial custom-recipient submission
 
 The owner selected custom recipients first and explicitly confirmed a

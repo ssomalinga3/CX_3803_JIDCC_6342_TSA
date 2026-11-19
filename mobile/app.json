@@ -40,10 +40,19 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Show your position on the trail map while you use the app. Your map location stays on this device.",
+          "locationWhenInUsePermission": "Show your position on the trail map, or include your location in a report only after you review and submit it.",
           "isIosBackgroundLocationEnabled": false,
           "isAndroidBackgroundLocationEnabled": false,
           "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      ["expo-secure-store", { "configureAndroidBackup": true, "faceIDPermission": false }],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Take a photo to include in a report you review before submitting.",
+          "photosPermission": "Choose a photo to include in a report you review before submitting.",
+          "microphonePermission": false
         }
       ]
     ],

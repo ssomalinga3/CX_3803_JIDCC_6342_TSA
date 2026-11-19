@@ -676,6 +676,14 @@ export default function PreserveMap() {
         <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="Report an issue"
+            onPress={() => router.push('/report')}
+            style={styles.retry}
+          >
+            <Text style={styles.retryText}>Report an Issue</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Choose GIS layers"
             onPress={() => router.push('/layers')}
             style={styles.secondaryAction}
