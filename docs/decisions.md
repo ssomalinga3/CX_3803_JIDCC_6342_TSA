@@ -89,6 +89,16 @@ The sources settle the main stack and feature direction, but do not settle the c
   [activation rules](security.md#zero-charge-rule-for-app-visible-keys) and
   [J6-68 provider research](development/basemap-options.md#disabled-provider-research).
 
+- **November 19, 2026 — D-05 off-trail tolerance (Proposed, not approved):**
+  J6-25 implements a friendly, non-blocking off-trail reminder using
+  engineering defaults: off-trail beyond 20 m of a trail centerline, back on
+  within 12 m, fixes worse than 25 m accuracy ignored, three consecutive fixes
+  to change state, evaluated only inside the published boundary. The owner
+  requested an erosion-focused message with a primary close action and a
+  secondary "don't show again" choice. Numeric tolerances, protective geometry
+  and safety wording remain open under D-05; see
+  [off-trail indicator](development/off-trail-indicator.md).
+
 - **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
   the source-similarity explanation inside the dropdown and suggested grouping
   both datasets under one toggle. The chooser now has one Elevation switch and
