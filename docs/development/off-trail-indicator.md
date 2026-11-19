@@ -69,25 +69,45 @@ preserve `33.7178406,-84.4791350`. Hold the off-trail position for at least
 
 ## Verification record — November 19, 2026
 
-Full stack on `Cascade iOS 26` (iPhone 17, iOS 26.3), existing EAS development
-client, Metro 8083, local Worker 8789, Docker PostGIS 55436 with
-`db:seed`, `db:import:source`, `db:import:trails` and `db:import:boundary`.
-Simulated GPS was moved with `xcrun simctl location` in ~2 m steps.
+Both platforms ran the same Metro (8083) against this checkout's local Worker
+(8789) and Docker PostGIS (55436) with `db:seed`, `db:import:source`,
+`db:import:trails` and `db:import:boundary`, confirmed by the app's
+"Demo GIS · 4 layers · 60 features" summary and the Worker request log.
 
-| Check                                                  | Result                                                                   |
-| ------------------------------------------------------ | ------------------------------------------------------------------------ |
-| On trail after enabling location                       | No card, no status line                                                  |
-| Walk ~40 m off trail                                   | Card appeared after confirmation; dock shows "Off trail"                 |
-| Map controls                                           | Card clears the right-hand control column; map stays interactive         |
-| Got it                                                 | Card closed; dock status line remained                                   |
-| Back on trail, then off again                          | Card returned                                                            |
-| Don't show again, then app relaunch and off-trail walk | No card; status line only; preference file `{"version":1,"hidden":true}` |
+- **iOS:** `Cascade iOS 26` (iPhone 17, iOS 26.3), existing EAS development
+  client; GPS moved with `xcrun simctl location` in ~2 m steps.
+- **Android:** a separate `Cascade_API_36_J625` AVD (Pixel 7, Android 16 /
+  API 36, Google APIs, arm64) with the existing development build; ports
+  forwarded with `adb reverse`; GPS moved with `adb emu geo fix`.
+
+Expo SDK 57 merges `mobile/.env.local` over the shell's `EXPO_PUBLIC_API_URL`.
+To point a checkout at a non-default Worker, use a temporary, git-ignored
+`mobile/.env.development.local` and restart Metro. The first iOS pass here
+missed this and read another worktree's Worker; it was rerun against 8789.
+
+| Check                                                 | iOS 26 | Android 16 |
+| ----------------------------------------------------- | ------ | ---------- |
+| On trail after enabling location: no card             | Pass   | Pass       |
+| Walk ~40 m off trail: card plus "Off trail" dock line | Pass   | Pass       |
+| Card clears the map control column                    | Pass   | Pass       |
+| Got it closes card; dock line remains                 | Pass   | Pass       |
+| Back on trail, then off again: card returns           | Pass   | Pass       |
+| Got it survives a tab switch (GPS gap)                | Pass   | Not run    |
+| Don't show again, relaunch, walk off: dock line only  | Pass   | Pass       |
+
+The preference file read `{"version":1,"hidden":true}` on both platforms.
 
 ![Off-trail reminder on iOS 26](../images/j6-25-off-trail-warning-ios26.png)
+![Off-trail reminder on Android 16](../images/j6-25-off-trail-warning-android16.png)
 
-Not verified: VoiceOver focus landing on **Got it** on a device (covered by a
-Jest test only), Android, physical-device GPS accuracy, and field tolerance
-tuning (D-05).
+On Android, enabling location with Google Location Accuracy off made Play
+services' accuracy dialog reopen after each decline, six times, before location
+started. This is in the existing `useMapLocation` flow, not J6-25, and is
+tracked separately.
+
+Not verified: VoiceOver/TalkBack focus landing on **Got it** on a device
+(covered by a Jest test only), physical-device GPS accuracy, and field
+tolerance tuning (D-05).
 
 React Compiler is enabled in the app but not in Jest. The hook's render-phase
 update therefore compares only the location fix object, never derived geometry,
