@@ -33,6 +33,7 @@ jest.mock('expo-location', () => ({
     .mockResolvedValue({ granted: true, canAskAgain: true }),
   hasServicesEnabledAsync: jest.fn().mockResolvedValue(true),
   watchPositionAsync: jest.fn().mockResolvedValue({ remove: jest.fn() }),
+  watchHeadingAsync: jest.fn().mockResolvedValue({ remove: jest.fn() }),
 }));
 
 jest.mock('@maplibre/maplibre-react-native', () => {
