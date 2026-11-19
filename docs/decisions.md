@@ -1,5 +1,9 @@
 # Open decisions and source reconciliation
 
+## November 19, 2026 — light appearance only
+
+The owner chose to keep the app in light mode at all times. With a dark-mode device, some screens had followed the system setting while others kept the Figma light palette. Native UI is pinned with `userInterfaceStyle: "light"` and the shared color-scheme hook always returns light. See [UI specification](design/ui-spec.md#design-direction-and-references).
+
 ## November 19, 2026 — hosted reporting
 
 Hosted custom-recipient submissions are enabled with labeled development categories;
