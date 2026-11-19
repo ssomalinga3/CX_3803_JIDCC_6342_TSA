@@ -154,3 +154,19 @@ libjpeg-turbo/libpng and Apple ImageIO decodes, unchanged displayed orientation,
 no metadata other than orientation and clean `djpeg` decodes; arithmetic JPEG was
 rejected as unsupported. A 50,000-case mutation fuzz raised no non-fixed errors,
 stayed idempotent and finished each case within 210 ms.
+
+November 19 native check of the unchanged J6-31 form against this sanitizer, local
+PostGIS and private S3: iPhone 16e / iOS 26.3 (EAS development build `3e300a21`)
+and an Android 16 / API 36 emulator (EAS build `adc8baaa`), both on Metro. Six
+synthetic reports covered 1 and 3 photos (6016² JPEGs and an EXIF-6 portrait with
+GPS), shared, omitted and denied location, camera denial with library fallback,
+repeated Submit taps and Worker interruption before and during upload. Retries
+reused one submission, honored `Retry-After` and reached one receipt. Stored
+objects held only decoder segments, no EXIF/GPS/ICC/XMP/comments, and upright
+pixels; the apps already normalize orientation, so the orientation-only EXIF
+path is exercised by the Worker tests, not the apps. All records were cleaned
+up. Screenshots: [iOS review](screenshots/reporting/sanitizer-ios-26-review.png),
+[iOS accepted](screenshots/reporting/sanitizer-ios-26-accepted.png),
+[Android review](screenshots/reporting/sanitizer-android-16-review.png),
+[Android retry wait](screenshots/reporting/sanitizer-android-16-retry-wait.png),
+[Android accepted](screenshots/reporting/sanitizer-android-16-accepted.png).
