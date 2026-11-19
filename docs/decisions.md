@@ -1,5 +1,16 @@
 # Open decisions and source reconciliation
 
+## November 19, 2026 — hosted custom-recipient reporting
+
+After approving merge/deployment of PRs #51–#53, the owner explicitly requested
+hosted reporting to be enabled. The deployed Worker uses the existing custom
+submission implementation and labeled development categories, private S3 secret
+bindings and scoped Neon report-write grants. This supersedes the prior
+local-only deployment restriction. Park routing and production category mapping
+remain open; SMTP delivery and durable offline reporting remain separate work.
+See the [deployment record](development/cloudflare-backend-runbook.md#november-19-2026-reporting-stack-deployment)
+for exact resources, grants, verification and remaining test limitations.
+
 ## November 18, 2026 — J6-31 mobile development flow
 
 The owner confirmed Figma route-first reporting and documenting actual taps from

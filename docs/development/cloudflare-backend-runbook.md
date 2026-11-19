@@ -4,6 +4,64 @@ Deployment configured and verified November 12, 2026, from the isolated checkout
 `/Users/theohalpern/Documents/GitHub/CX_3803_JIDCC_6342_TSA-cloudflare`, branch
 `infra/cloudflare-backend`. The implementation agent's checkout is untouched.
 
+## November 19, 2026: reporting stack deployment
+
+PRs #51, #52 and #53 were merged in order. Production now runs reviewed main
+`2cfc074b02ff5a43e923ec8c23e66662cf647605`, Worker version
+`0c7417b5-4596-49de-b1ac-af9d75d74bbd`. All four committed migrations are applied.
+The existing ten public GIS layers / 808 features were preserved; before/after
+database and HTTP snapshot hashes matched.
+
+The owner explicitly requested hosted reporting to be enabled. The deployed
+Worker now accepts custom-recipient guest reports using the existing labeled
+development categories. This supersedes the earlier local-only deployment
+restriction; it does not select park routing or production category mappings.
+Receipts confirm storage and pending notification work. No SMTP sender exists.
+
+Five server-only Cloudflare secrets configure the current implementation:
+`REPORTING_MODE=custom-development`, `AWS_REGION`, `S3_BUCKET`,
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. An optional AWS session token
+is needed only for temporary credentials. Values were read from ignored local
+configuration and uploaded from a temporary mode-0600 JSON file, then the file
+was removed. No values belong in this document, Git, Expo variables or argv.
+The mode is stored as a secret so subsequent ordinary Worker deployments retain
+it along with the S3 credentials. The existing private S3 bucket is unchanged.
+
+Hyperdrive still uses `cascade-springs-api`. Its existing read access is retained;
+the following scoped grants enable acceptance without GIS writes, report
+deletion or schema management:
+
+```sql
+GRANT SELECT, INSERT ON public.observation, public.observation_image,
+  public.report_submission, public.report_upload_attempt,
+  public.report_notification TO "cascade-springs-api";
+GRANT UPDATE ON public.report_upload_attempt TO "cascade-springs-api";
+```
+
+Apply reviewed Drizzle migrations with the direct owner connection before these
+grants. Never put the owner connection into Hyperdrive. Recheck the scoped
+privileges after changing the runtime role. The earlier references below to a
+read-only runtime describe the November 12 setup; GIS access remains read-only.
+
+Verification from the deployed Worker passed initial acceptance (201), identical
+replay (200 with the same receipt), another owner's denial (404), changed-payload
+conflict (409), private encrypted S3 storage, anonymous object denial and exactly
+one pending notification. The synthetic report, object and notification were
+removed. Hosted GIS smoke passed readiness, all ten layers / 808 features, cache
+headers, invalid bbox and unknown-layer checks. The same reporting configuration
+was first checked through a local Worker against an isolated Neon production
+copy, including migration replay and scoped runtime grants.
+
+Local verification: formatting, lint, types, backend build, Worker dry-run,
+243 mobile tests, both platform JavaScript exports, and all three real Worker
+checks passed. Initial mobile runs hit two five-second timeouts; the full rerun
+passed with a 30-second per-test timeout. Backend integration passed 244/245;
+the unchanged signal concurrent-import test exceeded the existing three-second
+database query timeout on both emulated and native ARM64 PostGIS. The same
+failure is documented in draft PR #56. Main CI passed. Native compilation,
+device acceptance and durable offline reporting were not rerun or established
+by these checks. PR #56 remains separate and unmerged.
+
 ## Hosted resources
 
 | Resource                   | Value                                                               |
@@ -18,7 +76,7 @@ Deployment configured and verified November 12, 2026, from the isolated checkout
 | Database                   | `cascade-springs`                                                   |
 | Database versions observed | PostgreSQL `18.6`, PostGIS `3.6.4`                                  |
 | Region                     | AWS US East (Ohio), `aws-us-east-2`                                 |
-| Runtime role               | `cascade-springs-api`, scoped read-only                             |
+| Runtime role               | `cascade-springs-api`, GIS reads plus scoped report acceptance      |
 
 ```text
 Mobile → HTTPS Worker → Hyperdrive → Neon PostgreSQL/PostGIS
