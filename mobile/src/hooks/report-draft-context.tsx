@@ -146,7 +146,12 @@ function useDraft() {
     setError(undefined);
     try {
       const result = await captureReportLocation(controller.signal);
-      if (locationController.current === controller) setFields((f) => ({ ...f, ...result }));
+      if (locationController.current === controller)
+        setFields((f) => ({
+          ...f,
+          location: result.location,
+          locationReason: result.locationReason,
+        }));
     } finally {
       if (locationController.current === controller) {
         locationController.current = undefined;

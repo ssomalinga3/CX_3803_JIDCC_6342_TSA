@@ -139,6 +139,55 @@ test('requires photos and explicit review, shows only custom destinations and pr
   });
   expect(screen.getByText(/no email has been sent yet/)).toBeOnTheScreen();
 });
+test.each(['not_shared', 'permission_denied', 'unavailable'] as const)(
+  'submits a successful location fix after location was %s',
+  async (reason) => {
+    const location = { type: 'Point', coordinates: [-84.4792, 33.7176] } as const;
+    jest.mocked(captureReportLocation).mockResolvedValue({
+      location: { ...location, coordinates: [...location.coordinates] },
+    });
+    await start();
+    await addPhoto();
+    if (reason !== 'not_shared') {
+      jest.mocked(captureReportLocation).mockResolvedValueOnce({
+        location: null,
+        locationReason: reason,
+      });
+      await press('Include my location');
+      expect(await screen.findByText(/no coordinates included/)).toBeOnTheScreen();
+    }
+    await press('Include my location');
+    expect(await screen.findByText('33.71760, -84.47920')).toBeOnTheScreen();
+    await press('Choose recipients');
+    await recipient();
+    await press('Review report');
+    await press('Submit report');
+    expect(await screen.findByText('Your report was accepted')).toBeOnTheScreen();
+    const report = jest.mocked(submitReport).mock.calls[0][1];
+    expect(report.metadata.location).toEqual(location);
+    expect(report.metadata).not.toHaveProperty('location_unavailable_reason');
+  },
+);
+test('can omit a successfully captured location before reviewing and submitting', async () => {
+  jest.mocked(captureReportLocation).mockResolvedValue({
+    location: { type: 'Point', coordinates: [-84.4792, 33.7176] },
+  });
+  await start();
+  await addPhoto();
+  await press('Include my location');
+  await screen.findByText('33.71760, -84.47920');
+  await press('Continue without location');
+  expect(screen.getByText('Location not shared')).toBeOnTheScreen();
+  await press('Choose recipients');
+  await recipient();
+  await press('Review report');
+  await press('Submit report');
+  await screen.findByText('Your report was accepted');
+  expect(jest.mocked(submitReport).mock.calls[0][1].metadata).toMatchObject({
+    location: null,
+    location_unavailable_reason: 'not_shared',
+  });
+});
 test('preserves the draft through picker cancellation and camera permission denial', async () => {
   await start();
   jest

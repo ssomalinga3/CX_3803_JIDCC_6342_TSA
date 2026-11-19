@@ -102,6 +102,15 @@ submission/privacy tests, 28 backend photo tests, mobile/backend lint and type
 checks, repository formatting, and an iOS JavaScript bundle export. The installed
 cloud build supplies separate native compilation evidence.
 
+The location-review correction replaces both draft location fields on each
+capture result, clearing any earlier missing-location reason after a successful
+fix. Regression tests submit consented coordinates after all three missing-location
+states and verify that the visitor can still omit a captured fix before submission.
+The three successful-fix cases failed before the correction. Follow-up verification
+passed all 243 mobile tests, mobile lint/type checks, formatting, iOS/Android
+JavaScript exports and `git diff --check`. Native device checks and live S3 submission
+were not rerun for this correction.
+
 iPhone 16e / iOS 26.3 runs the rebuilt client with local Metro/PostGIS and real
 private S3. The first native synthetic report covered optional GPS, explicit
 omission, invalid email feedback, review, failure retention and retry to a real
