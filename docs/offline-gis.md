@@ -12,7 +12,7 @@ S2 explicitly names Trails ATL, sewer, and stream-buffer layers with 25 ft and 7
 
 Serve GeoJSON for layer features and vector tiles for larger datasets. Render public layers on one native map with trails remaining legible when layers overlap. Keep historical points in the normal layer system. In the optional 3D view, display trails and terrain only, per S1; historical-temperature time selection is a separate stretch feature dependent on the Georgia Tech study dataset.
 
-Off-trail indication must work with trail boundaries and a buffer against GPS jitter/flickering, as J6-24 specifies. The numeric tolerance and where that calculation runs are open. Any chosen approach must preserve planned offline navigation and location privacy.
+Off-trail indication must work with trail boundaries and a buffer against GPS jitter/flickering, as J6-24 specifies. The calculation runs on the device against the cached public trail/boundary geometry, so it works offline and never transmits coordinates. The numeric tolerances in the [off-trail indicator notes](development/off-trail-indicator.md) are Proposed engineering defaults; client approval remains open under D-05.
 
 ## Minimum planned offline behavior
 

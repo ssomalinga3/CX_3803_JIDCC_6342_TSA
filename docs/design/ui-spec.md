@@ -178,8 +178,9 @@ prevents recentering on stale coordinates; the location control can retry GPS
 acquisition. It does not define J6-24's trail tolerance. The user asked us
 to assume GIS correctness for this implementation, without changing provenance or
 production data approval. See [GPS setup and acceptance](../../mobile/README.md#foreground-map-gps-j6-14)
-for native rebuild instructions and verification status. Off-trail warnings,
-offline downloads, and the other map flows remain separate work.
+for native rebuild instructions and verification status. Off-trail warnings are
+described in [off-trail indicator](../development/off-trail-indicator.md);
+offline downloads and the other map flows remain separate work.
 
 ## Full trail-network content reference — November 4, 2026
 
