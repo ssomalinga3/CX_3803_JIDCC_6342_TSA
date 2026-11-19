@@ -38,6 +38,10 @@ SMTP work. Production/default startup does not enable reporting. See the
 the proposed surface below are not implemented. The owner confirmed this
 custom-only development release as the current acceptance scope. Unknown-route
 404 responses are generic and no-store even when reporting is disabled.
+The [mobile form](development/mobile-reporting.md) uses a network-only metadata
+type from `reports/report-contract.ts`, with independent runtime validation and
+SDK-compatible File multipart parts; no Node/image/database runtime is imported
+into the mobile bundle.
 Readiness/GIS failures keep their existing `503 DATABASE_UNAVAILABLE` responses.
 Reverse-proxy, Wrangler development request logs and hosting/access-log policies
 are outside this application handler and require separate review before deployment.

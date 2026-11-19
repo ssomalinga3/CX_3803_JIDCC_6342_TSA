@@ -1,4 +1,6 @@
 import { PHOTO_KEY } from './photo-storage.js';
+import type { CustomReportMetadata } from './report-contract.js';
+export type { CustomReportMetadata } from './report-contract.js';
 
 export class ReportError extends Error {
   constructor(
@@ -22,17 +24,6 @@ export const DEVELOPMENT_REPORT_CATEGORIES = [
   },
   { category_id: 'dev-economic', name: 'Economic observation (development)', pillar: 'Economic' },
 ] as const;
-
-export type CustomReportMetadata = {
-  client_submission_id: string;
-  category_id: string;
-  captured_at: string;
-  location: { type: 'Point'; coordinates: [number, number] } | null;
-  location_unavailable_reason?: 'permission_denied' | 'unavailable' | 'not_shared';
-  delivery_mode: 'custom';
-  custom_recipients: string[];
-  note?: string;
-};
 
 function invalid(field: string, message: string): never {
   throw new ReportError('INVALID_REPORT', 400, { [field]: message });

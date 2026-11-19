@@ -3,8 +3,9 @@
 The owner selected custom recipients first on November 18, 2026 and confirmed
 the **custom-only development release** as the current acceptance scope. This backend
 slice uses explicitly labeled development categories and private S3 photos.
-Park routing, the mobile form (J6-31), durable device retries (J6-33), and the
-SMTP sender (J6-32) remain separate work. A receipt confirms storage and queued
+Park routing, durable device retries (J6-33), and the SMTP sender (J6-32) remain
+separate work. The [J6-31 mobile form](mobile-reporting.md) now uses this API.
+A receipt confirms storage and queued
 notification work, not email delivery.
 Production categories, routing and deployment configuration do not block this
 development scope; this is not authorization to enable hosted writes.

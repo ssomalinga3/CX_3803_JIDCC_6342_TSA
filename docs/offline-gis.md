@@ -33,7 +33,9 @@ Do not imply that a first launch without downloaded data has a complete map. Pro
 The [custom-only development API](development/custom-reports.md) now preserves
 submission UUID/owner/payload identity across retries and returns an accepted
 receipt without duplicate photos or logical notifications. It does not implement
-the device queue, secure secret storage or offline restart; those remain J6-33.
+the device queue or offline restart; those remain J6-33. The mobile form now
+stores report-scoped secrets in SecureStore and retains reviewed requests for
+session retries; that alone is not durable metadata/photo recovery.
 
 The queue needs persistent submission identity, account/guest ownership context, metadata, delivery mode and explicit custom recipients, local photo references, attempt state, and the accepted server ID. Proposed states are `draft`, `pending`, `uploading`, `accepted`, and `needs_attention`; these are local delivery states, separate from administrative statuses such as Submitted or Resolved.
 

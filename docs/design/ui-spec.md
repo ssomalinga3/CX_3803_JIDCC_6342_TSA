@@ -18,6 +18,13 @@ S2 examined Trailforks, ArcGIS Field Maps/Survey123, Avenza Maps, and SeeClickFi
 
 ## Screens and interactions
 
+The [J6-31 mobile form](../development/mobile-reporting.md) implements the
+route-first reporting frames for the approved custom-only development scope.
+Recipients are explicit/removable; denial preserves details, review precedes
+submission, and accepted storage is distinguished from email delivery. The owner
+selected measured taps instead of claiming the older three-tap target. Android
+verification is deferred; current native evidence uses iOS 26.3.
+
 | Surface / Figma frame | Implementation behavior |
 | --- | --- |
 | [Location permission](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-4), [active navigation](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-26), [trail safety](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=17-61) | Native permission request; map/trails, position, pan/zoom/recenter, and trail-boundary warning. Denial preserves map browsing. |

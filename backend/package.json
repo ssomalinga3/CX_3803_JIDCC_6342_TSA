@@ -8,6 +8,7 @@
   },
   "main": "dist/server.js",
   "scripts": {
+    "reports:mobile:check": "tsx --env-file-if-exists=.env scripts/check-mobile-report.ts",
     "reports:check": "tsx --env-file-if-exists=.env scripts/check-reports.ts",
     "reports:dev": "tsx --env-file-if-exists=.env scripts/dev-reports.ts",
     "photos:s3:check": "tsx --env-file-if-exists=.env scripts/check-s3-photos.ts",

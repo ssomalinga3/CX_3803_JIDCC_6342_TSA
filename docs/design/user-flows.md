@@ -6,8 +6,9 @@ S8 confirms that all capture/submission flows below support guests without accou
 
 The [November 18 backend slice](../development/custom-reports.md) verifies custom
 submission, explicit missing-GPS reasons, accepted replay, owner conflicts and
-upload/outbox failures. Mobile capture/review, permission denial on-device and
-offline restart/retry are still pending; API tests do not establish these paths.
+upload/outbox failures. The [mobile form](../development/mobile-reporting.md) now
+implements capture/review and session retries, with iOS 26.3 evidence. Durable
+offline restart/retry remains separate; API tests do not establish device paths.
 
 | Flow | Steps and observable outcome | Exceptions / decisions |
 | --- | --- | --- |
