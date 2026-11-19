@@ -73,6 +73,14 @@ server access checks remain authoritative. See [preset behavior](development/lay
 
 ## Basemap providers (J6-68)
 
+The 3D WebView uses the same selected public basemap with HTTPS access restricted
+by CSP to OpenFreeMap/USGS tile hosts. Renderer code and elevation/hillshade data
+are bundled. No provider script, arbitrary navigation, browser geolocation,
+shared cookies or file access is enabled. The consented position is injected
+only into the local position source; bridge/camera payloads are never logged.
+As with native maps, tile requests disclose the viewed area to the provider,
+without separately uploading raw fixes. See [3D controls and fallback](development/terrain-3d.md).
+
 Enabled basemaps use public keyless provider endpoints directly. Tile requests
 reveal the viewed area to that provider; GPS coordinates are not separately sent,
 and neither viewport coordinates nor provider request URLs enter application logs.

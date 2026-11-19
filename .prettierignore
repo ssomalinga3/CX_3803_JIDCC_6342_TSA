@@ -23,3 +23,6 @@ backend/worker-configuration.d.ts
 
 # Local worktrees and verification artifacts are not project sources.
 .work/
+
+# Deterministically generated bundled WebView renderer and RGB DEM payload.
+mobile/assets/terrain-3d/*.json

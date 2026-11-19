@@ -19,6 +19,23 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 18, 2026 — J6-54 3D scope:** The owner requested work from main,
+  confirmed a separate renderer showing terrain and trails with user location,
+  and selected the existing USGS elevation subset. The owner then specified a
+  2D/3D option in GIS settings that replaces Map in place, with no entry button
+  or new page. Native foreground permission/follow semantics are retained in
+  3D; device position stays local. Further owner refinements place Map view last,
+  keep unavailable 2D options visible but disabled, expand model width and height
+  3×, drape the selected basemap's tiles, and add elevation-derived shading.
+  Base map therefore remains enabled in 3D. New 2D contours/rings are deferred.
+  Develop first on the iOS simulator and verify Android at the end. The owner
+  subsequently requested Android parity and verification that hidden 3D does
+  not continue doing rendering work. Release its browser/worker on hidden paths
+  and defer large asset evaluation during 2D startup. See the
+  [implementation record](development/terrain-3d.md). Broader production device,
+  memory, field and performance acceptance under J6-53 remains open;
+  implementation limits are engineering guards, not approved product budgets.
+
 - **November 16, 2026 — J6-14 location follow:** The owner requested that the
   location button only zoom inward (default level 15.5; preserve closer zoom) and
   follow the user's location until the viewport is dragged. Recenter explicitly

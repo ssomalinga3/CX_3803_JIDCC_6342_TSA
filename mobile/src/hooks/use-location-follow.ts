@@ -8,8 +8,8 @@ import type { LocationStatus } from '@/hooks/use-map-location';
 type Padding = { top: number; bottom: number; left: number; right: number };
 
 export function useLocationFollow(
-  camera: RefObject<CameraRef | null>,
-  map: RefObject<MapRef | null>,
+  camera: RefObject<Pick<CameraRef, 'easeTo' | 'zoomTo'> | null>,
+  map: RefObject<Pick<MapRef, 'getZoom'> | null>,
   fix: LocationObject | undefined,
   mapStatus: 'loading' | 'ready' | 'unavailable',
   padding: Padding,

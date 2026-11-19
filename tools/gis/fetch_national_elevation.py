@@ -11,7 +11,7 @@ import json
 import subprocess
 from urllib.parse import urlencode, urlparse
 
-from source_package import ROOT
+from source_package import PACKAGE, ROOT
 
 SERVICE = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"
 BOUNDS = "-84.4845,33.7140,-84.4740,33.7205"
@@ -36,17 +36,28 @@ def download(url):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args()
-    WORK.mkdir(parents=True, exist_ok=True)
+    parser.add_argument('--terrain-3d', action='store_true', help='Acquire a separate subset with 3× the original width and height')
+    args = parser.parse_args()
+    work = WORK if not args.terrain_3d else ROOT / '.work/gis-data/usgs-acquisition-3d'
+    work.mkdir(parents=True, exist_ok=True)
+    bbox, bbox_sr, size = BOUNDS, 4326, '512,384'
+    base_record = None
+    if args.terrain_3d:
+        base_record = json.loads((PACKAGE / 'sources/usgs-3dep.json').read_text())
+        extent = base_record['export']['extent']
+        width, height = extent['xmax'] - extent['xmin'], extent['ymax'] - extent['ymin']
+        bbox = ','.join(str(v) for v in [extent['xmin'] - width, extent['ymin'] - height,
+                                       extent['xmax'] + width, extent['ymax'] + height])
+        bbox_sr, size = 3857, '1536,1152'
     _, service = request()
     query, catalog = request(
-        "/query", geometry=json.dumps(dict(zip(("xmin", "ymin", "xmax", "ymax"), map(float, BOUNDS.split(","))))), geometryType="esriGeometryEnvelope", inSR=4326,
+        "/query", geometry=json.dumps(dict(zip(("xmin", "ymin", "xmax", "ymax"), map(float, bbox.split(","))))), geometryType="esriGeometryEnvelope", inSR=bbox_sr,
         spatialRel="esriSpatialRelIntersects",
         outFields="Name,ProductName,VerticalDatum,Resolution_X,AcquisitionDate,Source,DEM_Type",
         returnGeometry="false",
     )
     params = dict(
-        bbox=BOUNDS, bboxSR=4326, imageSR=3857, size="512,384", format="tiff",
+        bbox=bbox, bboxSR=bbox_sr, imageSR=3857, size=size, format="tiff",
         pixelType="F32", interpolation="RSP_BilinearInterpolation",
         renderingRule=json.dumps({"rasterFunction": "None"}),
         noData=-999999, noDataInterpretation="esriNoDataMatchAny",
@@ -56,9 +67,10 @@ def main():
     if urlparse(href).scheme != "https" or urlparse(href).hostname != "elevation.nationalmap.gov":
         raise ValueError("Unexpected USGS export URL")
     data = download(href)
-    if len(data) > 4 * 1024 * 1024 or data[:4] not in (b"II*\x00", b"MM\x00*"):
+    if len(data) > (8 if args.terrain_3d else 4) * 1024 * 1024 or data[:4] not in (b"II*\x00", b"MM\x00*"):
         raise ValueError("Expected a bounded GeoTIFF, not a rendered picture/error")
-    (WORK / "usgs-3dep.tif").write_bytes(data)
+    stem = 'usgs-3dep-3d' if args.terrain_3d else 'usgs-3dep'
+    (work / f'{stem}.tif').write_bytes(data)
     record = {
         "schema_version": 1,
         "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -66,13 +78,17 @@ def main():
         "request_url": export_url,
         "query_url": query,
         "export": {k: v for k, v in export.items() if k != "href"},
-        "raster": {"file": "usgs-3dep.tif", "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()},
+        "raster": {"file": f'{stem}.tif', "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()},
         "service": service,
         "intersecting_catalog": catalog,
         "limitations": "Multi-resolution service export resampled to a bounded display grid; acquisition date is not retrieval date. Catalog intersections are candidates, not proof of per-pixel source. No local survey or navigation accuracy claimed.",
     }
-    (WORK / "usgs-3dep.json").write_text(json.dumps(record, indent=2) + "\n")
-    print(f"Acquired {len(data)} bytes in {WORK.relative_to(ROOT)}; review before committing")
+    if base_record:
+        record['display_extent_scale'] = 3
+        record['base_raster_sha256'] = base_record['raster']['sha256']
+        record['base_extent'] = base_record['export']['extent']
+    (work / f'{stem}.json').write_text(json.dumps(record, indent=2) + "\n")
+    print(f"Acquired {len(data)} bytes in {work.relative_to(ROOT)}; review before committing")
 
 
 if __name__ == "__main__":

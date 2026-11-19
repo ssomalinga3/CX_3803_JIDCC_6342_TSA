@@ -36,6 +36,8 @@ import { terrainAssets, visibleTerrainKeys } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
 import { useLocationFollow } from '@/hooks/use-location-follow';
+import { TerrainMap, type TerrainHandle, type TerrainStatus } from '@/components/terrain-map';
+import { elevation, initialTerrainView, insideTerrain, terrainTrails } from '@/data/terrain-3d';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -51,7 +53,29 @@ export default function PreserveMap() {
   const dockBottom = insets.bottom;
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
-  const { gis, visibleSnapshot, hidden, basemap, chooseBasemap } = useMapGis();
+  const { gis, visibleSnapshot, hidden, basemap, chooseBasemap, mapMode, chooseMapMode } =
+    useMapGis();
+  const is3d = mapMode === '3d';
+  const [nativeBasemap, setNativeBasemap] = useState(basemap);
+  if (!is3d && nativeBasemap !== basemap) setNativeBasemap(basemap);
+  const [nativeGeneration, setNativeGeneration] = useState(0);
+  const [nativeRestoreView, setNativeRestoreView] = useState({
+    center: PRESERVE_CENTER,
+    zoom: INITIAL_ZOOM,
+    bearing: 0,
+    pitch: 0,
+  });
+  const previousMapMode = useRef(mapMode);
+  const terrain = useRef<TerrainHandle>(null);
+  const [terrainView, setTerrainView] = useState(initialTerrainView);
+  const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>('loading');
+  const terrainPresentation = useMemo(() => {
+    try {
+      return terrainTrails(is3d ? gis.snapshot : undefined);
+    } catch {
+      return terrainTrails(undefined);
+    }
+  }, [gis.snapshot, is3d]);
   const viewport = useRef<ViewState>({
     center: PRESERVE_CENTER,
     zoom: INITIAL_ZOOM,
@@ -59,9 +83,13 @@ export default function PreserveMap() {
     pitch: 0,
     bounds: [0, 0, 0, 0],
   });
-  const basemapLoad = useBasemapLoad(basemap, viewport);
-  const loadState = basemapLoad.status;
+  const basemapLoad = useBasemapLoad(nativeBasemap, viewport);
+  const loadState = is3d ? terrainStatus : basemapLoad.status;
   const location = useMapLocation();
+  const outsideTerrain =
+    is3d &&
+    location.fix &&
+    !insideTerrain([location.fix.coords.longitude, location.fix.coords.latitude]);
   const [settingsFailed, setSettingsFailed] = useState(false);
   const [dockHeight, setDockHeight] = useState(160);
   const [selection, setSelection] = useState<{ snapshot: GisSnapshot; id: string }>();
@@ -73,9 +101,9 @@ export default function PreserveMap() {
     [insets.top, dockBottom, dockHeight],
   );
   const locationFollow = useLocationFollow(
-    camera,
-    map,
-    location.fix,
+    is3d ? terrain : camera,
+    is3d ? terrain : map,
+    outsideTerrain ? undefined : location.fix,
     loadState,
     locationPadding,
     LOCATION_ZOOM,
@@ -98,7 +126,21 @@ export default function PreserveMap() {
   const visibilityChanged = useRef(false);
   const fittedHidden = useRef(hidden);
   const previousBasemap = useRef(basemap);
+  const retryBasemap = basemapLoad.retry;
   useEffect(() => {
+    if (previousMapMode.current !== mapMode) {
+      visibilityChanged.current = true;
+      if (mapMode === '2d') {
+        const { center, zoom, bearing, pitch } = viewport.current;
+        setNativeRestoreView({ center, zoom, bearing, pitch });
+        setNativeGeneration((value) => value + 1);
+        retryBasemap();
+      }
+      previousMapMode.current = mapMode;
+    }
+  }, [mapMode, retryBasemap]);
+  useEffect(() => {
+    if (is3d) return;
     if (previousBasemap.current !== basemap) {
       previousBasemap.current = basemap;
       visibilityChanged.current = true;
@@ -146,6 +188,7 @@ export default function PreserveMap() {
     location.fix,
     hidden,
     basemap,
+    is3d,
   ]);
   const locationMessage = {
     off: 'Browse the map · Location off',
@@ -184,389 +227,428 @@ export default function PreserveMap() {
 
   return (
     <View style={styles.container}>
-      <Map
-        ref={map}
-        testID="preserve-map"
-        style={styles.map}
-        mapStyle={basemapLoad.style}
-        attribution
-        attributionPosition={{ bottom: dockBottom + dockHeight + 8, left: 12 }}
-        compassPosition={{ top: insets.top + 108, right: 24 }}
-        onDidFinishRenderingMapFully={basemapLoad.rendered}
-        onDidFailLoadingMap={basemapLoad.failed}
-        onRegionWillChange={(event) => {
-          if (event.nativeEvent.userInteraction) {
-            visibilityChanged.current = true;
-            locationFollow.stop();
-          }
-        }}
-        onRegionIsChanging={(event) => {
-          if (event.nativeEvent.userInteraction) locationFollow.stop();
-        }}
-        onRegionDidChange={(event) => {
-          viewport.current = event.nativeEvent;
-          if (event.nativeEvent.userInteraction) visibilityChanged.current = true;
-        }}
+      <View
+        collapsable={false}
+        style={is3d ? styles.hiddenMap : styles.map}
+        pointerEvents={is3d ? 'none' : 'auto'}
+        accessibilityElementsHidden={is3d}
+        importantForAccessibility={is3d ? 'no-hide-descendants' : 'auto'}
       >
-        <Camera
-          ref={camera}
-          initialViewState={{ center: PRESERVE_CENTER, zoom: INITIAL_ZOOM }}
-          minZoom={MIN_ZOOM}
-          maxZoom={MAX_ZOOM}
-        />
-        <GeoJSONSource
-          id="public-gis"
-          testID="public-gis-source"
-          data={trails?.collection ?? EMPTY_GIS}
-          onPress={(event) => {
-            if (!ready || !snapshot) return;
-            const id = pressedFeatureId(snapshot, event.nativeEvent.features);
-            if (id) {
-              event.stopPropagation();
-              setSelection({ snapshot, id });
+        <Map
+          key={nativeGeneration}
+          ref={map}
+          testID="preserve-map"
+          style={styles.map}
+          mapStyle={basemapLoad.style}
+          attribution
+          attributionPosition={{ bottom: dockBottom + dockHeight + 8, left: 12 }}
+          compassPosition={{ top: insets.top + 108, right: 24 }}
+          onDidFinishRenderingMapFully={basemapLoad.rendered}
+          onDidFailLoadingMap={basemapLoad.failed}
+          onRegionWillChange={(event) => {
+            if (event.nativeEvent.userInteraction) {
+              visibilityChanged.current = true;
+              locationFollow.stop();
             }
           }}
+          onRegionIsChanging={(event) => {
+            if (event.nativeEvent.userInteraction) locationFollow.stop();
+          }}
+          onRegionDidChange={(event) => {
+            if (is3d) return;
+            viewport.current = event.nativeEvent;
+            if (event.nativeEvent.userInteraction) visibilityChanged.current = true;
+          }}
         >
-          <Layer
-            {...gisLayerProps('gis-terrain-supplied-anchor')}
-            type="fill"
-            filter={['all', ['has', '__gis_order_anchor'], ['!', ['has', '__gis_order_anchor']]]}
-            paint={{ 'fill-opacity': 0 }}
+          <Camera
+            ref={camera}
+            initialViewState={nativeRestoreView}
+            minZoom={MIN_ZOOM}
+            maxZoom={MAX_ZOOM}
           />
-          <Layer
-            {...gisLayerProps('gis-terrain-usgs-anchor')}
-            type="fill"
-            filter={['all', ['has', '__gis_order_anchor'], ['!', ['has', '__gis_order_anchor']]]}
-            paint={{ 'fill-opacity': 0 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-elevation-bands')}
-            type="fill"
-            filter={['==', ['get', 'feature_kind'], 'elevation_band']}
-            paint={{
-              'fill-color': [
-                'interpolate',
-                ['linear'],
-                ['get', 'elevation_min_ft_us'],
-                800,
-                '#dbe7d0',
-                900,
-                '#bac797',
-                1040,
-                '#a88966',
-              ],
-              'fill-opacity': 0.12,
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-boundary-fill')}
-            type="fill"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Polygon'],
-              ['any', ['==', ['get', 'feature_kind'], 'boundary'], ['!', ['has', 'feature_kind']]],
-            ]}
-            paint={{ 'fill-color': '#8754c8', 'fill-opacity': 0.04 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-natural-areas')}
-            type="fill"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Polygon'],
-              ['==', ['get', 'feature_kind'], 'natural_area'],
-            ]}
-            paint={{ 'fill-color': '#65994c', 'fill-opacity': 0.16 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-elevation-lines')}
-            type="line"
-            filter={['==', ['get', 'feature_kind'], 'elevation_band']}
-            paint={{ 'line-color': '#7b705a', 'line-opacity': 0.38, 'line-width': 0.7 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-water')}
-            type="fill"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Polygon'],
-              ['==', ['get', 'feature_kind'], 'water'],
-            ]}
-            paint={{
-              'fill-color': '#459fd1',
-              'fill-outline-color': '#277bb2',
-              'fill-opacity': 0.7,
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-roads')}
-            type="fill"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Polygon'],
-              ['==', ['get', 'feature_kind'], 'road'],
-            ]}
-            paint={{ 'fill-color': '#9b9b94', 'fill-opacity': 0.65 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-buildings')}
-            type="fill"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Polygon'],
-              ['==', ['get', 'feature_kind'], 'building'],
-            ]}
-            paint={{
-              'fill-color': '#b08766',
-              'fill-outline-color': '#6d503a',
-              'fill-opacity': 0.75,
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-context-lines')}
-            type="line"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'LineString'],
-              ['in', ['get', 'feature_kind'], ['literal', ['water', 'road']]],
-            ]}
-            paint={{
-              'line-color': ['match', ['get', 'feature_kind'], 'water', '#277bb2', '#9b9b94'],
-              'line-width': 2,
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-boundary-outline')}
-            type="line"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Polygon'],
-              ['any', ['==', ['get', 'feature_kind'], 'boundary'], ['!', ['has', 'feature_kind']]],
-            ]}
-            paint={{ 'line-color': '#7442b5', 'line-width': 2, 'line-dasharray': [3, 2] }}
-          />
-          <Layer
-            {...gisLayerProps('gis-signal-samples')}
-            testID="gis-signal-samples"
-            type="circle"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Point'],
-              ['==', ['get', 'feature_kind'], 'signal_observation'],
-            ]}
-            paint={{
-              'circle-color': [
-                'match',
-                ['get', 'signal_class'],
-                signalClasses[0].label,
-                signalClasses[0].color,
-                ...signalClasses.slice(1).flatMap((c) => [c.label, c.color]),
-                '#555',
-              ],
-              'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 1.5, 17, 3.5, 19, 5],
-              'circle-stroke-color': '#343434',
-              'circle-stroke-width': 0.7,
-              'circle-opacity': 0.9,
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-trail-casing')}
-            type="line"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'LineString'],
-              ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
-            ]}
-            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-trails')}
-            type="line"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'LineString'],
-              ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
-              ['==', ['get', '_display_trail_dashed'], false],
-            ]}
-            layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-            paint={{ 'line-color': ['get', '_display_trail_color'], 'line-width': 4 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-unnamed-connections')}
-            type="line"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'LineString'],
-              ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
-              ['==', ['get', '_display_trail_dashed'], true],
-            ]}
-            layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
-            paint={{
-              'line-color': ['get', '_display_trail_color'],
-              'line-width': 4,
-              'line-dasharray': [2, 2],
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-landmarks')}
-            type="circle"
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Point'],
-              ['!=', ['get', 'feature_kind'], 'signal_observation'],
-            ]}
-            paint={{
-              'circle-color': [
-                'match',
-                ['get', 'landmark_kind'],
-                'source_annotation',
-                '#60646c',
-                '#007aff',
-              ],
-              'circle-radius': 6,
-              'circle-stroke-color': '#fff',
-              'circle-stroke-width': 2,
-            }}
-          />
-          <Layer
-            {...gisLayerProps('gis-elevation-labels')}
-            type="symbol"
-            minzoom={17}
-            filter={['==', ['get', 'feature_kind'], 'elevation_band']}
-            layout={{
-              'text-field': [
-                'concat',
-                ['to-string', ['get', 'elevation_min_ft_us']],
-                '–',
-                ['to-string', ['get', 'elevation_max_ft_us']],
-                ' ftUS',
-              ],
-              'text-font': ['Noto Sans Regular'],
-              'text-size': 11,
-              'text-allow-overlap': false,
-            }}
-            paint={{ 'text-color': '#605644', 'text-halo-color': '#fff', 'text-halo-width': 1 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-trail-names')}
-            type="symbol"
-            minzoom={14}
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'LineString'],
-              ['==', ['get', 'feature_kind'], 'trail'],
-              ['has', 'trail_id'],
-              ['==', ['typeof', ['get', 'name']], 'string'],
-              ['!=', ['get', 'name'], ''],
-            ]}
-            layout={{
-              'symbol-placement': 'line-center',
-              'text-field': ['get', 'name'],
-              'text-font': ['Noto Sans Regular'],
-              'text-size': 13,
-              'text-offset': [0, -0.8],
-              'text-rotation-alignment': 'viewport',
-              'text-allow-overlap': false,
-            }}
-            paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
-          />
-          <Layer
-            {...gisLayerProps('gis-landmark-names')}
-            type="symbol"
-            minzoom={16}
-            filter={[
-              'all',
-              ['==', ['geometry-type'], 'Point'],
-              ['!=', ['get', 'feature_kind'], 'signal_observation'],
-              ['==', ['typeof', ['get', 'name']], 'string'],
-            ]}
-            layout={{
-              'text-field': ['get', 'name'],
-              'text-font': ['Noto Sans Regular'],
-              'text-size': 12,
-              'text-offset': [0, 1.2],
-              'text-anchor': 'top',
-              'text-allow-overlap': false,
-              'text-max-width': 12,
-            }}
-            paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
-          />
-        </GeoJSONSource>
-        {visibleTerrainKeys(snapshot).map((key) => (
-          <ImageSource
-            key={key}
-            id={`terrain-${key}`}
-            testID={`terrain-${key}`}
-            url={
-              key === 'supplied'
-                ? require('../../assets/terrain/supplied-hillshade.png')
-                : require('../../assets/terrain/usgs-hillshade.png')
-            }
-            coordinates={
-              terrainAssets[key].coordinates as [
-                [number, number],
-                [number, number],
-                [number, number],
-                [number, number],
-              ]
-            }
-          >
-            <Layer
-              {...terrainLayerProps(key)}
-              type="raster"
-              paint={{ 'raster-opacity': 0.35, 'raster-fade-duration': 0 }}
-            />
-          </ImageSource>
-        ))}
-        {location.fix && (
           <GeoJSONSource
-            id="device-location"
-            data={{
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                coordinates: [location.fix.coords.longitude, location.fix.coords.latitude],
-              },
-              properties: {},
+            id="public-gis"
+            testID="public-gis-source"
+            data={trails?.collection ?? EMPTY_GIS}
+            onPress={(event) => {
+              if (!ready || !snapshot) return;
+              const id = pressedFeatureId(snapshot, event.nativeEvent.features);
+              if (id) {
+                event.stopPropagation();
+                setSelection({ snapshot, id });
+              }
             }}
           >
             <Layer
-              {...deviceLocationLayerProps}
-              type="circle"
+              {...gisLayerProps('gis-terrain-supplied-anchor')}
+              type="fill"
+              filter={['all', ['has', '__gis_order_anchor'], ['!', ['has', '__gis_order_anchor']]]}
+              paint={{ 'fill-opacity': 0 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-terrain-usgs-anchor')}
+              type="fill"
+              filter={['all', ['has', '__gis_order_anchor'], ['!', ['has', '__gis_order_anchor']]]}
+              paint={{ 'fill-opacity': 0 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-elevation-bands')}
+              type="fill"
+              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
               paint={{
-                'circle-radius': 9,
-                'circle-color': '#007aff',
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 3,
+                'fill-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'elevation_min_ft_us'],
+                  800,
+                  '#dbe7d0',
+                  900,
+                  '#bac797',
+                  1040,
+                  '#a88966',
+                ],
+                'fill-opacity': 0.12,
               }}
             />
+            <Layer
+              {...gisLayerProps('gis-boundary-fill')}
+              type="fill"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                [
+                  'any',
+                  ['==', ['get', 'feature_kind'], 'boundary'],
+                  ['!', ['has', 'feature_kind']],
+                ],
+              ]}
+              paint={{ 'fill-color': '#8754c8', 'fill-opacity': 0.04 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-natural-areas')}
+              type="fill"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'natural_area'],
+              ]}
+              paint={{ 'fill-color': '#65994c', 'fill-opacity': 0.16 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-elevation-lines')}
+              type="line"
+              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+              paint={{ 'line-color': '#7b705a', 'line-opacity': 0.38, 'line-width': 0.7 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-water')}
+              type="fill"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'water'],
+              ]}
+              paint={{
+                'fill-color': '#459fd1',
+                'fill-outline-color': '#277bb2',
+                'fill-opacity': 0.7,
+              }}
+            />
+            <Layer
+              {...gisLayerProps('gis-roads')}
+              type="fill"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'road'],
+              ]}
+              paint={{ 'fill-color': '#9b9b94', 'fill-opacity': 0.65 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-buildings')}
+              type="fill"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                ['==', ['get', 'feature_kind'], 'building'],
+              ]}
+              paint={{
+                'fill-color': '#b08766',
+                'fill-outline-color': '#6d503a',
+                'fill-opacity': 0.75,
+              }}
+            />
+            <Layer
+              {...gisLayerProps('gis-context-lines')}
+              type="line"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['in', ['get', 'feature_kind'], ['literal', ['water', 'road']]],
+              ]}
+              paint={{
+                'line-color': ['match', ['get', 'feature_kind'], 'water', '#277bb2', '#9b9b94'],
+                'line-width': 2,
+              }}
+            />
+            <Layer
+              {...gisLayerProps('gis-boundary-outline')}
+              type="line"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Polygon'],
+                [
+                  'any',
+                  ['==', ['get', 'feature_kind'], 'boundary'],
+                  ['!', ['has', 'feature_kind']],
+                ],
+              ]}
+              paint={{ 'line-color': '#7442b5', 'line-width': 2, 'line-dasharray': [3, 2] }}
+            />
+            <Layer
+              {...gisLayerProps('gis-signal-samples')}
+              testID="gis-signal-samples"
+              type="circle"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Point'],
+                ['==', ['get', 'feature_kind'], 'signal_observation'],
+              ]}
+              paint={{
+                'circle-color': [
+                  'match',
+                  ['get', 'signal_class'],
+                  signalClasses[0].label,
+                  signalClasses[0].color,
+                  ...signalClasses.slice(1).flatMap((c) => [c.label, c.color]),
+                  '#555',
+                ],
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 1.5, 17, 3.5, 19, 5],
+                'circle-stroke-color': '#343434',
+                'circle-stroke-width': 0.7,
+                'circle-opacity': 0.9,
+              }}
+            />
+            <Layer
+              {...gisLayerProps('gis-trail-casing')}
+              type="line"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+              ]}
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': ['get', '_display_trail_casing'], 'line-width': 7 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-trails')}
+              type="line"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+                ['==', ['get', '_display_trail_dashed'], false],
+              ]}
+              layout={{ 'line-cap': 'round', 'line-join': 'round' }}
+              paint={{ 'line-color': ['get', '_display_trail_color'], 'line-width': 4 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-unnamed-connections')}
+              type="line"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['any', ['==', ['get', 'feature_kind'], 'trail'], ['!', ['has', 'feature_kind']]],
+                ['==', ['get', '_display_trail_dashed'], true],
+              ]}
+              layout={{ 'line-cap': 'butt', 'line-join': 'round' }}
+              paint={{
+                'line-color': ['get', '_display_trail_color'],
+                'line-width': 4,
+                'line-dasharray': [2, 2],
+              }}
+            />
+            <Layer
+              {...gisLayerProps('gis-landmarks')}
+              type="circle"
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Point'],
+                ['!=', ['get', 'feature_kind'], 'signal_observation'],
+              ]}
+              paint={{
+                'circle-color': [
+                  'match',
+                  ['get', 'landmark_kind'],
+                  'source_annotation',
+                  '#60646c',
+                  '#007aff',
+                ],
+                'circle-radius': 6,
+                'circle-stroke-color': '#fff',
+                'circle-stroke-width': 2,
+              }}
+            />
+            <Layer
+              {...gisLayerProps('gis-elevation-labels')}
+              type="symbol"
+              minzoom={17}
+              filter={['==', ['get', 'feature_kind'], 'elevation_band']}
+              layout={{
+                'text-field': [
+                  'concat',
+                  ['to-string', ['get', 'elevation_min_ft_us']],
+                  '–',
+                  ['to-string', ['get', 'elevation_max_ft_us']],
+                  ' ftUS',
+                ],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': 11,
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#605644', 'text-halo-color': '#fff', 'text-halo-width': 1 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-trail-names')}
+              type="symbol"
+              minzoom={14}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'LineString'],
+                ['==', ['get', 'feature_kind'], 'trail'],
+                ['has', 'trail_id'],
+                ['==', ['typeof', ['get', 'name']], 'string'],
+                ['!=', ['get', 'name'], ''],
+              ]}
+              layout={{
+                'symbol-placement': 'line-center',
+                'text-field': ['get', 'name'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': 13,
+                'text-offset': [0, -0.8],
+                'text-rotation-alignment': 'viewport',
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
+            />
+            <Layer
+              {...gisLayerProps('gis-landmark-names')}
+              type="symbol"
+              minzoom={16}
+              filter={[
+                'all',
+                ['==', ['geometry-type'], 'Point'],
+                ['!=', ['get', 'feature_kind'], 'signal_observation'],
+                ['==', ['typeof', ['get', 'name']], 'string'],
+              ]}
+              layout={{
+                'text-field': ['get', 'name'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': 12,
+                'text-offset': [0, 1.2],
+                'text-anchor': 'top',
+                'text-allow-overlap': false,
+                'text-max-width': 12,
+              }}
+              paint={{ 'text-color': '#242424', 'text-halo-color': '#fff', 'text-halo-width': 2 }}
+            />
           </GeoJSONSource>
-        )}
-      </Map>
+          {visibleTerrainKeys(snapshot).map((key) => (
+            <ImageSource
+              key={key}
+              id={`terrain-${key}`}
+              testID={`terrain-${key}`}
+              url={
+                key === 'supplied'
+                  ? require('../../assets/terrain/supplied-hillshade.png')
+                  : require('../../assets/terrain/usgs-hillshade.png')
+              }
+              coordinates={
+                terrainAssets[key].coordinates as [
+                  [number, number],
+                  [number, number],
+                  [number, number],
+                  [number, number],
+                ]
+              }
+            >
+              <Layer
+                {...terrainLayerProps(key)}
+                type="raster"
+                paint={{ 'raster-opacity': 0.35, 'raster-fade-duration': 0 }}
+              />
+            </ImageSource>
+          ))}
+          {location.fix && (
+            <GeoJSONSource
+              id="device-location"
+              data={{
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: [location.fix.coords.longitude, location.fix.coords.latitude],
+                },
+                properties: {},
+              }}
+            >
+              <Layer
+                {...deviceLocationLayerProps}
+                type="circle"
+                paint={{
+                  'circle-radius': 9,
+                  'circle-color': '#007aff',
+                  'circle-stroke-color': '#fff',
+                  'circle-stroke-width': 3,
+                }}
+              />
+            </GeoJSONSource>
+          )}
+        </Map>
+      </View>
+      {is3d && (
+        <TerrainMap
+          ref={terrain}
+          trails={terrainPresentation}
+          basemap={basemap}
+          fix={outsideTerrain ? undefined : location.fix}
+          view={terrainView}
+          onViewChange={setTerrainView}
+          onStatus={setTerrainStatus}
+          onGesture={locationFollow.stop}
+          onReturnTo2d={() => chooseMapMode('2d')}
+          onRetryTrails={gis.retry}
+        />
+      )}
 
       <Text
-        accessibilityLabel={`Base map attribution: ${basemap.attribution}`}
+        accessibilityLabel={`Base map attribution: ${is3d ? `${elevation.attribution} · ${basemap.attribution}` : basemap.attribution}`}
         style={[styles.attribution, { bottom: dockBottom + dockHeight + 36 }]}
       >
-        {basemap.attribution}
+        {is3d ? `${elevation.attribution} · ${basemap.attribution}` : basemap.attribution}
       </Text>
       <View pointerEvents="none" style={[styles.tabBackdrop, { height: dockBottom }]} />
 
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Cascade Springs Preserve</Text>
-          <Text style={styles.subtitle}>Explore trails and boundaries</Text>
+          <Text style={styles.subtitle}>
+            {is3d ? '3D terrain and trails · True scale' : 'Explore trails and boundaries'}
+          </Text>
         </View>
       </View>
 
       <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
+        {is3d && (
+          <MapButton label="Tilt 3D view" disabled={!ready} onPress={() => terrain.current?.tilt()}>
+            <Text style={styles.secondaryText}>Tilt</Text>
+          </MapButton>
+        )}
         <MapButton
           label="Follow my location"
           hint={
             location.status === 'blocked' ? 'Open Settings to enable location access.' : undefined
           }
-          disabled={!ready || locating}
+          disabled={!ready || locating || Boolean(outsideTerrain)}
           busy={locating}
           selected={locationFollow.following}
           onPress={followLocation}
@@ -598,7 +680,7 @@ export default function PreserveMap() {
           disabled={!ready}
           onPress={() => {
             locationFollow.stop();
-            camera.current?.easeTo({
+            (is3d ? terrain.current : camera.current)?.easeTo({
               center: PRESERVE_CENTER,
               zoom: INITIAL_ZOOM,
               bearing: 0,
@@ -639,13 +721,13 @@ export default function PreserveMap() {
         style={[styles.dock, { bottom: dockBottom }]}
         onLayout={(event) => setDockHeight(event.nativeEvent.layout.height)}
       >
-        {loadState === 'loading' && (
+        {!is3d && loadState === 'loading' && (
           <View style={styles.status}>
             <ActivityIndicator accessibilityLabel="Loading map" />
             <Text style={styles.subtitle}>Loading map…</Text>
           </View>
         )}
-        {loadState === 'unavailable' && (
+        {!is3d && loadState === 'unavailable' && (
           <View accessibilityLiveRegion="polite" style={styles.status}>
             <Text style={styles.subtitle}>Map unavailable. Check your connection.</Text>
             <Pressable
@@ -672,7 +754,11 @@ export default function PreserveMap() {
             </Pressable>
           </View>
         )}
-        {ready && <Text style={styles.subtitle}>Pan or pinch to explore</Text>}
+        {ready && (
+          <Text style={styles.subtitle}>
+            {is3d ? 'Pan or pinch · Two fingers to tilt or rotate' : 'Pan or pinch to explore'}
+          </Text>
+        )}
         <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
           <Pressable
             accessibilityRole="button"
@@ -682,7 +768,11 @@ export default function PreserveMap() {
           >
             <Text style={styles.secondaryText}>Choose GIS Layers</Text>
           </Pressable>
-          <Text style={styles.note}>{locationMessage}</Text>
+          <Text style={styles.note}>
+            {outsideTerrain
+              ? 'Your location is outside the 3D elevation coverage. You can still browse the preserve.'
+              : locationMessage}
+          </Text>
           {location.fix?.coords.accuracy != null && (
             <Text style={styles.note}>
               Reported accuracy: about {Math.ceil(location.fix.coords.accuracy)} m
@@ -742,7 +832,19 @@ export default function PreserveMap() {
           {gis.status === 'empty' && (
             <Text style={styles.note}>No public GIS features available.</Text>
           )}
-          {snapshot && (
+          {is3d && (
+            <>
+              <Text style={styles.gisTitle}>
+                3D terrain · {terrainPresentation.collection.features.length} trail sections
+              </Text>
+              <Text style={styles.note}>
+                Elevation {Math.floor(elevation.rangeMetres[0])}–
+                {Math.ceil(elevation.rangeMetres[1])} m · USGS 3DEP
+              </Text>
+              <TrailLegend entries={terrainPresentation.legend} />
+            </>
+          )}
+          {!is3d && snapshot && (
             <>
               <Text style={styles.gisTitle}>
                 {snapshot.isDemo ? 'Demo GIS' : 'Public GIS'} · {snapshot.layers.length}{' '}
@@ -800,7 +902,9 @@ export default function PreserveMap() {
           )}
         </View>
       </View>
-      {details && <FeatureDetailSheet details={details} onClose={() => setSelection(undefined)} />}
+      {!is3d && details && (
+        <FeatureDetailSheet details={details} onClose={() => setSelection(undefined)} />
+      )}
     </View>
   );
 }
@@ -844,6 +948,9 @@ function MapButton({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f2f7' },
   map: { flex: 1 },
+  // Keep the native viewport intact while the WebView covers it. A zero-sized
+  // native surface invalidates tile loading and can lose the restored basemap.
+  hiddenMap: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, opacity: 0 },
   attribution: {
     position: 'absolute',
     left: 12,

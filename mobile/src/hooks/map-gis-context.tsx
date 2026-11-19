@@ -20,6 +20,7 @@ function useMapGisState() {
     terrainEnabled?: boolean;
   }>(() => ({ preset: defaultLayerPreset, overrides: new Map(), terrainSource: 'usgs' }));
   const [basemapId, setBasemapId] = useState(DEFAULT_BASEMAP);
+  const [mapMode, setMapMode] = useState<'2d' | '3d'>('2d');
   const basemap = getBasemap(basemapId);
   const snapshot = gis.snapshot;
   const availableTerrain = useMemo(() => visibleTerrainKeys(snapshot), [snapshot]);
@@ -61,6 +62,8 @@ function useMapGisState() {
   };
   return {
     gis,
+    mapMode,
+    chooseMapMode: setMapMode,
     basemap,
     chooseBasemap: (id: string) => setBasemapId(getBasemap(id).id),
     hidden,

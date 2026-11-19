@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { checkBasemap, type BasemapView } from '@/data/basemap-health';
 import { unavailableBasemap, type Basemap } from '@/data/basemaps';
@@ -7,6 +7,7 @@ type Status = 'loading' | 'ready' | 'unavailable';
 
 export function useBasemapLoad(basemap: Basemap, view: React.RefObject<BasemapView>) {
   const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
   const request = useMemo(() => ({ basemap, attempt }), [basemap, attempt]);
   const [state, setState] = useState({ request, status: 'loading' as Status });
   const status = state.request === request ? state.status : 'loading';
@@ -70,6 +71,6 @@ export function useBasemapLoad(basemap: Basemap, view: React.RefObject<BasemapVi
     failed: () => {
       if (callbacks.current?.request === request) callbacks.current.failed();
     },
-    retry: () => setAttempt((value) => value + 1),
+    retry,
   };
 }

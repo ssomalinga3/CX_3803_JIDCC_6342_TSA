@@ -5,7 +5,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { basemapStatus, downloadBasemap, removeBasemap } from '@/data/offline-basemap';
 import { useTheme } from '@/hooks/use-theme';
 
-export function OfflineBasemapControls({ mapStyle }: { mapStyle: string }) {
+export function OfflineBasemapControls({
+  mapStyle,
+  disabled = false,
+}: {
+  mapStyle: string;
+  disabled?: boolean;
+}) {
   const theme = useTheme();
   const [status, setStatus] = useState<OfflinePackStatus>();
   const [checking, setChecking] = useState(true);
@@ -37,7 +43,7 @@ export function OfflineBasemapControls({ mapStyle }: { mapStyle: string }) {
   }, [mapStyle, state, busy]);
 
   async function update(remove: boolean) {
-    if (operation.current) return;
+    if (disabled || operation.current) return;
     operation.current = true;
     setBusy(true);
     setFailed(false);
@@ -83,7 +89,7 @@ export function OfflineBasemapControls({ mapStyle }: { mapStyle: string }) {
       {!checking && (state !== 'active' || failed) && (
         <Pressable
           accessibilityRole="button"
-          disabled={busy}
+          disabled={disabled || busy}
           onPress={() => void update(state === 'complete')}
           style={styles.action}
         >
@@ -99,7 +105,7 @@ export function OfflineBasemapControls({ mapStyle }: { mapStyle: string }) {
       {!checking && state === 'inactive' && (
         <Pressable
           accessibilityRole="button"
-          disabled={busy}
+          disabled={disabled || busy}
           onPress={() => void update(true)}
           style={styles.action}
         >
