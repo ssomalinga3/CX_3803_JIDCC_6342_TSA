@@ -19,6 +19,11 @@ jest.mock('@/data/report-device', () => ({
   readGuestReportSecret: jest.fn(),
   removeReportPhoto: jest.fn().mockResolvedValue(undefined),
 }));
+jest.mock('@/data/report-draft-storage', () => ({
+  restoreReportDraft: jest.fn().mockResolvedValue(undefined),
+  saveReportDraft: jest.fn().mockResolvedValue(undefined),
+  clearReportDraft: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('@/data/reporting', () => ({
   ...jest.requireActual('@/data/reporting'),
   loadReportOptions: jest.fn(),

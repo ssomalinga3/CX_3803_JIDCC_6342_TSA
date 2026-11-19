@@ -473,7 +473,9 @@ export function ReportScreen() {
               ? 'Retry this same report before making changes.'
               : 'Review the details and submit again.'}
           </Text>
-          <Text style={secondary}>Closing the app does not yet save this draft for later.</Text>
+          <Text style={secondary}>
+            Your saved draft stays on this device until acceptance or explicit deletion.
+          </Text>
           {privacy}
         </View>
         <View style={styles.footer}>
@@ -486,6 +488,12 @@ export function ReportScreen() {
           {button('Back to Map', map, false, true)}
         </View>
       </>
+    );
+  if (draft.restoring)
+    return (
+      <View style={{ flex: 1, paddingTop: insets.top, justifyContent: 'center' }}>
+        <ActivityIndicator accessibilityLabel="Restoring saved report" />
+      </View>
     );
   return (
     <KeyboardAvoidingView
@@ -515,7 +523,36 @@ export function ReportScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 20 }]}
       >
-        {content}
+        <Text accessibilityLiveRegion="polite" style={secondary}>
+          {draft.storageState === 'saving'
+            ? 'Saving draft…'
+            : draft.storageState === 'saved'
+              ? 'Draft saved on this device'
+              : draft.storageState === 'error'
+                ? 'Draft storage needs attention'
+                : ''}
+        </Text>
+        {!draft.recoveryBlocked && content}
+        {step !== 'sending' &&
+          button(
+            'Discard local draft',
+            () => {
+              Alert.alert(
+                'Discard local draft?',
+                'This removes the report and photos from this device. A report already accepted by the server may still be delivered.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Discard draft',
+                    style: 'destructive',
+                    onPress: () => void draft.discard(),
+                  },
+                ],
+              );
+            },
+            busy || locating,
+            true,
+          )}
         {step !== 'error' && (draft.error || emailError) && (
           <Text accessibilityRole="alert" style={styles.error}>
             {emailError || draft.error?.message}
