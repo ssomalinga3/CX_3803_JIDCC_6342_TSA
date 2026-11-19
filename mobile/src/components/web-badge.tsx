@@ -13,10 +13,7 @@ export function WebBadge() {
       <ThemedText type="code" themeColor="textSecondary" style={styles.versionText}>
         v{version}
       </ThemedText>
-      <Image
-        source={require('@/assets/images/expo-badge.png')}
-        style={styles.badgeImage}
-      />
+      <Image source={require('@/assets/images/expo-badge.png')} style={styles.badgeImage} />
     </ThemedView>
   );
 }
