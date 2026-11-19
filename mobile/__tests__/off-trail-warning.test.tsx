@@ -145,6 +145,66 @@ test('"Don\'t show again" persists across departures and app restarts', async ()
   expect(screen.getByTestId('off-trail-status')).toBeOnTheScreen();
 });
 
+test.each(['map blur', 'GIS refresh'] as const)(
+  '"Got it" survives %s until the visitor returns to the trail and leaves again',
+  async (interruption) => {
+    const view = await render(<MapScreen />);
+    await walkTo(view, points.offTrail);
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Got it' }));
+
+    if (interruption === 'map blur') {
+      // useMapLocation clears its fix on blur, then reacquires on focus.
+      location.mockReturnValue({ status: 'off', enable: jest.fn(), disable: jest.fn() });
+    } else {
+      // A fresh API/cache snapshot has new object identity even with identical geometry.
+      jest.mocked(PublicGis.usePublicGis).mockReturnValue({
+        status: 'ready',
+        snapshot: suppliedSnapshot(),
+        retry: jest.fn(),
+      });
+    }
+    await view.rerender(<MapScreen />);
+    expect(card()).toBeNull();
+    await walkTo(view, points.offTrail);
+    expect(screen.getByTestId('off-trail-status')).toBeOnTheScreen();
+    expect(card()).toBeNull();
+
+    await walkTo(view, points.onTrail);
+    await walkTo(view, points.offTrail);
+    expect(card()).toBeOnTheScreen();
+  },
+);
+
+test.each(['departure', 'return'] as const)(
+  'stale GPS restarts partial confirmation of a %s',
+  async (transition) => {
+    const view = await render(<MapScreen />);
+    if (transition === 'return') await walkTo(view, points.offTrail);
+    const target = transition === 'departure' ? points.offTrail : points.onTrail;
+    await walkTo(view, target, 2);
+    location.mockReturnValue({ status: 'stale', enable: jest.fn(), disable: jest.fn() });
+    await view.rerender(<MapScreen />);
+    expect(card()).toBeNull();
+    expect(screen.queryByTestId('off-trail-status')).toBeNull();
+
+    // One fresh fix after a GPS outage must not complete the old confirmation.
+    await walkTo(view, target, 1);
+    if (transition === 'departure') {
+      expect(card()).toBeNull();
+      expect(screen.queryByTestId('off-trail-status')).toBeNull();
+    } else {
+      expect(screen.getByTestId('off-trail-status')).toBeOnTheScreen();
+    }
+    await walkTo(view, target, 2);
+    if (transition === 'departure') {
+      expect(card()).toBeOnTheScreen();
+    } else {
+      expect(card()).toBeNull();
+      expect(screen.queryByTestId('off-trail-status')).toBeNull();
+    }
+  },
+);
+
 test('visitors outside the preserve are never told they left the trail', async () => {
   const view = await render(<MapScreen />);
   await walkTo(view, points.outside);

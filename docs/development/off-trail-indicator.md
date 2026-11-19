@@ -28,14 +28,17 @@ jitter-buffered on/off-trail detection it depends on. Numeric tolerances are
   | Consecutive fixes    | 3     | ≈3 s at the 1 s watch interval, both directions |
 
   Distances use a local equirectangular projection, accurate well under a meter
-  at preserve scale. Stale GPS hides the indicator without ending the current
-  departure; turning location off or backgrounding resets it.
+  at preserve scale. Stale GPS hides the indicator and clears partial confirmation
+  in either direction, while retaining the last confirmed assessment. Turning
+  location off or backgrounding resets the assessment.
 
 - **UI:** a non-blocking card below the map header. The map, controls, dock and
   all active layers stay usable. **Got it** is the large primary action and
   receives screen-reader focus; it closes the card until the visitor returns to
-  a trail and leaves again. **Don't show again** is a quieter text button that
-  stops the card on this device. While off-trail the dock also shows a subtle
+  a trail and leaves again. This dismissal survives map blur, GPS interruptions,
+  backgrounding and replacement of the live or cached GIS snapshot; an unknown
+  assessment does not re-arm the reminder. **Don't show again** is a quieter text
+  button that stops the card on this device. While off-trail the dock also shows a subtle
   "Off trail" status line, independent of the card preference. The card yields
   to the feature-detail sheet.
 
@@ -46,7 +49,9 @@ jitter-buffered on/off-trail detection it depends on. Numeric tolerances are
   simulated walk (on trail → woods → back) using the supplied trail data.
 - `mobile/__tests__/off-trail-warning.test.tsx`: map-screen integration for the
   card, focus, Got it re-arming, Don't show again persistence across restarts,
-  outside-preserve silence, stale/off location, and unchanged displayed layers.
+  dismissal across map blur/GIS refresh, stale-GPS confirmation restart in both
+  directions, outside-preserve silence, stale/off location, and unchanged
+  displayed layers.
 - Positions come from `mobile/__tests__/fixtures/off-trail.ts`, derived from
   the committed supplied geometry rather than hard-coded coordinates.
 
