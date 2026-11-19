@@ -36,7 +36,9 @@ For release verification, exercise the normal and exception paths on iOS, then t
    and descriptions have fallbacks; unavailable domain attributes are omitted.
 3. Close with Done, iOS dismissal, accessibility escape or the Android system
    back action as applicable. Confirm browsing and an enabled GPS session remain
-   available without selecting a new camera target.
+   available without selecting a new camera target. On Android, the entire Done
+   hit area must sit below the status bar/display cutout, including after safe-area
+   inset changes (J6-70).
 4. Open another feature; confirm content is replaced. Leave Map or replace/fail
    the GIS snapshot; confirm obsolete details disappear and do not reopen on
    return. Repeat with large text and assistive technology on supported devices.
