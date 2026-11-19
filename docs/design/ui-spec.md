@@ -22,6 +22,10 @@ S2 examined Trailforks, ArcGIS Field Maps/Survey123, Avenza Maps, and SeeClickFi
 
 The [J6-31 mobile form](../development/mobile-reporting.md) implements the
 route-first reporting frames for the approved custom-only development scope.
+
+J6-72 exposes this same form through the Report bottom tab on Android and iOS,
+between Map and Explore. The map shortcut opens the same draft. Tab changes keep
+entered content and submission state, and permission prompts remain action-based.
 Recipients are explicit/removable; denial preserves details, review precedes
 submission, and accepted storage is distinguished from email delivery. The owner
 selected measured taps instead of claiming the older three-tap target. Android

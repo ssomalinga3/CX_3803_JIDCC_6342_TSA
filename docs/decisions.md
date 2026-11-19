@@ -1,5 +1,11 @@
 # Open decisions and source reconciliation
 
+## Report navigation (J6-72, November 19, 2026)
+
+The project owner requested a bottom navigation Report tab. Place it between Map
+and Explore and retain the map shortcut to the same route and shared draft.
+This updates the prototype's map-only entry point. My Reports remains J6-42.
+
 ## November 19, 2026 — light appearance only
 
 The owner chose to keep the app in light mode at all times. With a dark-mode device, some screens had followed the system setting while others kept the Figma light palette. Native UI is pinned with `userInterfaceStyle: "light"` and the shared color-scheme hook always returns light. See [UI specification](design/ui-spec.md#design-direction-and-references).
