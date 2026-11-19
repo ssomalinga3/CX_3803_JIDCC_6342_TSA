@@ -8,6 +8,7 @@
   },
   "main": "dist/server.js",
   "scripts": {
+    "reports:deliver": "tsx --env-file-if-exists=.env scripts/deliver-report-notifications.ts",
     "reports:mobile:check": "tsx --env-file-if-exists=.env scripts/check-mobile-report.ts",
     "reports:check": "tsx --env-file-if-exists=.env scripts/check-reports.ts",
     "reports:dev": "tsx --env-file-if-exists=.env scripts/dev-reports.ts",
@@ -52,6 +53,7 @@
     "express": "^5.1.0",
     "fast-png": "8.0.0",
     "jpeg-js": "0.4.4",
+    "nodemailer": "10.0.1",
     "pg": "^8.23.1"
   },
   "devDependencies": {
