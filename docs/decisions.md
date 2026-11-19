@@ -1,5 +1,16 @@
 # Open decisions and source reconciliation
 
+## November 19, 2026 — report photo sanitization without re-encoding
+
+Pure-JS decode/re-encode exceeded the 128 MB Worker isolate at the approved
+4,096-pixel / 12 MP limits, and its decoder cap rejected ordinary camera JPEGs.
+The team chose segment-level rewriting: keep only decoder-required JPEG/PNG data
+plus a regenerated orientation-only EXIF field. This still satisfies J6-27's
+"strip metadata before storage" and leaves the approved limits unchanged.
+Pixel data is no longer regenerated; an external re-encoding service (for example
+the Cloudflare Images binding) remains a later option. See
+[processing contract](development/report-photos.md#processing-contract).
+
 ## November 18, 2026 — J6-31 mobile development flow
 
 The owner confirmed Figma route-first reporting and documenting actual taps from

@@ -54,7 +54,7 @@ Cleanup failure returns nonzero and retains the database intent for investigatio
   ordered `images` parts. See [request/receipt examples](../reporting-contract.md),
   using `dev-environmental` for the local category.
 - Bound the complete body to 16 MiB, metadata to 64 KiB and each photo to 5 MiB.
-  Content decoders enforce 4,096 pixels per edge and 12 million pixels;
+  Header validation enforces 4,096 pixels per edge and 12 million pixels;
   filenames and MIME claims do not determine image type.
 - Accept custom mode only, with 1–20 mailbox addresses. Trim whitespace,
   lowercase domains, preserve local-part case, deduplicate and sort. Reject
