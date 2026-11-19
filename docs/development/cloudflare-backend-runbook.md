@@ -4,6 +4,29 @@ Deployment configured and verified November 12, 2026, from the isolated checkout
 `/Users/theohalpern/Documents/GitHub/CX_3803_JIDCC_6342_TSA-cloudflare`, branch
 `infra/cloudflare-backend`. The implementation agent's checkout is untouched.
 
+## Hosted reporting (November 19, 2026)
+
+Deployed commit: `2cfc074`; Worker: `0c7417b5-4596-49de-b1ac-af9d75d74bbd`.
+All four migrations are applied. Custom-recipient submissions use the existing
+labeled development categories; notifications queue until SMTP delivery is implemented.
+
+Cloudflare secrets: `REPORTING_MODE=custom-development`, `AWS_REGION`,
+`S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`; add `AWS_SESSION_TOKEN`
+for temporary credentials. Storing the mode as a secret retains it across deployments.
+
+Apply these runtime grants after migrations; GIS access remains read-only:
+
+```sql
+GRANT SELECT, INSERT ON public.observation, public.observation_image,
+  public.report_submission, public.report_upload_attempt,
+  public.report_notification TO "cascade-springs-api";
+GRANT UPDATE ON public.report_upload_attempt TO "cascade-springs-api";
+```
+
+Verified: hosted acceptance/replay/privacy and unchanged GIS (10 layers, 808 features).
+Local tests: 243 mobile passed; 244/245 backend passed (GIS import-lock timeout).
+Main CI passed. Native/device checks were not rerun.
+
 ## Hosted resources
 
 | Resource                   | Value                                                               |
@@ -18,7 +41,7 @@ Deployment configured and verified November 12, 2026, from the isolated checkout
 | Database                   | `cascade-springs`                                                   |
 | Database versions observed | PostgreSQL `18.6`, PostGIS `3.6.4`                                  |
 | Region                     | AWS US East (Ohio), `aws-us-east-2`                                 |
-| Runtime role               | `cascade-springs-api`, scoped read-only                             |
+| Runtime role               | `cascade-springs-api`, GIS reads plus scoped report acceptance      |
 
 ```text
 Mobile → HTTPS Worker → Hyperdrive → Neon PostgreSQL/PostGIS
@@ -45,7 +68,7 @@ Postgres as the only utilized service. Auth, Functions, storage, Data API and AI
 Gateway were not provisioned.
 
 [`.env.example`](../../.env.example) lists the hosted values. `CASCADE_RUNTIME_DB_URL`
-contains the separate direct read-only login, stored privately after provisioning.
+contains the separate direct runtime login, stored privately after provisioning.
 The public account ID and `API_ORIGIN` are also set in `.env.local`.
 
 Ordinary commands continue to load `backend/.env` and use local Docker. Explicit
@@ -116,7 +139,7 @@ pnpm backend:hosted:dev --port 18879 --ip 127.0.0.1
 The standard `pnpm backend:dev` remains a local Docker workflow. Do not run
 `db:seed`, `test:integration` or `test:fresh` against production; those tests use
 synthetic fixtures and mutations. Hosted verification uses actual API reads and
-a separate permission check for the read-only role.
+a separate runtime-permission check.
 
 ## GIS data publication
 

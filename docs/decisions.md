@@ -1,5 +1,11 @@
 # Open decisions and source reconciliation
 
+## November 19, 2026 — hosted reporting
+
+Hosted custom-recipient submissions are enabled with labeled development categories;
+see [configuration and grants](development/cloudflare-backend-runbook.md#hosted-reporting-november-19-2026).
+SMTP delivery, park routing and production category mapping remain pending.
+
 ## November 18, 2026 — J6-31 mobile development flow
 
 The owner confirmed Figma route-first reporting and documenting actual taps from
