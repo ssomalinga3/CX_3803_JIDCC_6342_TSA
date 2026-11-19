@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cascade-springs",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.cx3803team6342.cascadesprings"

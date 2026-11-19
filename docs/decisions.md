@@ -6,6 +6,10 @@ The project owner requested a bottom navigation Report tab. Place it between Map
 and Explore and retain the map shortcut to the same route and shared draft.
 This updates the prototype's map-only entry point. My Reports remains J6-42.
 
+## November 19, 2026 — light appearance only
+
+The owner chose to keep the app in light mode at all times. With a dark-mode device, some screens had followed the system setting while others kept the Figma light palette. Native UI is pinned with `userInterfaceStyle: "light"` and the shared color-scheme hook always returns light. See [UI specification](design/ui-spec.md#design-direction-and-references).
+
 ## November 19, 2026 — hosted reporting
 
 Hosted custom-recipient submissions are enabled with labeled development categories;
@@ -94,6 +98,16 @@ The sources settle the main stack and feature direction, but do not settle the c
   eligibility, account evidence and offline coverage remain separate. See the
   [activation rules](security.md#zero-charge-rule-for-app-visible-keys) and
   [J6-68 provider research](development/basemap-options.md#disabled-provider-research).
+
+- **November 19, 2026 — D-05 off-trail tolerance (Proposed, not approved):**
+  J6-25 implements a friendly, non-blocking off-trail reminder using
+  engineering defaults: off-trail beyond 20 m of a trail centerline, back on
+  within 12 m, fixes worse than 25 m accuracy ignored, three consecutive fixes
+  to change state, evaluated only inside the published boundary. The owner
+  requested an erosion-focused message with a primary close action and a
+  secondary "don't show again" choice. Numeric tolerances, protective geometry
+  and safety wording remain open under D-05; see
+  [off-trail indicator](development/off-trail-indicator.md).
 
 - **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
   the source-similarity explanation inside the dropdown and suggested grouping

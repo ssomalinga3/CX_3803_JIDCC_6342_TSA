@@ -27,6 +27,7 @@ import { SignalLegend } from '@/components/signal-legend';
 import { hasSignal, signalClasses } from '@/data/signal';
 import { gisLayerProps, terrainLayerProps, deviceLocationLayerProps } from '@/data/map-layer-order';
 import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
+import { OffTrailWarning } from '@/components/off-trail-warning';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
 import { DEFAULT_BASEMAP } from '@/data/basemaps';
@@ -36,6 +37,7 @@ import { terrainAssets, visibleTerrainKeys } from '@/data/terrain';
 import { useMapGis } from '@/hooks/map-gis-context';
 import { useMapLocation } from '@/hooks/use-map-location';
 import { useLocationFollow } from '@/hooks/use-location-follow';
+import { useOffTrail } from '@/hooks/use-off-trail';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -62,6 +64,8 @@ export default function PreserveMap() {
   const basemapLoad = useBasemapLoad(basemap, viewport);
   const loadState = basemapLoad.status;
   const location = useMapLocation();
+  // Evaluate against all published trails, independent of which layers are displayed.
+  const offTrail = useOffTrail(location.fix, location.status, gis.snapshot?.collection);
   const [settingsFailed, setSettingsFailed] = useState(false);
   const [dockHeight, setDockHeight] = useState(160);
   const [selection, setSelection] = useState<{ snapshot: GisSnapshot; id: string }>();
@@ -558,6 +562,9 @@ export default function PreserveMap() {
           <Text style={styles.title}>Cascade Springs Preserve</Text>
           <Text style={styles.subtitle}>Explore trails and boundaries</Text>
         </View>
+        {offTrail.showWarning && !details && (
+          <OffTrailWarning onClose={offTrail.dismiss} onNeverShow={offTrail.hideForever} />
+        )}
       </View>
 
       <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
@@ -691,6 +698,11 @@ export default function PreserveMap() {
             <Text style={styles.secondaryText}>Choose GIS Layers</Text>
           </Pressable>
           <Text style={styles.note}>{locationMessage}</Text>
+          {offTrail.status === 'off-trail' && (
+            <Text testID="off-trail-status" style={styles.offTrail}>
+              Off trail · Please return to a marked path when it&apos;s safe
+            </Text>
+          )}
           {location.fix?.coords.accuracy != null && (
             <Text style={styles.note}>
               Reported accuracy: about {Math.ceil(location.fix.coords.accuracy)} m
@@ -862,7 +874,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#242424',
   },
-  overlay: { position: 'absolute', left: 16, right: 16, alignItems: 'flex-start' },
+  overlay: { position: 'absolute', left: 16, right: 16, alignItems: 'flex-start', gap: 10 },
   header: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -913,6 +925,7 @@ const styles = StyleSheet.create({
   status: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   note: { fontSize: 13, lineHeight: 19, color: '#60646c' },
   gisStatus: { gap: 4 },
+  offTrail: { fontSize: 14, lineHeight: 19, fontWeight: '600', color: '#2f6b2f' },
   gisTitle: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
   retry: {
     minHeight: 44,

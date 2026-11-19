@@ -12,6 +12,8 @@ Use the team's existing [mid-fidelity Figma prototype](https://www.figma.com/des
 
 The reviewed screens use 390 × 844 iPhone frames, iOS-style back navigation and toggles, light gray backgrounds, white rounded cards, blue primary actions, and orange pending/warning messages. Preserve this direction and use the live Figma components for measurements and styling; the reference size is not a fixed device constraint. Example photos, addresses, coordinates, timestamps, and destination names are prototype content, not production records. Controls labeled “Preview Failure State,” “Test invalid email,” or similar demonstrate states and are not production actions.
 
+The app always uses this light appearance, even when the device is set to dark mode (owner decision, November 19, 2026). `userInterfaceStyle: "light"` in `mobile/app.json` pins native system UI, and `useColorScheme()` in `mobile/src/hooks/use-color-scheme.ts` always returns `light` so JavaScript-styled screens match. Do not add device-following dark styles unless that decision changes.
+
 Use the [J6 Jira backlog](https://gatech-team-f1s41wh9.atlassian.net/jira/software/projects/J6/boards/2/backlog) for implementation tasks, ownership, sprint placement, and current status. Map UI work is tracked in [J6-14](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-14), layers in [J6-19](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-19), feature details in [J6-20](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-20), and trail styling/indication in [J6-23](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-23) and [J6-25](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-25).
 
 S2 examined Trailforks, ArcGIS Field Maps/Survey123, Avenza Maps, and SeeClickFix. Their status colors, automatic metadata, offline downloads, and short reporting flows are inspiration, not independently approved product requirements.
@@ -189,8 +191,9 @@ prevents recentering on stale coordinates; the location control can retry GPS
 acquisition. It does not define J6-24's trail tolerance. The user asked us
 to assume GIS correctness for this implementation, without changing provenance or
 production data approval. See [GPS setup and acceptance](../../mobile/README.md#foreground-map-gps-j6-14)
-for native rebuild instructions and verification status. Off-trail warnings,
-offline downloads, and the other map flows remain separate work.
+for native rebuild instructions and verification status. Off-trail warnings are
+described in [off-trail indicator](../development/off-trail-indicator.md);
+offline downloads and the other map flows remain separate work.
 
 ## Full trail-network content reference — November 4, 2026
 
