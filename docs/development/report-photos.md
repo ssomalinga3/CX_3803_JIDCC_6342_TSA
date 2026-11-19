@@ -42,27 +42,44 @@ remain operational work: `finally` cannot run after a forced process/host kill.
 
 ## Processing contract
 
-`preparePhoto` decodes actual content using [jpeg-js](https://github.com/jpeg-js/jpeg-js)
-and [fast-png](https://github.com/image-js/fast-png), without native image binaries.
-PNG preflight uses the public [zlib API supported by Workers](https://developers.cloudflare.com/workers/runtime-apis/nodejs/zlib/)
-to bound expansion before invoking the codec. No private zlib internals are used.
+`preparePhoto` validates and sanitizes by **rewriting the file's segments/chunks,
+without decoding or re-encoding pixels**. It uses only the public
+[zlib API supported by Workers](https://developers.cloudflare.com/workers/runtime-apis/nodejs/zlib/)
+and no image codec at runtime.
+
+**Why not decode and re-encode:** pure-JS codecs exceed the 128 MB Cloudflare Worker
+isolate at the approved limits. Measured on November 19, 2026, a 12 MP PNG held
+137–291 MB live during decode/rotate/encode (from a 0.24 MB upload), and jpeg-js's
+memory cap rejected ordinary 8 MP camera JPEGs as invalid. Segment rewriting peaks
+at a few MB for 12 MP JPEGs and about 32 MB for 12 MP PNGs (an upper bound sampled
+without forced garbage collection). Larger-memory re-encoding would require an
+external service (for example the Cloudflare Images binding); that is not selected.
 
 - Enforce 1–3 files before consuming streams, stop reads above 5 MiB per file,
-  and check 4,096-pixel edges / 12-million-pixel dimensions before decoding.
-  Re-encoded output must also fit 5 MiB. The future HTTP adapter must separately
-  enforce the **16 MiB complete multipart request**, including metadata and
-  boundaries. This service is not a multipart parser.
-- Check PNG structure/CRCs and exact decompressed scanline size. Discard ancillary
-  metadata before decoding; compressed private text/profiles are never inflated.
-  Support static PNG including packed/indexed/grayscale/16-bit input and Adam7.
-  Reject animated PNG as unsupported rather than silently discarding frames.
-- Read only EXIF orientation, rotate/mirror pixels, and freshly encode without
-  EXIF, comments, profiles or text. Do not collect EXIF GPS/time. PNG becomes
-  8-bit RGBA with alpha; JPEG is re-encoded at quality 90. Color/quality and byte
-  size can change. Report location/time remain separate reviewed report fields.
-- Hash original upload bytes separately from sanitized bytes. The future request
-  digest must use original upload hashes and normalized metadata, independent
-  of codec re-encoding. Do not trust filenames or client MIME declarations.
+  and check 4,096-pixel edges / 12-million-pixel dimensions from headers.
+  The HTTP adapter separately enforces the **16 MiB complete multipart request**,
+  including metadata and boundaries. This service is not a multipart parser.
+- **JPEG:** walk every marker and keep only decoder-required segments: DQT, DHT,
+  DRI, one Huffman baseline/extended/progressive 8-bit frame (1, 3 or 4
+  components), scans and their entropy-coded data, plus the 12-byte Adobe color
+  transform marker. Drop APP0–APP15 (EXIF/GPS, XMP, ICC, IPTC, JFIF, MPF) and
+  comments, and discard everything after EOI (including appended secondary
+  images). Reject arithmetic, lossless and hierarchical frames as unsupported.
+- **PNG:** check structure, CRCs, valid depth/color pairs, palette presence,
+  every scanline filter byte and the exact inflated size, streamed in 64 KiB
+  pieces. Keep only IHDR, PLTE, tRNS, IDAT and IEND; compressed private
+  text/profiles are never inflated. Reject animated PNG rather than silently
+  discarding frames. Bit depth, palette, alpha and interlacing are preserved.
+- **Orientation:** read only EXIF orientation (never GPS/time) and write a newly
+  generated orientation-only EXIF field; nothing else is copied from input EXIF.
+  Reported width/height are the displayed (oriented) dimensions. Viewers that
+  ignore PNG `eXIf` show such PNGs unrotated; the mobile app always sends JPEG.
+- **Trade-off:** pixel data is copied byte-for-byte, not regenerated, so a
+  structurally valid file with corrupt image data is stored as received. Color
+  appearance can change where an ICC profile was removed (as it did when
+  re-encoding). Do not trust filenames or client MIME declarations.
+- Hash original upload bytes separately from sanitized bytes. The request
+  digest uses original upload hashes and normalized metadata.
 
 ## Private staging and access
 
@@ -125,6 +142,31 @@ limits, all eight orientations, transparency, compressed metadata, owner
 isolation, expired/forged/restart-invalidated grants, validation-before-write,
 partial/ambiguous storage failures, cleanup failure, restart persistence,
 permissions, traversal and symlinks. Native camera, offline restart/sync, S3
-and SES are unverified. Production maximum-size CPU/memory/concurrency still
-requires measurement on the selected Worker plan before enabling uploads;
-small synthetic runtime checks do not establish production load capacity.
+and SES are unverified. Production concurrency still requires measurement on the
+selected Worker plan before enabling uploads.
+
+November 19 sanitizer verification: the unit suite adds seeded structural fuzzing
+(3,000 mutated files must fail with fixed codes or produce stable output) and
+12 MP JPEG/PNG acceptance. Out of tree, 29 encoder variants (Pillow/libjpeg-turbo,
+cjpeg restart/progressive/float-DCT, Apple ImageIO, CMYK/Adobe, appended
+secondary images, 1/16-bit, palette+tRNS, Adam7) produced pixel-identical
+libjpeg-turbo/libpng and Apple ImageIO decodes, unchanged displayed orientation,
+no metadata other than orientation and clean `djpeg` decodes; arithmetic JPEG was
+rejected as unsupported. A 50,000-case mutation fuzz raised no non-fixed errors,
+stayed idempotent and finished each case within 210 ms.
+
+November 19 native check of the unchanged J6-31 form against this sanitizer, local
+PostGIS and private S3: iPhone 16e / iOS 26.3 (EAS development build `3e300a21`)
+and an Android 16 / API 36 emulator (EAS build `adc8baaa`), both on Metro. Six
+synthetic reports covered 1 and 3 photos (6016² JPEGs and an EXIF-6 portrait with
+GPS), shared, omitted and denied location, camera denial with library fallback,
+repeated Submit taps and Worker interruption before and during upload. Retries
+reused one submission, honored `Retry-After` and reached one receipt. Stored
+objects held only decoder segments, no EXIF/GPS/ICC/XMP/comments, and upright
+pixels; the apps already normalize orientation, so the orientation-only EXIF
+path is exercised by the Worker tests, not the apps. All records were cleaned
+up. Screenshots: [iOS review](screenshots/reporting/sanitizer-ios-26-review.png),
+[iOS accepted](screenshots/reporting/sanitizer-ios-26-accepted.png),
+[Android review](screenshots/reporting/sanitizer-android-16-review.png),
+[Android retry wait](screenshots/reporting/sanitizer-android-16-retry-wait.png),
+[Android accepted](screenshots/reporting/sanitizer-android-16-accepted.png).

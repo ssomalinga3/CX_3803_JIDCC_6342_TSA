@@ -52,7 +52,7 @@ Persist the custom delivery mode and recipients with the report and its offline 
   pixels. Missing GPS is allowed with an explicit reason; convert unsupported
   device formats on device where possible. The
   [local photo service](development/report-photos.md) enforces file/count/decode
-  limits and strips metadata while physically preserving EXIF orientation. It
+  limits and strips metadata by rewriting file segments (no pixel re-encoding), keeping only a regenerated EXIF orientation. It
   authorizes staged reads/deletion with the guest's report-scoped secret and does
   not collect EXIF GPS/time. The development HTTP adapter enforces the complete
   multipart limit. The [AWS SDK S3 adapter](development/s3-report-photos.md)

@@ -104,11 +104,41 @@ try {
         assert.deepEqual(Array.from(decode(bytes).data), Array.from(pixels));
       else assert.equal(jpeg.decode(bytes).width, 2);
     }
+  // Full-size inputs at the approved 12 MP limit, sanitized in the actual Worker runtime.
+  // EXIF orientation 6 (big-endian TIFF) on a 4000×3000 JPEG must display as 3000×4000.
+  const large = { width: 4000, height: 3000 };
+  const exif = Buffer.from(
+    '457869660000' + '4d4d002a00000008000101120003000000010006' + '0000' + '00000000',
+    'hex',
+  );
+  const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, 0, exif.length + 2]), exif]);
+  const camera = Buffer.from(
+    jpeg.encode({ ...large, data: Buffer.alloc(large.width * large.height * 4, 96) }, 80).data,
+  );
+  const fullSize = [
+    [Buffer.concat([camera.subarray(0, 2), app1, camera.subarray(2)]), 'image/jpeg', 3000, 4000],
+    [
+      encode({ ...large, channels: 4, data: new Uint8Array(large.width * large.height * 4) }),
+      'image/png',
+      4000,
+      3000,
+    ],
+  ];
+  for (const [body, type, width, height] of fullSize) {
+    const response = await fetch(base, {
+      method: 'POST',
+      body,
+      signal: AbortSignal.timeout(30000),
+    });
+    assert.equal(response.status, 200, `${type} at 12 MP was not accepted`);
+    const result = await response.json();
+    assert.deepEqual([result.contentType, result.width, result.height], [type, width, height]);
+  }
   const invalid = await fetch(base, { method: 'POST', body: '<svg>spoof</svg>' });
   assert.equal(invalid.status, 415);
   assert.deepEqual(await invalid.json(), { error: 'UNSUPPORTED_PHOTO' });
   console.log(
-    'Worker JPEG/PNG decode, sanitization, ownership, cleanup and AWS SDK signing checks passed.',
+    'Worker JPEG/PNG validation, sanitization, 12 MP, ownership, cleanup and AWS SDK signing checks passed.',
   );
 } finally {
   if (child.exitCode === null && child.signalCode === null) {

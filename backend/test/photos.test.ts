@@ -4,6 +4,7 @@ import { decode, encode } from 'fast-png';
 import jpeg from 'jpeg-js';
 import { preparePhoto, readPhoto } from '../src/modules/reports/photos.js';
 import { PHOTO_LIMITS, PhotoError } from '../src/modules/reports/photo-errors.js';
+import { orientationTiff } from '../src/modules/reports/photo-headers.js';
 import {
   createPhotoService,
   type PrivatePhotoStore,
@@ -22,7 +23,7 @@ import {
 } from './fixtures/photos.js';
 
 describe('report photo validation and sanitization', () => {
-  it('decodes PNG content, preserves alpha and hashes original versus sanitized bytes', async () => {
+  it('keeps PNG pixels byte-for-byte, preserves alpha and hashes original versus sanitized bytes', async () => {
     const input = pngWithChunk('tEXt', Buffer.from('GPS\0synthetic-private-location'));
     const photo = await preparePhoto(input);
     expect(photo).toMatchObject({ contentType: 'image/png', width: 2, height: 3 });
@@ -33,16 +34,66 @@ describe('report photo validation and sanitization', () => {
     expect(decode(photo.bytes).text).toEqual({});
   });
 
-  it('decodes JPEG, applies EXIF rotation, and drops EXIF/comments/trailing payloads', async () => {
+  it('rewrites JPEG without re-encoding: orientation-only EXIF, no comments/trailing payloads', async () => {
     const input = Buffer.concat([jpegWithExif(6), Buffer.from('private-trailing-payload')]);
     const photo = await preparePhoto(input);
+    // Reported dimensions are as displayed; the stored scan keeps its encoded 2×3 size.
     expect(photo).toMatchObject({ contentType: 'image/jpeg', width: 3, height: 2 });
     const decoded = jpeg.decode(photo.bytes);
-    expect(decoded.width).toBe(3);
-    expect(decoded.height).toBe(2);
+    expect([decoded.width, decoded.height]).toEqual([2, 3]);
     expect(decoded.comments).toBeUndefined();
-    expect(Buffer.from(photo.bytes).includes(Buffer.from('Exif\0\0'))).toBe(false);
+    // SOI, then a 34-byte APP1 holding only the regenerated orientation field.
+    expect(Buffer.from(photo.bytes).subarray(0, 38)).toEqual(
+      Buffer.concat([
+        Buffer.from([0xff, 0xd8, 0xff, 0xe1, 0, 34]),
+        Buffer.from('Exif\0\0'),
+        orientationTiff(6),
+      ]),
+    );
+    expect(Buffer.from(decoded.data)).toEqual(Buffer.from(jpeg.decode(sampleJpeg()).data));
     expect(Buffer.from(photo.bytes).toString()).not.toContain('private');
+  });
+
+  it('keeps only decoder-required JPEG segments and the Adobe transform marker', async () => {
+    const segment = (marker: number, body: Buffer) => {
+      const header = Buffer.from([0xff, marker, 0, 0]);
+      header.writeUInt16BE(body.length + 2, 2);
+      return Buffer.concat([header, body]);
+    };
+    const source = sampleJpeg();
+    const adobe = segment(0xee, Buffer.from('Adobe\0\x64\0\0\0\0\x01', 'latin1'));
+    const input = Buffer.concat([
+      source.subarray(0, 2),
+      segment(0xe2, Buffer.from('ICC_PROFILE\0private-device-model')),
+      segment(0xe1, Buffer.from('http://ns.adobe.com/xap/1.0/\0private-xmp-gps')),
+      segment(0xed, Buffer.from('Photoshop 3.0\0private-iptc')),
+      segment(0xfe, Buffer.from('private-comment')),
+      adobe,
+      source.subarray(2),
+    ]);
+    const photo = await preparePhoto(input);
+    const output = Buffer.from(photo.bytes);
+    expect(output.toString('latin1')).not.toMatch(/private|ICC_PROFILE|JFIF|xap/);
+    expect(output.includes(adobe)).toBe(true);
+    expect(photo.sha256).toBe(createHash('sha256').update(output).digest('hex'));
+    // Idempotent: an already-clean file passes through unchanged.
+    expect(Buffer.from((await preparePhoto(output)).bytes)).toEqual(output);
+  });
+
+  it('accepts a progressive JPEG and rejects arithmetic/lossless frames as unsupported', async () => {
+    const progressive = sampleJpeg();
+    const frame = progressive.indexOf(Buffer.from([0xff, 0xc0]));
+    for (const [marker, code] of [
+      [0xc2, undefined],
+      [0xc3, 'UNSUPPORTED_PHOTO'],
+      [0xc9, 'UNSUPPORTED_PHOTO'],
+    ] as const) {
+      const bytes = Buffer.from(progressive);
+      bytes[frame + 1] = marker;
+      if (code) await expect(preparePhoto(bytes)).rejects.toMatchObject({ code });
+      // Structure is validated; entropy-coded data is copied, never decoded.
+      else await expect(preparePhoto(bytes)).resolves.toMatchObject({ width: 2, height: 3 });
+    }
   });
 
   it.each([
@@ -54,16 +105,29 @@ describe('report photo validation and sanitization', () => {
     [6, [4, 2, 0, 5, 3, 1]],
     [7, [5, 3, 1, 4, 2, 0]],
     [8, [1, 3, 5, 0, 2, 4]],
-  ])('preserves visible pixels for EXIF orientation %i', async (orientation, order) => {
-    const photo = await preparePhoto(pngWithChunk('eXIf', tiffOrientation(orientation)));
-    const pixels = decode(photo.bytes).data;
-    expect(Array.from(pixels)).toEqual(
-      order.flatMap((index) => Array.from(PIXELS.subarray(index * 4, index * 4 + 4))),
-    );
-    expect(Buffer.from(photo.bytes).toString()).not.toContain('eXIf');
-  });
+  ])(
+    'preserves EXIF orientation %i as a regenerated orientation-only field',
+    async (orientation, order) => {
+      void order; // Pixel order is unchanged; viewers apply the preserved orientation.
+      const photo = await preparePhoto(
+        pngWithChunk('eXIf', Buffer.concat([tiffOrientation(orientation), Buffer.from('private')])),
+      );
+      const decoded = decode(photo.bytes);
+      expect(decoded.data).toEqual(PIXELS);
+      expect(Buffer.from(photo.bytes).toString('latin1')).not.toContain('private');
+      expect([photo.width, photo.height]).toEqual(orientation >= 5 ? [3, 2] : [2, 3]);
+      const exif = Buffer.from(photo.bytes).indexOf('eXIf');
+      if (orientation === 1) expect(exif).toBe(-1);
+      else {
+        expect(exif).toBeLessThan(Buffer.from(photo.bytes).indexOf('IDAT'));
+        expect(Buffer.from(photo.bytes).subarray(exif + 4, exif + 30)).toEqual(
+          orientationTiff(orientation),
+        );
+      }
+    },
+  );
 
-  it('normalizes 16-bit grayscale and indexed PNGs without losing transparency', async () => {
+  it('keeps 16-bit grayscale and indexed PNGs, including palette transparency', async () => {
     const grayscale = encode({
       width: 1,
       height: 1,
@@ -71,9 +135,7 @@ describe('report photo validation and sanitization', () => {
       depth: 16,
       data: new Uint16Array([65535, 32768]),
     });
-    expect(Array.from(decode((await preparePhoto(grayscale)).bytes).data)).toEqual([
-      255, 255, 255, 128,
-    ]);
+    expect(Array.from(decode((await preparePhoto(grayscale)).bytes).data)).toEqual([65535, 32768]);
     const palette = Buffer.from(
       encode({
         width: 2,
@@ -94,8 +156,11 @@ describe('report photo validation and sanitization', () => {
       pngChunk('tRNS', Uint8Array.from([255, 0])),
       palette.subarray(start),
     ]);
-    expect(Array.from(decode((await preparePhoto(transparent)).bytes).data)).toEqual([
-      255, 0, 0, 255, 0, 255, 0, 0,
+    const indexed = decode((await preparePhoto(transparent)).bytes);
+    expect(Array.from(indexed.data)).toEqual([0, 1]);
+    expect(indexed.palette).toEqual([
+      [255, 0, 0, 255],
+      [0, 255, 0, 0],
     ]);
   });
 
@@ -140,6 +205,44 @@ describe('report photo validation and sanitization', () => {
     await expect(preparePhoto(jpg)).rejects.toMatchObject({ code: 'PHOTO_DIMENSIONS' });
   });
 
+  it('rejects invalid PNG filter bytes, missing palettes and invalid depth/color pairs', async () => {
+    const header = samplePng().subarray(16, 29);
+    header.writeUInt32BE(1, 0);
+    header.writeUInt32BE(1, 4);
+    const pixel = (filter: number) => deflateSync(Buffer.from([filter, 1, 2, 3, 4]));
+    await expect(preparePhoto(customPng(header, pixel(4)))).resolves.toMatchObject({ width: 1 });
+    await expect(preparePhoto(customPng(header, pixel(5)))).rejects.toMatchObject({
+      code: 'INVALID_PHOTO',
+    });
+    const indexed = Buffer.from(header);
+    indexed[9] = 3;
+    await expect(
+      preparePhoto(customPng(indexed, deflateSync(Buffer.from([0, 0])))),
+    ).rejects.toMatchObject({ code: 'INVALID_PHOTO' });
+    const rgb16 = Buffer.from(header);
+    rgb16[8] = 4;
+    rgb16[9] = 2;
+    await expect(preparePhoto(customPng(rgb16, pixel(0)))).rejects.toMatchObject({
+      code: 'INVALID_PHOTO',
+    });
+  });
+
+  it('accepts full-size 12 MP JPEG/PNG photos without decoding them', async () => {
+    const width = 4000,
+      height = 3000;
+    const camera = Buffer.from(
+      jpeg.encode({ width, height, data: Buffer.alloc(width * height * 4, 96) }, 80).data,
+    );
+    const rotated = Buffer.concat([
+      camera.subarray(0, 2),
+      jpegWithExif(6).subarray(2, jpegWithExif(6).indexOf(Buffer.from([0xff, 0xdb]))),
+      camera.subarray(2),
+    ]);
+    await expect(preparePhoto(rotated)).resolves.toMatchObject({ width: 3000, height: 4000 });
+    const png = encode({ width, height, channels: 4, data: new Uint8Array(width * height * 4) });
+    await expect(preparePhoto(png)).resolves.toMatchObject({ width, height });
+  }, 30_000);
+
   it('accepts the edge limit and rejects a PNG expansion bomb', async () => {
     const edge = encode({ width: 4096, height: 1, channels: 4, data: new Uint8Array(4096 * 4) });
     expect((await preparePhoto(edge)).width).toBe(4096);
@@ -159,9 +262,7 @@ describe('report photo validation and sanitization', () => {
     header[8] = 1;
     header[9] = 0;
     const monochrome = customPng(header, deflateSync(Buffer.from([0, 0x80])));
-    expect(Array.from(decode((await preparePhoto(monochrome)).bytes).data)).toEqual([
-      255, 255, 255, 255, 0, 0, 0, 255,
-    ]);
+    expect(Buffer.from((await preparePhoto(monochrome)).bytes)).toEqual(monochrome);
     const metadata = pngWithChunk(
       'zTXt',
       Buffer.concat([Buffer.from('Private\0\0'), deflateSync(Buffer.alloc(1_000_000, 65))]),
@@ -170,6 +271,53 @@ describe('report photo validation and sanitization', () => {
     expect(decode(sanitized.bytes).text).toEqual({});
     expect(decode(sanitized.bytes).data).toEqual(PIXELS);
   });
+
+  it('fails closed on mutated input: fixed errors only, stable sanitized output', async () => {
+    // Seeded structural fuzzing. A hand-written parser must never throw raw errors or hang.
+    let seed = 20261119;
+    const random = (limit: number) => (seed = (seed * 1103515245 + 12345) >>> 0) % limit;
+    const sources = [
+      sampleJpeg(),
+      jpegWithExif(6),
+      samplePng(),
+      pngWithChunk('eXIf', tiffOrientation(6)),
+      Buffer.from(
+        encode(
+          { width: 9, height: 7, data: new Uint8Array(252), channels: 4 },
+          { interlace: 'Adam7' },
+        ),
+      ),
+    ];
+    for (let i = 0; i < 3000; i++) {
+      let bytes = Buffer.from(sources[i % sources.length]!);
+      const position = random(bytes.length);
+      switch (random(4)) {
+        case 0:
+          bytes = bytes.subarray(0, position);
+          break;
+        case 1:
+          bytes[position] = bytes[position]! ^ (1 << random(8));
+          break;
+        case 2:
+          bytes = Buffer.concat([
+            bytes.subarray(0, position),
+            Buffer.from([0xff, random(256), random(256)]),
+            bytes.subarray(position),
+          ]);
+          break;
+        default:
+          bytes.writeUInt16BE(random(65536), Math.min(random(64), bytes.length - 2));
+      }
+      try {
+        const photo = await preparePhoto(bytes);
+        expect(Buffer.from((await preparePhoto(photo.bytes)).bytes)).toEqual(
+          Buffer.from(photo.bytes),
+        );
+      } catch (error) {
+        expect(error).toBeInstanceOf(PhotoError);
+      }
+    }
+  }, 30_000);
 
   it('bounds streamed bytes and closes the iterator immediately on excess input', async () => {
     let closed = false,
