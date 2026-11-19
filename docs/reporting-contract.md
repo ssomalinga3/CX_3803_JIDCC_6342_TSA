@@ -4,8 +4,13 @@
 
 The [November 16 foundation review](development/reporting-foundation.md) separates
 the remaining decisions from the already merged J6-28 persistence implementation
-and records its verification boundaries. That implementation does not approve
-the remaining contract details or expose a report-submission endpoint.
+and records its verification boundaries. On November 18 the owner selected
+custom recipients first. The [local J6-30 API](development/custom-reports.md)
+implements submission/replay with development categories and pending SMTP work.
+This does not approve production routing or enable hosted writes.
+The owner subsequently confirmed the custom-only development release as the
+current scope. Its development catalog and operational bounds are used for
+acceptance verification; production category/routing approval remains separate.
 
 ## Guest ownership and submission identity
 
@@ -16,7 +21,12 @@ the remaining contract details or expose a report-submission endpoint.
 
 ## Request and receipt
 
-Proposed submission is `POST /api/v1/observations` using multipart form data. Send a single JSON `metadata` part and one or more ordered `images` parts. Category IDs come from the approved public reporting options catalog. Keep authorization and coordinates out of the URL.
+Development submission is `POST /api/v1/observations` using multipart form data.
+Send one JSON `metadata` field and ordered `images` file parts. Local category IDs
+come from `/api/v1/report-options` and are explicitly marked development-only.
+Approved production categories remain open. Keep authorization and coordinates
+out of the URL. Replace the illustrative category below with `dev-environmental`
+when testing locally.
 
 Example metadata for a custom report where the visitor declined location access:
 
@@ -57,11 +67,19 @@ PostgreSQL stores `observation_image.object_key` references, not photo bytes.
 The [J6-29 local photo service](development/report-photos.md) now validates and
 sanitizes files, with private local-disk storage for Node development tooling
 and an in-memory adapter for Worker tests. Its CLI removes its temporary copies
-after checking. No HTTP upload/submission route or mobile capture is registered.
-A private S3 adapter, bucket name/region and real cloud integration remain
-outstanding. Persistence tests use placeholder keys until J6-30 connects accepted
-references. Durable on-device photos remain J6-33. Map imagery and bundled GIS
+after checking. Mobile capture remains unimplemented.
+The [private S3 adapter](development/s3-report-photos.md) now uses the AWS SDK
+for conditional encrypted writes, validated reads and owner-authorized presigned
+downloads. Bucket configuration remains in ignored server settings. The November
+18 live check verified bucket privacy, synthetic upload/read, guest isolation,
+anonymous denial, signed expiry and deletion. The local custom-recipient API now
+connects real private references and atomic pending notification work;
+production reporting remains disabled. Durable on-device photos remain J6-33.
+Map imagery and bundled GIS
 assets are separate from report photos.
+
+Email uses separate SMTP credentials behind the notification adapter; S3 SDK
+credentials are not email credentials. SMTP delivery remains J6-32.
 
 ## Acceptance, retries, and local storage
 

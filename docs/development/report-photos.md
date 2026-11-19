@@ -3,7 +3,11 @@
 The owner authorized photo development without an S3 bucket on November 17, 2026. This slice implements an internal processing service, private storage
 interface and Node local-disk adapter. It does not register an HTTP upload route,
 accept a report, send email, or expose mobile capture. J6-30 integrates accepted
-submissions; J6-31 builds capture/review. J6-29's S3 setup remains outstanding.
+submissions; J6-31 builds capture/review. This records the original local slice.
+The follow-up [S3 adapter guide](s3-report-photos.md) describes the AWS SDK storage
+adapter and the current live-verification status.
+The [custom-recipient API](custom-reports.md) now connects these components to
+local multipart submission and atomic database acceptance.
 
 ## Try real files locally
 

@@ -113,4 +113,24 @@ describe('request error privacy (J6-15)', () => {
     expect(output.stdout.mock.calls).toHaveLength(0);
     expect(output.stderr.mock.calls).toHaveLength(0);
   });
+
+  it('keeps private-route misses generic and uncached when reporting is disabled', async () => {
+    const output = captureOutput();
+    const app = createApp();
+    for (const path of [
+      '/api/v1/report-options',
+      '/api/v1/observations',
+      '/api/v1/observations/private-report/images',
+      '/api/v1/staff/observations/export',
+    ]) {
+      const response = await request(app).get(`${path}?location=${location}`).expect(404);
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(response.body).toEqual({
+        error: { code: 'NOT_FOUND', message: 'Resource not found', fields: {} },
+      });
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(output.stdout.mock.calls).toHaveLength(0);
+    expect(output.stderr.mock.calls).toHaveLength(0);
+  });
 });

@@ -8,6 +8,9 @@
   },
   "main": "dist/server.js",
   "scripts": {
+    "reports:check": "tsx --env-file-if-exists=.env scripts/check-reports.ts",
+    "reports:dev": "tsx --env-file-if-exists=.env scripts/dev-reports.ts",
+    "photos:s3:check": "tsx --env-file-if-exists=.env scripts/check-s3-photos.ts",
     "photos:check": "tsx scripts/check-photos.ts",
     "test:photos:worker": "node scripts/test-photo-worker.mjs",
     "dev": "node --env-file-if-exists=.env scripts/dev.mjs",
@@ -40,6 +43,10 @@
     "db:import:signal": "tsx --env-file-if-exists=.env scripts/import-signal-map.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1172.0",
+    "@aws-sdk/s3-request-presigner": "^3.1172.0",
+    "@smithy/fetch-http-handler": "^5.8.1",
+    "busboy": "1.6.0",
     "drizzle-orm": "^0.45.4",
     "express": "^5.1.0",
     "fast-png": "8.0.0",
@@ -48,6 +55,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@jest/globals": "29.7.0",
+    "@types/busboy": "^1.5.5",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.0.0",

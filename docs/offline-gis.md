@@ -30,6 +30,11 @@ Do not imply that a first launch without downloaded data has a complete map. Pro
 
 ## Proposed queue contract
 
+The [custom-only development API](development/custom-reports.md) now preserves
+submission UUID/owner/payload identity across retries and returns an accepted
+receipt without duplicate photos or logical notifications. It does not implement
+the device queue, secure secret storage or offline restart; those remain J6-33.
+
 The queue needs persistent submission identity, account/guest ownership context, metadata, delivery mode and explicit custom recipients, local photo references, attempt state, and the accepted server ID. Proposed states are `draft`, `pending`, `uploading`, `accepted`, and `needs_attention`; these are local delivery states, separate from administrative statuses such as Submitted or Resolved.
 
 - Move an explicitly submitted offline report to `pending` only after metadata and photo files are stored durably.

@@ -1,5 +1,17 @@
 # Open decisions and source reconciliation
 
+## November 18, 2026 — initial custom-recipient submission
+
+The owner selected custom recipients first and explicitly confirmed a
+**custom-only development release** as the current scope. Implement the local guest API with
+explicitly labeled development categories, private S3 images and durable pending
+notification work. Email transport uses separate SMTP credentials. This enables
+development submission/replay testing without inventing park destinations or
+production category mappings. SMTP sending, mobile capture/offline restart,
+production operational bounds, retention and scheduled abandoned-upload cleanup
+remain separate; production setup is not a completion gate for this development
+slice. See [implementation and limits](development/custom-reports.md).
+
 The sources settle the main stack and feature direction, but do not settle the choices below. This register prevents implementation guesses from being mistaken for client decisions. Suggested decision participants are responsibilities, not assignments to named people.
 
 | ID | Decision to record | Evidence / conflict and implementation impact | Participants |

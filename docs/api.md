@@ -1,6 +1,6 @@
 # API and interfaces
 
-Baseline transport: S1 pp. 9 and 12. Required workflows: S3 stories 1–3 and 6–10. S1 does not specify URL paths, payload field names, error envelopes, or authentication transport. The public GIS read contract below is implemented; reporting, tiles and additional filters remain **proposed**, to be finalized with D-01–D-07 before client/server implementation.
+Baseline transport: S1 pp. 9 and 12. Required workflows: S3 stories 1–3 and 6–10. S1 does not specify URL paths, payload field names, error envelopes, or authentication transport. Public GIS reads are implemented. A development-only custom-recipient reporting API is available; remaining production reporting, tiles and additional filters remain proposed.
 
 Use [J6-13](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-13) for trail/boundary/landmark GeoJSON endpoints and [J6-18](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-18) for cached read-only layer catalog/features. Reporting must support the existing [Figma recipient/review flow](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-260), including multiple explicitly listed recipients and recoverable validation failures; its payload and authorization rules still require D-03.
 
@@ -24,7 +24,20 @@ raw bodies, URLs, parser messages, stack traces and dependency errors are not
 echoed or passed to Express's default error logger. A failure after headers are
 sent closes the response connection rather than emitting another response.
 
-This does not add reporting endpoints or alter the existing JSON size limit.
+The existing JSON size limit is unchanged. The opt-in local reporting API has
+its own bounded multipart parser.
+
+## Development custom-recipient API (November 18, 2026)
+
+The owner selected custom recipients first. `reports:dev` enables
+`GET /api/v1/report-options` and `POST /api/v1/observations` with development
+categories, report-scoped guest authorization, private S3 objects and pending
+SMTP work. Production/default startup does not enable reporting. See the
+[implemented contract and startup](development/custom-reports.md) and
+[request/receipt examples](reporting-contract.md). Other reporting routes in
+the proposed surface below are not implemented. The owner confirmed this
+custom-only development release as the current acceptance scope. Unknown-route
+404 responses are generic and no-store even when reporting is disabled.
 Readiness/GIS failures keep their existing `503 DATABASE_UNAVAILABLE` responses.
 Reverse-proxy, Wrangler development request logs and hosting/access-log policies
 are outside this application handler and require separate review before deployment.

@@ -11,6 +11,8 @@ export interface PrivatePhotoStore {
   get(key: string): Promise<StoredPhoto | null>;
   /** Idempotent; used only for unaccepted upload attempts. */
   delete(key: string): Promise<void>;
+  /** Optional S3 capability; caller must pass through service ownership checks. */
+  presignGet?(key: string, lifetimeSeconds: number): Promise<string>;
 }
 
 export type GuestPhotoContext = { submissionId: string; guestSecret: string };
@@ -93,7 +95,9 @@ export function createPhotoService(store: PrivatePhotoStore, now: () => number =
           result.push({ ...metadata, objectKey });
         }
         return result;
-      } catch {
+      } catch (error) {
+        // A confirmed create-only conflict means this key was never ours to delete.
+        if (error instanceof PhotoError && error.code === 'PHOTO_OBJECT_EXISTS') attempted.pop();
         const cleanup = await Promise.allSettled(attempted.map((key) => store.delete(key)));
         const remaining = attempted.filter((_key, index) => cleanup[index]!.status === 'rejected');
         if (remaining.length) throw new PhotoError('PHOTO_CLEANUP_REQUIRED', 503, remaining);
@@ -127,6 +131,27 @@ export function createPhotoService(store: PrivatePhotoStore, now: () => number =
       const { ownerDigest: digest, ...photo } = await owned(context, access.objectKey);
       void digest;
       return photo;
+    },
+
+    async issueDownload(
+      context: GuestPhotoContext,
+      objectKey: string,
+      lifetimeSeconds: number,
+    ): Promise<string> {
+      await owned(context, objectKey);
+      if (
+        !store.presignGet ||
+        !Number.isInteger(lifetimeSeconds) ||
+        lifetimeSeconds < 1 ||
+        lifetimeSeconds > 300
+      ) {
+        throw new PhotoError('PHOTO_UNAVAILABLE', 404);
+      }
+      try {
+        return await store.presignGet(objectKey, lifetimeSeconds);
+      } catch {
+        throw new PhotoError('PHOTO_STORAGE_UNAVAILABLE', 503);
+      }
     },
 
     /** Caller must ensure this attempt cannot commit and has no accepted DB references (J6-30). */
