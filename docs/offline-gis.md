@@ -16,6 +16,10 @@ Off-trail indication must work with trail boundaries and a buffer against GPS ji
 
 ## Minimum planned offline behavior
 
+The report flow now has [encrypted draft recovery](development/offline-report-drafts.md)
+and [foreground reconnect sync](development/report-reconnect.md). Native cold-start
+and real-backend reconnection acceptance remain separate from automated checks.
+
 | Data/action | Expected behavior |
 | --- | --- |
 | Previously cached base map and trails | Remain usable without cellular service |

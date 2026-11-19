@@ -35,6 +35,13 @@ jest.mock('expo-location', () => ({
   watchPositionAsync: jest.fn().mockResolvedValue({ remove: jest.fn() }),
 }));
 
+jest.mock('expo-network', () => ({
+  getNetworkStateAsync: jest
+    .fn()
+    .mockResolvedValue({ isConnected: false, isInternetReachable: false }),
+  addNetworkStateListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+}));
+
 jest.mock('@maplibre/maplibre-react-native', () => {
   const React = require('react');
   const { View } = require('react-native');

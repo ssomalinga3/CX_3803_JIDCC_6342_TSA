@@ -29,6 +29,8 @@ export type SavedReportDraft = {
   receipt?: ReportReceipt;
   retryAt: number;
   retryable?: boolean;
+  retryCount?: number;
+  autoRetryAt?: number;
 };
 type Envelope = {
   version: 1;
