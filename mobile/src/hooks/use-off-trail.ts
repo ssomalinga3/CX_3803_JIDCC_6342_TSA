@@ -26,17 +26,19 @@ export function useOffTrail(
     state: INITIAL_OFF_TRAIL,
   });
   const [dismissed, setDismissed] = useState(false);
-  const current = locationStatus === 'ready' ? fix : undefined;
+  // Without trail geometry a fix cannot be assessed, so treat it like a GPS gap.
+  const current = locationStatus === 'ready' && geometry ? fix : undefined;
   if (tracked.fix !== current) {
-    // Any GPS gap (stale, blur, background, off) keeps the confirmed assessment
-    // but restarts consecutive-fix confirmation.
-    const state = current
-      ? nextOffTrailState(tracked.state, geometry, {
-          longitude: current.coords.longitude,
-          latitude: current.coords.latitude,
-          accuracy: current.coords.accuracy,
-        })
-      : { ...tracked.state, pending: 0 };
+    // Any gap (stale, blur, background, off, no trails) keeps the confirmed
+    // assessment but restarts consecutive-fix confirmation.
+    const state =
+      current && geometry
+        ? nextOffTrailState(tracked.state, geometry, {
+            longitude: current.coords.longitude,
+            latitude: current.coords.latitude,
+            accuracy: current.coords.accuracy,
+          })
+        : { ...tracked.state, pending: 0 };
     // Derive during render so the indicator never lags a fix by a frame.
     setTracked({ fix: current, state });
     // A fresh fix back on a trail or outside the preserve ends a dismissed departure.

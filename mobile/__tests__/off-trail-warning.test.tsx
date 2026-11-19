@@ -218,6 +218,26 @@ test('one near-trail fix after a GPS gap does not re-arm "Got it"', async () => 
   expect(card()).toBeNull();
 });
 
+test('a snapshot without trail lines does not end a dismissed departure', async () => {
+  const view = await render(<MapScreen />);
+  await walkTo(view, points.offTrail);
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Got it' }));
+  const gis = jest.mocked(PublicGis.usePublicGis);
+  const noTrails = suppliedSnapshot();
+  noTrails.collection = {
+    ...noTrails.collection,
+    features: noTrails.collection.features.filter((f) => f.properties.feature_kind !== 'trail'),
+  };
+  gis.mockReturnValue({ status: 'ready', snapshot: noTrails, retry: jest.fn() });
+  await walkTo(view, points.offTrail);
+  expect(screen.queryByTestId('off-trail-status')).toBeNull();
+  gis.mockReturnValue({ status: 'ready', snapshot: suppliedSnapshot(), retry: jest.fn() });
+  // Same position throughout: restoring the trails must not reopen the reminder.
+  await walkTo(view, points.offTrail);
+  expect(screen.getByTestId('off-trail-status')).toBeOnTheScreen();
+  expect(card()).toBeNull();
+});
+
 test('leaving the preserve ends a dismissed departure', async () => {
   const view = await render(<MapScreen />);
   await walkTo(view, points.offTrail);

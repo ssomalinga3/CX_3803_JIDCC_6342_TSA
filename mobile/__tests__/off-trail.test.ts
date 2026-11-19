@@ -124,10 +124,9 @@ test('poor or unknown accuracy keeps the previous state', () => {
   ).toEqual(['on-trail', 'on-trail', 'on-trail', 'off-trail']);
 });
 
-test('outside the preserve or without trail geometry the status is unknown', () => {
+test('outside the preserve the status is unknown', () => {
   const offState: OffTrailState = { status: 'off-trail', pending: 0 };
   expect(walk([fix(points.outside)], offState)).toEqual(['unknown']);
-  expect(nextOffTrailState(offState, undefined, fix(points.offTrail))).toEqual(INITIAL_OFF_TRAIL);
   // Without boundary polygons, distance from the trails gates evaluation.
   const noBoundary = { ...geometry, boundaries: [] };
   expect(nextOffTrailState(offState, noBoundary, fix(points.outside)).status).toBe('unknown');

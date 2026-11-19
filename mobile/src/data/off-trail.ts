@@ -109,11 +109,10 @@ export type OffTrailFix = { longitude: number; latitude: number; accuracy: numbe
  */
 export function nextOffTrailState(
   state: OffTrailState,
-  geometry: OffTrailGeometry | undefined,
+  geometry: OffTrailGeometry,
   fix: OffTrailFix,
   tolerance = OFF_TRAIL_TOLERANCE,
 ): OffTrailState {
-  if (!geometry) return INITIAL_OFF_TRAIL;
   // Unknown accuracy or a poor fix cannot distinguish a trail from the woods beside it.
   if (fix.accuracy === null || fix.accuracy > tolerance.maxAccuracyMeters) return state;
   const point = [fix.longitude, fix.latitude];

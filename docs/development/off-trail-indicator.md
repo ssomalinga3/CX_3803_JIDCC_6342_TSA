@@ -30,8 +30,9 @@ jitter-buffered on/off-trail detection it depends on. Numeric tolerances are
   Distances use a local equirectangular projection, accurate well under a meter
   at preserve scale. Any GPS gap (stale fix, map blur, backgrounding or location
   off) hides the indicator and restarts confirmation, but keeps the last
-  confirmed assessment. Replacing the live or cached GIS snapshot applies to the
-  next fix without resetting the assessment.
+  confirmed assessment. A snapshot with no trail lines is treated the same way,
+  since a fix cannot be assessed without trails. Replacing the live or cached GIS
+  snapshot applies to the next fix without resetting the assessment.
 
 - **UI:** a non-blocking card below the map header. The map, controls, dock and
   all active layers stay usable. **Got it** is the large primary action and
