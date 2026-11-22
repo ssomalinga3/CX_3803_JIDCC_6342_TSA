@@ -10,17 +10,30 @@ jest.mock('expo-file-system', () => {
   const { Buffer } = jest.requireActual('node:buffer');
   const files = new Map<string, Uint8Array>();
   class Directory {
-    uri = 'file:///documents/private-report-draft-v1';
+    uri: string;
     exists = true;
+    constructor(...parts: (string | { uri: string })[]) {
+      this.uri = parts.map((p) => (typeof p === 'string' ? p : p.uri)).join('/');
+    }
     create() {}
     delete() {
       for (const key of files.keys()) if (key.startsWith(this.uri)) files.delete(key);
+    }
+    list() {
+      return [...files.keys()]
+        .filter(
+          (key) => key.startsWith(`${this.uri}/`) && !key.slice(this.uri.length + 1).includes('/'),
+        )
+        .map((key) => new File(key));
     }
   }
   class File {
     uri: string;
     constructor(...parts: (string | { uri: string })[]) {
       this.uri = parts.map((p) => (typeof p === 'string' ? p : p.uri)).join('/');
+    }
+    get name() {
+      return this.uri.slice(this.uri.lastIndexOf('/') + 1);
     }
     get exists() {
       return files.has(this.uri);
@@ -178,4 +191,36 @@ test('keeps a durable receipt and removes previous private snapshots after accep
   expect(restored?.receipt).toEqual(accepted.receipt);
   expect(restored?.fields.photos).toEqual([]);
   expect(restored?.fields.note).toBe('');
+});
+
+test('removes plaintext photo copies left by an earlier process before restoring', async () => {
+  const stale = 'file:///cache/report-5e8a10fa-1761-4f02-b5d0-4146ab994fb5.jpg';
+  const unrelated = 'file:///cache/ImagePicker/other.jpeg';
+  files.set(stale, Buffer.from('stale image bytes'));
+  files.set(unrelated, Buffer.from('not a report copy'));
+  files.set('file:///cache/report-1aae94c4-e02c-48b8-98c8-2e7acba1f868.jpg', Buffer.from('image'));
+  const input = draft();
+  input.fields.photos = [
+    {
+      uri: 'file:///cache/report-1aae94c4-e02c-48b8-98c8-2e7acba1f868.jpg',
+      width: 10,
+      height: 10,
+      size: 5,
+      type: 'image/jpeg',
+      capturedAt: '2026-11-19T12:00:00Z',
+    },
+  ];
+  await saveReportDraft(input);
+  const restored = await restoreReportDraft(input.apiUrl);
+  const reportCopies = [...files.keys()].filter((key) => /\/cache\/report-/.test(key));
+  expect(reportCopies).toEqual([restored!.fields.photos[0].uri]);
+  expect(files.has(stale)).toBe(false);
+  expect(files.has(unrelated)).toBe(true);
+});
+
+test('removes orphaned plaintext photo copies even when no draft was saved', async () => {
+  const stale = 'file:///cache/report-5e8a10fa-1761-4f02-b5d0-4146ab994fb5.jpg';
+  files.set(stale, Buffer.from('stale image bytes'));
+  await expect(restoreReportDraft('https://api.example.test/api/v1')).resolves.toBeUndefined();
+  expect(files.has(stale)).toBe(false);
 });
