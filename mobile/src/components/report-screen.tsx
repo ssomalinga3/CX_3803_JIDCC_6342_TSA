@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomTabInset } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useReportDraft } from '@/hooks/report-draft-context';
 import { normalizeReportRecipient, ReportFailure } from '@/data/reporting';
@@ -512,8 +513,13 @@ export function ReportScreen() {
         </Text>
       </View>
       <ScrollView
+        testID="report-scroll"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 20 }]}
+        // The Report tab sits under the floating native tab bar; keep footers reachable.
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + BottomTabInset + 20 },
+        ]}
       >
         {content}
         {step !== 'error' && (draft.error || emailError) && (

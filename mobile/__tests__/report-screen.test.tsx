@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert, Pressable, Text } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import { useState } from 'react';
 import { ReportScreen } from '@/components/report-screen';
+import { BottomTabInset } from '@/constants/theme';
 import { ReportDraftProvider, useReportDraft } from '@/hooks/report-draft-context';
 import {
   captureReportLocation,
@@ -310,4 +311,13 @@ test('allows correction only after a definitive rejection and creates a fresh su
   await press('Submit report');
   await waitFor(() => expect(submitReport).toHaveBeenCalledTimes(2));
   expect(jest.mocked(submitReport).mock.calls[1][1].metadata.client_submission_id).toBe(nextId);
+});
+
+test('pads the form above the floating tab bar so footer actions stay reachable', async () => {
+  await start();
+  const { paddingBottom } = StyleSheet.flatten(
+    screen.getByTestId('report-scroll').props.contentContainerStyle,
+  );
+  expect(BottomTabInset).toBeGreaterThan(0);
+  expect(paddingBottom).toBeGreaterThanOrEqual(BottomTabInset + 20);
 });
