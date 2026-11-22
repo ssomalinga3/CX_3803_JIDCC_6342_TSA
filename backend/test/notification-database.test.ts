@@ -43,6 +43,9 @@ integration('durable notification claims', () => {
     const claims = await Promise.all([repository.claim(), repository.claim()]);
     const claimed = claims.filter((job) => job?.notificationId === seeded.notificationId);
     expect(claimed).toHaveLength(1);
+    // The adapter formats this into the message; a string here failed every send.
+    expect(claimed[0]!.acceptedAt).toBeInstanceOf(Date);
+    expect(Number.isNaN(claimed[0]!.acceptedAt.getTime())).toBe(false);
     await repository.complete(claimed[0]!, 'delivered');
     const [row] = await withDatabase(url, (db) =>
       db

@@ -40,7 +40,14 @@ export function createNotificationRepository(
             n.attempt_id AS "attemptId", n.recipient, n.attempts,
             o.category_id AS "categoryId", o.note, o.accepted_at AS "acceptedAt"
         `);
-          return result.rows[0] as NotificationWork | undefined;
+          const row = result.rows[0] as Record<string, unknown> | undefined;
+          if (!row) return undefined;
+          // Raw execute results bypass Drizzle column mapping, so timestamps arrive as text.
+          // Throwing here rolls the claim back and leaves the notification pending.
+          const acceptedAt = new Date(String(row.acceptedAt));
+          if (Number.isNaN(acceptedAt.getTime()))
+            throw new Error('Invalid notification acceptance time');
+          return { ...(row as NotificationWork), attempts: Number(row.attempts), acceptedAt };
         }),
       );
     },
