@@ -534,6 +534,7 @@ export function ReportScreen() {
         </Text>
         {!draft.recoveryBlocked && content}
         {step !== 'sending' &&
+          (draft.storageState !== 'empty' || draft.recoveryBlocked) &&
           button(
             'Discard local draft',
             () => {
