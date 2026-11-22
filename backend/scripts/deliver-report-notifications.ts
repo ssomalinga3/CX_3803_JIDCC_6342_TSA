@@ -21,6 +21,13 @@ if (process.argv.slice(2).join(' ') !== '--send') {
       const outcome = await deliverNext(repository, adapter);
       console.log(`Notification result: ${outcome}`);
       if (outcome === 'empty') break;
+      if (outcome === 'unavailable') {
+        console.error(
+          'SES SMTP refused the sender before submission. Check the backend-only configuration.',
+        );
+        process.exitCode = 1;
+        break;
+      }
     }
   } catch {
     console.error(

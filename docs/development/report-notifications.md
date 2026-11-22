@@ -20,7 +20,9 @@ performs no dispatch. No scheduler or hosted deployment is configured by this PR
 
 Concurrent senders use PostgreSQL row locking. Explicit temporary SMTP rejection
 returns the job to pending with exponential backoff, up to five attempts. Permanent
-rejection becomes failed. A timeout, lost acknowledgement or expired sending lease
+rejection becomes failed. Authentication, DNS or sender (`MAIL FROM`) refusal
+happens before submission: the job returns to pending without consuming an
+attempt, and the run stops so a configuration error cannot fail queued work. A timeout, lost acknowledgement or expired sending lease
 becomes uncertain and requires provider-side reconciliation before any resend.
 SMTP acceptance is recorded as delivered to the provider, and does not establish
 inbox delivery. Stable Message-ID helps trace attempts but does not guarantee

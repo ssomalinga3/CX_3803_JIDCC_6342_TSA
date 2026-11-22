@@ -47,3 +47,14 @@ it('retries explicit temporary SMTP rejections and holds lost acknowledgements',
   expect(smtpOutcome({ responseCode: 550 })).toBe('failed');
   expect(smtpOutcome({ code: 'ETIMEDOUT' })).toBe('uncertain');
 });
+
+it('releases work when SES refuses the sender before any message is submitted', () => {
+  expect(smtpOutcome({ code: 'EAUTH', responseCode: 535, command: 'AUTH PLAIN' })).toBe(
+    'unavailable',
+  );
+  expect(smtpOutcome({ code: 'EDNS', command: 'CONN' })).toBe('unavailable');
+  expect(smtpOutcome({ code: 'EENVELOPE', responseCode: 554, command: 'MAIL FROM' })).toBe(
+    'unavailable',
+  );
+  expect(smtpOutcome({ code: 'EENVELOPE', responseCode: 550, command: 'RCPT TO' })).toBe('failed');
+});

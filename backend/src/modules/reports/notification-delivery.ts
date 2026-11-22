@@ -9,7 +9,12 @@ export type NotificationWork = {
   attempts: number;
 };
 
-export type DeliveryOutcome = 'delivered' | 'retry' | 'failed' | 'uncertain';
+/**
+ * `unavailable` means the provider refused the sender before any message was
+ * submitted (authentication, DNS or sender rejection). The work is released
+ * without consuming an attempt and the run stops.
+ */
+export type DeliveryOutcome = 'delivered' | 'retry' | 'failed' | 'uncertain' | 'unavailable';
 export interface EmailAdapter {
   send(work: NotificationWork): Promise<DeliveryOutcome>;
 }

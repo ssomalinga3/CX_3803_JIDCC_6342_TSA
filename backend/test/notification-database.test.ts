@@ -53,6 +53,24 @@ integration('durable notification claims', () => {
     expect(row).toMatchObject({ state: 'delivered', attempts: 1 });
     expect(row!.deliveredAt).toBeInstanceOf(Date);
   });
+  it('releases unavailable-provider work without consuming an attempt', async () => {
+    const seeded = await seed();
+    let job = await repository.claim();
+    while (job && job.notificationId !== seeded.notificationId) {
+      await repository.complete(job, 'unavailable');
+      job = await repository.claim();
+    }
+    expect(job?.notificationId).toBe(seeded.notificationId);
+    await repository.complete(job!, 'unavailable');
+    const [row] = await withDatabase(url, (db) =>
+      db
+        .select()
+        .from(reportNotification)
+        .where(eq(reportNotification.notificationId, seeded.notificationId)),
+    );
+    expect(row).toMatchObject({ state: 'pending', attempts: 0 });
+    expect(row!.nextAttemptAt.getTime()).toBeGreaterThan(Date.now());
+  });
   it('holds an expired sender as uncertain without automatically retrying it', async () => {
     const seeded = await seed();
     await withDatabase(url, (db) =>

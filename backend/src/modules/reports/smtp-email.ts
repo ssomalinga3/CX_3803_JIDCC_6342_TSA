@@ -2,8 +2,17 @@ import nodemailer from 'nodemailer';
 import type { DeliveryOutcome, EmailAdapter } from './notification-delivery.js';
 
 export function smtpOutcome(error: unknown): DeliveryOutcome {
-  const code =
-    error && typeof error === 'object' && 'responseCode' in error ? error.responseCode : undefined;
+  const details: { responseCode?: unknown; code?: unknown; command?: unknown } =
+    error && typeof error === 'object' ? error : {};
+  // These fail before any message is submitted, so they are configuration or provider
+  // outages, not recipient rejections. Never mark the notification permanently failed.
+  if (
+    details.code === 'EAUTH' ||
+    details.code === 'EDNS' ||
+    (typeof details.command === 'string' && details.command.startsWith('MAIL FROM'))
+  )
+    return 'unavailable';
+  const code = details.responseCode;
   if (typeof code === 'number' && code >= 400 && code < 500) return 'retry';
   if (typeof code === 'number' && code >= 500 && code < 600) return 'failed';
   return 'uncertain';

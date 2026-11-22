@@ -45,13 +45,17 @@ export function createNotificationRepository(
       );
     },
     async complete(work, outcome) {
+      const released = outcome === 'unavailable';
       const retry = outcome === 'retry' && work.attempts < 5;
+      const delaySeconds = released ? 300 : Math.min(3600, 30 * 2 ** work.attempts);
       await withDatabase(connectionString(), async (db) => {
         await db
           .update(reportNotification)
           .set({
-            state: retry ? 'pending' : outcome === 'retry' ? 'failed' : outcome,
-            nextAttemptAt: sql`clock_timestamp() + (${Math.min(3600, 30 * 2 ** work.attempts)} * interval '1 second')`,
+            state: released || retry ? 'pending' : outcome === 'retry' ? 'failed' : outcome,
+            // A release never reached the provider, so it does not count as an attempt.
+            ...(released ? { attempts: sql`${reportNotification.attempts} - 1` } : {}),
+            nextAttemptAt: sql`clock_timestamp() + (${delaySeconds} * interval '1 second')`,
             deliveredAt: outcome === 'delivered' ? sql`clock_timestamp()` : null,
             leaseExpiresAt: null,
           })
