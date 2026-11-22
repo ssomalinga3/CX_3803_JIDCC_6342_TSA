@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert, Pressable, Text } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
+import { useState } from 'react';
 import { ReportScreen } from '@/components/report-screen';
+import { BottomTabInset } from '@/constants/theme';
 import { ReportDraftProvider, useReportDraft } from '@/hooks/report-draft-context';
 import {
   captureReportLocation,
@@ -105,6 +107,44 @@ async function toReview(doubleTap = false) {
   await press('Review report');
   expect(await screen.findByRole('button', { name: 'Submit report' })).toBeOnTheScreen();
 }
+test('retains the draft when the report tab leaves and reopens without requesting device permissions', async () => {
+  function TabsProbe() {
+    const [visible, setVisible] = useState(true);
+    return (
+      <>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Switch report tab"
+          onPress={() => setVisible((v) => !v)}
+        >
+          <Text>Switch tab</Text>
+        </Pressable>
+        {visible && <ReportScreen />}
+      </>
+    );
+  }
+  await render(
+    <ReportDraftProvider>
+      <TabsProbe />
+    </ReportDraftProvider>,
+  );
+  expect(pickReportPhoto).not.toHaveBeenCalled();
+  expect(captureReportLocation).not.toHaveBeenCalled();
+  await press(`Choose ${category.name}`);
+  await addPhoto();
+  await fireEvent.changeText(screen.getByLabelText('Optional commentary'), 'Keep this draft');
+  await press('Choose recipients');
+  await recipient();
+  await press('Switch report tab');
+  await press('Switch report tab');
+  expect(screen.getByText('person@example.test')).toBeOnTheScreen();
+  await press('Back to Details');
+  expect(screen.getByLabelText('Optional commentary')).toHaveDisplayValue('Keep this draft');
+  expect(screen.getByLabelText('Remove photo 1')).toBeOnTheScreen();
+  expect(pickReportPhoto).toHaveBeenCalledTimes(1);
+  expect(captureReportLocation).not.toHaveBeenCalled();
+});
+
 test('requires photos and explicit review, shows only custom destinations and preserves denied-location details', async () => {
   await start();
   expect(screen.getByRole('button', { name: 'Choose recipients' })).toBeDisabled();
@@ -271,4 +311,13 @@ test('allows correction only after a definitive rejection and creates a fresh su
   await press('Submit report');
   await waitFor(() => expect(submitReport).toHaveBeenCalledTimes(2));
   expect(jest.mocked(submitReport).mock.calls[1][1].metadata.client_submission_id).toBe(nextId);
+});
+
+test('pads the form above the floating tab bar so footer actions stay reachable', async () => {
+  await start();
+  const { paddingBottom } = StyleSheet.flatten(
+    screen.getByTestId('report-scroll').props.contentContainerStyle,
+  );
+  expect(BottomTabInset).toBeGreaterThan(0);
+  expect(paddingBottom).toBeGreaterThanOrEqual(BottomTabInset + 20);
 });

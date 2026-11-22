@@ -1,6 +1,6 @@
 # Guest report capture and submission (J6-31)
 
-The mobile form connects Map → category → details → recipients → review → explicit
+The mobile form connects Report tab → category → details → recipients → review → explicit
 submit to the custom-only development API. No account or park fallback is added.
 A receipt confirms private storage and queued notification work, not email delivery.
 
@@ -23,8 +23,14 @@ test buttons, addresses, park destinations and My Reports links are omitted.
 Missing-GPS controls, development labels and storage/email wording implement the
 approved contract; My Reports is J6-42.
 
+J6-72 moves the existing route-first flow into a Report tab between Map and Explore.
+The map button stays as a shortcut to the same route. One root draft provider
+retains category, photos, recipients, notes and submission state while tabs change.
+Opening the tab requests no camera or location permission. Those actions remain
+explicit buttons in the form. My Reports remains separate work under J6-42.
+
 The owner confirmed route-first Figma and **actual tap measurement**, counting
-permission/camera interactions separately. Start at **Report an Issue** on Map;
+permission/camera interactions separately. Start at the **Report** tab or the map shortcut;
 end at **Submit report**. The one-photo/custom-recipient path has eight app taps:
 entry, category, Add photo, source choice, Choose recipients, Add recipient,
 Review report, Submit report. Native library selection adds one interaction;
@@ -34,7 +40,7 @@ corrections and retries add actions. This does not claim three taps.
 
 ## Runtime boundaries
 
-- `/report` is a root-stack route. A root provider retains the draft during map
+- `/report` is a bottom-tab route. A root provider retains the draft during map
   browsing and return. Only a validated custom-only development options catalog
   enables the form; unavailable options show retry, not an invented catalog.
 - The system picker supports camera or one library photo at a time, up to three.
