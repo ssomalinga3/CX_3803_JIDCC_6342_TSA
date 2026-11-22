@@ -66,10 +66,11 @@ corrections and retries add actions. This does not claim three taps.
   retain identity/files and require retry of the same request. Honor Retry-After.
   Only definitive 400/413/415 rejection permits correction with a fresh UUID.
 
-**Drafts are session-only.** J6-33 owns durable metadata/photo restart recovery;
-J6-34 owns automatic reconnect/background sending. The error screen explicitly
-says closing the app does not yet save the draft. SecureStore alone is not photo
-recovery. Owner history and cross-device recovery remain J6-42/J6-71.
+**Drafts persist on this installation.** [J6-33 storage](offline-report-drafts.md)
+encrypts metadata/photos and recovers the reviewed request after restart.
+Wait for the saved indication before closing while editing. Explicit submission
+awaits a durable snapshot before uploading. J6-34 owns automatic reconnect sending.
+Owner history and cross-device recovery remain J6-42/J6-71.
 
 ## Build and local use
 

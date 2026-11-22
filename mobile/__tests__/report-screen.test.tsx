@@ -20,6 +20,11 @@ jest.mock('@/data/report-device', () => ({
   readGuestReportSecret: jest.fn(),
   removeReportPhoto: jest.fn().mockResolvedValue(undefined),
 }));
+jest.mock('@/data/report-draft-storage', () => ({
+  restoreReportDraft: jest.fn().mockResolvedValue(undefined),
+  saveReportDraft: jest.fn().mockResolvedValue(undefined),
+  clearReportDraft: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('@/data/reporting', () => ({
   ...jest.requireActual('@/data/reporting'),
   loadReportOptions: jest.fn(),
@@ -311,6 +316,22 @@ test('allows correction only after a definitive rejection and creates a fresh su
   await press('Submit report');
   await waitFor(() => expect(submitReport).toHaveBeenCalledTimes(2));
   expect(jest.mocked(submitReport).mock.calls[1][1].metadata.client_submission_id).toBe(nextId);
+});
+
+test('does not persist an untouched form after reporting options load', async () => {
+  const { saveReportDraft } = jest.requireMock('@/data/report-draft-storage');
+  await render(
+    <ReportDraftProvider>
+      <ReportScreen />
+    </ReportDraftProvider>,
+  );
+  expect(await screen.findByRole('button', { name: `Choose ${category.name}` })).toBeOnTheScreen();
+  await act(() => new Promise((resolve) => setTimeout(resolve, 700)));
+  expect(saveReportDraft).not.toHaveBeenCalled();
+  expect(screen.queryByRole('button', { name: 'Discard local draft' })).toBeNull();
+  await press(`Choose ${category.name}`);
+  await act(() => new Promise((resolve) => setTimeout(resolve, 700)));
+  expect(saveReportDraft).toHaveBeenCalledTimes(1);
 });
 
 test('pads the form above the floating tab bar so footer actions stay reachable', async () => {

@@ -9,6 +9,12 @@ import {
 } from 'react';
 import { AppState } from 'react-native';
 import {
+  clearReportDraft,
+  restoreReportDraft,
+  saveReportDraft,
+  type SavedReportDraft,
+} from '@/data/report-draft-storage';
+import {
   captureReportLocation,
   createGuestReportIdentity,
   pickReportPhoto,
@@ -44,6 +50,12 @@ const safeError = (error: unknown) =>
       );
 
 function useDraft() {
+  const [restoredApi, setRestoredApi] = useState<string>();
+  const [storageState, setStorageState] = useState<'saving' | 'saved' | 'error' | 'empty'>('empty');
+  const recoveryBlocked = useRef(false);
+  const hydrated = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const saveRevision = useRef(0);
   const [fields, setFields] = useState(emptyFields);
   const [step, setStep] = useState<Step>('route');
   const [options, setOptions] = useState<ReportOptions>();
@@ -65,7 +77,103 @@ function useDraft() {
   const locationController = useRef<AbortController | undefined>(undefined);
   const optionsController = useRef<AbortController | undefined>(undefined);
   const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? '';
+  const restoring = restoredApi !== apiUrl;
   const stopLocation = useCallback(() => locationController.current?.abort(), []);
+
+  useEffect(() => {
+    hydrated.current = false;
+    recoveryBlocked.current = false;
+    clearTimeout(saveTimer.current);
+    let active = true;
+    void restoreReportDraft(apiUrl)
+      .then((saved) => {
+        if (!active || !saved) return;
+        setFields(saved.fields);
+        setOptions(saved.options);
+        identity.current = saved.identity ? { id: saved.identity } : undefined;
+        frozen.current = saved.prepared;
+        submitted.current = saved.attempted;
+        outcome.current = saved.receipt;
+        setPrepared(saved.prepared);
+        setLocked(saved.attempted);
+        setReceipt(saved.receipt);
+        setRetryAt(saved.retryAt);
+        nextRetry.current = saved.retryAt;
+        setStep(
+          saved.receipt
+            ? 'accepted'
+            : saved.attempted
+              ? 'error'
+              : saved.prepared
+                ? 'review'
+                : saved.fields.categoryId
+                  ? 'details'
+                  : 'route',
+        );
+        if (saved.attempted && !saved.receipt)
+          setError(
+            new ReportFailure('CONNECTION', 'Submission is pending. Retry this same report.', true),
+          );
+        setStorageState('saved');
+      })
+      .catch((failure) => {
+        if (!active) return;
+        recoveryBlocked.current = true;
+        setError(safeError(failure));
+        setStorageState('error');
+      })
+      .finally(() => {
+        if (active) {
+          hydrated.current = true;
+          setRestoredApi(apiUrl);
+        }
+      });
+    return () => {
+      active = false;
+      clearTimeout(saveTimer.current);
+    };
+  }, [apiUrl]);
+
+  function savedDraft(overrides: Partial<SavedReportDraft> = {}): SavedReportDraft {
+    return {
+      apiUrl,
+      fields,
+      options,
+      identity: identity.current?.id,
+      prepared: frozen.current,
+      attempted: submitted.current,
+      receipt: outcome.current,
+      retryAt: nextRetry.current,
+      ...overrides,
+    };
+  }
+  useEffect(() => {
+    if (
+      !hydrated.current ||
+      recoveryBlocked.current ||
+      operation.current ||
+      outcome.current ||
+      (!fields.categoryId && !fields.photos.length && !fields.note)
+    )
+      return;
+    setStorageState('saving');
+    const revision = ++saveRevision.current;
+    const snapshot = savedDraft();
+    saveTimer.current = setTimeout(() => {
+      void saveReportDraft(snapshot)
+        .then(() => {
+          if (saveRevision.current === revision) setStorageState('saved');
+        })
+        .catch((failure) => {
+          if (saveRevision.current !== revision) return;
+          setStorageState('error');
+          setError(safeError(failure));
+        });
+    }, 500);
+    return () => clearTimeout(saveTimer.current);
+    // Snapshot dependencies also cover ref changes performed by review/send.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fields, options, prepared, locked, retryAt, receipt, restoring]);
 
   useEffect(() => {
     const listener = AppState.addEventListener('change', (state) => {
@@ -79,6 +187,7 @@ function useDraft() {
   }, []);
 
   const reloadOptions = useCallback(async () => {
+    if (restoring || !hydrated.current || recoveryBlocked.current) return;
     optionsController.current?.abort();
     const controller = new AbortController();
     optionsController.current = controller;
@@ -94,10 +203,11 @@ function useDraft() {
       clearTimeout(timer);
       if (optionsController.current === controller) setLoading(false);
     }
-  }, [apiUrl]);
+  }, [apiUrl, restoring]);
 
   function update(change: Partial<ReportFields>) {
-    if (submitted.current || operation.current) return;
+    if (!hydrated.current || recoveryBlocked.current || submitted.current || operation.current)
+      return;
     setFields((current) => ({ ...current, ...change }));
     frozen.current = undefined;
     setPrepared(undefined);
@@ -219,8 +329,21 @@ function useDraft() {
     const timer = setTimeout(() => controller.abort(), 60_000);
     const report = frozen.current;
     try {
+      clearTimeout(saveTimer.current);
+      saveRevision.current += 1;
+      await saveReportDraft(savedDraft({ attempted: true, prepared: report }));
+      setStorageState('saved');
       const secret = await readGuestReportSecret(identity.current.id);
       const result = await submitReport(apiUrl, report, secret, controller.signal);
+      // Persist the confirmed receipt before deleting any temporary photo copies.
+      await saveReportDraft(
+        savedDraft({
+          fields: emptyFields(),
+          attempted: true,
+          prepared: undefined,
+          receipt: result,
+        }),
+      );
       outcome.current = result;
       setReceipt(result);
       setStep('accepted');
@@ -244,8 +367,26 @@ function useDraft() {
       inFlight.current = false;
     }
   }
-  function finish() {
+  async function finish() {
     if (!outcome.current || inFlight.current) return;
+    await discard();
+  }
+  async function discard() {
+    if (inFlight.current || operation.current) return;
+    clearTimeout(saveTimer.current);
+    saveRevision.current += 1;
+    operation.current = true;
+    try {
+      await clearReportDraft();
+      await Promise.all(fields.photos.map(removeReportPhoto));
+    } catch (failure) {
+      setStorageState('error');
+      setError(safeError(failure));
+      return;
+    } finally {
+      operation.current = false;
+    }
+    recoveryBlocked.current = false;
     identity.current = undefined;
     frozen.current = undefined;
     outcome.current = undefined;
@@ -258,9 +399,13 @@ function useDraft() {
     nextRetry.current = 0;
     setError(undefined);
     setStep('route');
+    setStorageState('empty');
   }
   return {
     fields,
+    restoring,
+    storageState,
+    recoveryBlocked: recoveryBlocked.current,
     step,
     options,
     loading,
@@ -281,6 +426,7 @@ function useDraft() {
     review,
     send,
     finish,
+    discard,
     stopLocation,
   };
 }
