@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { Alert, Pressable, Text } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import { useState } from 'react';
 import { ReportScreen } from '@/components/report-screen';
+import { BottomTabInset } from '@/constants/theme';
 import { ReportDraftProvider, useReportDraft } from '@/hooks/report-draft-context';
 import {
   captureReportLocation,
@@ -331,4 +332,13 @@ test('does not persist an untouched form after reporting options load', async ()
   await press(`Choose ${category.name}`);
   await act(() => new Promise((resolve) => setTimeout(resolve, 700)));
   expect(saveReportDraft).toHaveBeenCalledTimes(1);
+});
+
+test('pads the form above the floating tab bar so footer actions stay reachable', async () => {
+  await start();
+  const { paddingBottom } = StyleSheet.flatten(
+    screen.getByTestId('report-scroll').props.contentContainerStyle,
+  );
+  expect(BottomTabInset).toBeGreaterThan(0);
+  expect(paddingBottom).toBeGreaterThanOrEqual(BottomTabInset + 20);
 });
