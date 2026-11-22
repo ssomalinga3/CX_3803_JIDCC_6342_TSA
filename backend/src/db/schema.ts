@@ -175,6 +175,10 @@ export const reportNotification = pgTable(
     recipient: text('recipient').notNull(),
     state: text('state').notNull().default('pending'),
     attempts: integer('attempts').notNull().default(0),
+    attemptId: uuid('attempt_id'),
+    leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
