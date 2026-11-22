@@ -21,3 +21,12 @@ test('anchors the cone to geographic north and east independently of map bearing
   expect(east[2][0]).toBeGreaterThan(-84.48);
   expect(east[2][1]).toBeCloseTo(33.72);
 });
+
+test('sizes the cone to about 22 screen pixels on MapLibre 512-pixel tiles', () => {
+  const latitude = 33.72;
+  const zoom = 16;
+  const tip = headingCone(-84.48, latitude, 0, zoom).geometry.coordinates[0][2];
+  const meters = (tip[1] - latitude) * 111320;
+  const metersPerPixel = (78271.517 * Math.cos((latitude * Math.PI) / 180)) / 2 ** zoom;
+  expect(meters / metersPerPixel).toBeCloseTo(22, 5);
+});

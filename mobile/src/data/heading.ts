@@ -2,6 +2,7 @@ import type { LocationHeadingObject } from 'expo-location';
 import type { Feature, Polygon } from 'geojson';
 
 export const HEADING_FRESHNESS_MS = 5000;
+const CONE_PIXELS = 22;
 
 export function headingDegrees(reading: LocationHeadingObject): number | undefined {
   if (!Number.isFinite(reading.accuracy) || reading.accuracy < 2) return;
@@ -24,7 +25,8 @@ export function headingCone(
   heading: number,
   zoom: number,
 ): Feature<Polygon> {
-  const meters = (22 * 156543.03392 * Math.cos((latitude * Math.PI) / 180)) / 2 ** zoom;
+  // MapLibre zoom levels use 512-pixel tiles: 78271.517 meters per pixel at zoom 0.
+  const meters = (CONE_PIXELS * 78271.517 * Math.cos((latitude * Math.PI) / 180)) / 2 ** zoom;
   function point(bearing: number) {
     const angle = (bearing * Math.PI) / 180;
     return [
