@@ -9,6 +9,8 @@ import {
   type ViewState,
 } from '@maplibre/maplibre-react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useMapHeading } from '@/hooks/use-map-heading';
+import { headingCone } from '@/data/heading';
 import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
@@ -54,6 +56,7 @@ export default function PreserveMap() {
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
   const { gis, visibleSnapshot, hidden, basemap, chooseBasemap } = useMapGis();
+  const [headingZoom, setHeadingZoom] = useState(INITIAL_ZOOM);
   const viewport = useRef<ViewState>({
     center: PRESERVE_CENTER,
     zoom: INITIAL_ZOOM,
@@ -64,6 +67,7 @@ export default function PreserveMap() {
   const basemapLoad = useBasemapLoad(basemap, viewport);
   const loadState = basemapLoad.status;
   const location = useMapLocation();
+  const heading = useMapHeading(location.status === 'ready' && !!location.fix);
   // Evaluate against all published trails, independent of which layers are displayed.
   const offTrail = useOffTrail(location.fix, location.status, gis.snapshot?.collection);
   const [settingsFailed, setSettingsFailed] = useState(false);
@@ -205,9 +209,11 @@ export default function PreserveMap() {
           }
         }}
         onRegionIsChanging={(event) => {
+          setHeadingZoom(event.nativeEvent.zoom);
           if (event.nativeEvent.userInteraction) locationFollow.stop();
         }}
         onRegionDidChange={(event) => {
+          setHeadingZoom(event.nativeEvent.zoom);
           viewport.current = event.nativeEvent;
           if (event.nativeEvent.userInteraction) visibilityChanged.current = true;
         }}
@@ -543,6 +549,28 @@ export default function PreserveMap() {
                 'circle-color': '#007aff',
                 'circle-stroke-color': '#fff',
                 'circle-stroke-width': 3,
+              }}
+            />
+          </GeoJSONSource>
+        )}
+        {location.fix && heading !== undefined && (
+          <GeoJSONSource
+            id="device-heading"
+            data={headingCone(
+              location.fix.coords.longitude,
+              location.fix.coords.latitude,
+              heading,
+              headingZoom,
+            )}
+          >
+            <Layer
+              id="device-heading-cone"
+              beforeId="device-location-dot"
+              type="fill"
+              paint={{
+                'fill-color': '#007aff',
+                'fill-opacity': 0.35,
+                'fill-outline-color': '#fff',
               }}
             />
           </GeoJSONSource>
