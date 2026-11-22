@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { AppState } from 'react-native';
+import { reportRetryDelay, useReportReconnect } from '@/hooks/use-report-reconnect';
 import {
   clearReportDraft,
   restoreReportDraft,
@@ -67,6 +68,11 @@ function useDraft() {
   const [prepared, setPrepared] = useState<PreparedReport>();
   const [locked, setLocked] = useState(false);
   const [retryAt, setRetryAt] = useState(0);
+  const [autoRetry, setAutoRetry] = useState(false);
+  const [autoRetryAt, setAutoRetryAt] = useState(0);
+  const automaticAt = useRef(0);
+  const retryCount = useRef(0);
+  const retryEligible = useRef(false);
   const identity = useRef<{ id: string } | undefined>(undefined);
   const operation = useRef(false);
   const inFlight = useRef(false);
@@ -76,6 +82,7 @@ function useDraft() {
   const nextRetry = useRef(0);
   const locationController = useRef<AbortController | undefined>(undefined);
   const optionsController = useRef<AbortController | undefined>(undefined);
+  const sendController = useRef<AbortController | undefined>(undefined);
   const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? '';
   const restoring = restoredApi !== apiUrl;
   const stopLocation = useCallback(() => locationController.current?.abort(), []);
@@ -99,6 +106,11 @@ function useDraft() {
         setReceipt(saved.receipt);
         setRetryAt(saved.retryAt);
         nextRetry.current = saved.retryAt;
+        retryCount.current = saved.retryCount ?? 0;
+        retryEligible.current = saved.retryable === true;
+        setAutoRetry(saved.retryable === true);
+        automaticAt.current = saved.autoRetryAt ?? saved.retryAt;
+        setAutoRetryAt(automaticAt.current);
         setStep(
           saved.receipt
             ? 'accepted'
@@ -144,6 +156,9 @@ function useDraft() {
       attempted: submitted.current,
       receipt: outcome.current,
       retryAt: nextRetry.current,
+      retryable: retryEligible.current,
+      retryCount: retryCount.current,
+      autoRetryAt: automaticAt.current,
       ...overrides,
     };
   }
@@ -177,12 +192,16 @@ function useDraft() {
 
   useEffect(() => {
     const listener = AppState.addEventListener('change', (state) => {
-      if (state === 'background') locationController.current?.abort();
+      if (state === 'background') {
+        locationController.current?.abort();
+        sendController.current?.abort();
+      }
     });
     return () => {
       listener.remove();
       locationController.current?.abort();
       optionsController.current?.abort();
+      sendController.current?.abort();
     };
   }, []);
 
@@ -326,12 +345,14 @@ function useDraft() {
     setStep('sending');
     setError(undefined);
     const controller = new AbortController();
+    sendController.current = controller;
     const timer = setTimeout(() => controller.abort(), 60_000);
     const report = frozen.current;
     try {
       clearTimeout(saveTimer.current);
       saveRevision.current += 1;
-      await saveReportDraft(savedDraft({ attempted: true, prepared: report }));
+      retryEligible.current = true;
+      await saveReportDraft(savedDraft({ attempted: true, prepared: report, retryable: true }));
       setStorageState('saved');
       const secret = await readGuestReportSecret(identity.current.id);
       const result = await submitReport(apiUrl, report, secret, controller.signal);
@@ -342,9 +363,12 @@ function useDraft() {
           attempted: true,
           prepared: undefined,
           receipt: result,
+          retryable: false,
         }),
       );
       outcome.current = result;
+      retryEligible.current = false;
+      setAutoRetry(false);
       setReceipt(result);
       setStep('accepted');
       await Promise.all(report.photos.map((photo) => removeReportPhoto(photo)));
@@ -358,13 +382,28 @@ function useDraft() {
         frozen.current = undefined;
         setPrepared(undefined);
       }
+      retryEligible.current = ['CONNECTION', 'TEMPORARY', 'IN_PROGRESS', 'RECEIPT'].includes(
+        failure.code,
+      );
+      setAutoRetry(retryEligible.current);
+      automaticAt.current = retryEligible.current
+        ? Date.now() + reportRetryDelay(retryCount.current++, failure.retryAfterMs)
+        : 0;
+      setAutoRetryAt(automaticAt.current);
       nextRetry.current = failure.retryAfterMs > 0 ? Date.now() + failure.retryAfterMs : 0;
       setRetryAt(nextRetry.current);
       setError(failure);
       setStep('error');
+      try {
+        await saveReportDraft(savedDraft());
+      } catch {
+        setStorageState('error');
+        setAutoRetry(false);
+      }
     } finally {
       clearTimeout(timer);
       inFlight.current = false;
+      sendController.current = undefined;
     }
   }
   async function finish() {
@@ -397,10 +436,20 @@ function useDraft() {
     setLocked(false);
     setRetryAt(0);
     nextRetry.current = 0;
+    retryCount.current = 0;
+    automaticAt.current = 0;
+    setAutoRetryAt(0);
+    retryEligible.current = false;
+    setAutoRetry(false);
     setError(undefined);
     setStep('route');
     setStorageState('empty');
   }
+  useReportReconnect(
+    !restoring && step === 'error' && autoRetry && locked && storageState !== 'error',
+    autoRetryAt,
+    send,
+  );
   return {
     fields,
     restoring,
@@ -416,6 +465,7 @@ function useDraft() {
     locked,
     error,
     retryAt,
+    autoRetry,
     update,
     move,
     reloadOptions,
