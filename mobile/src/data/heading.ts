@@ -1,5 +1,6 @@
 import type { LocationHeadingObject } from 'expo-location';
 import type { Feature, Polygon } from 'geojson';
+import { Platform } from 'react-native';
 
 export const HEADING_FRESHNESS_MS = 5000;
 const CONE_PIXELS = 22;
@@ -7,9 +8,16 @@ const CONE_PIXELS = 22;
 export function headingDegrees(reading: LocationHeadingObject): number | undefined {
   if (!Number.isFinite(reading.accuracy) || reading.accuracy < 2) return;
   // True north is required to align with the geographic map. Never substitute travel course.
-  if (!Number.isFinite(reading.trueHeading) || reading.trueHeading < 0 || reading.trueHeading > 360)
-    return;
-  return reading.trueHeading % 360;
+  let heading = reading.trueHeading;
+  if (!Number.isFinite(heading) || heading > 360) return;
+  if (heading < 0) {
+    // -1 means true north is unavailable on both platforms, and iOS uses any negative value
+    // for an unknown heading. Android reports (magnetic + declination) % 360, which is
+    // negative just west of true north, so wrap those readings instead of hiding the cone.
+    if (Platform.OS !== 'android' || heading === -1 || heading <= -360) return;
+    heading += 360;
+  }
+  return heading % 360;
 }
 
 export function smoothHeading(previous: number | undefined, next: number): number {

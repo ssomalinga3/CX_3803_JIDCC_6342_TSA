@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { headingCone, headingDegrees, smoothHeading } from '@/data/heading';
 
 test('requires a usable true compass heading without substituting magnetic heading or travel course', () => {
@@ -29,4 +30,21 @@ test('sizes the cone to about 22 screen pixels on MapLibre 512-pixel tiles', () 
   const meters = (tip[1] - latitude) * 111320;
   const metersPerPixel = (78271.517 * Math.cos((latitude * Math.PI) / 180)) / 2 ** zoom;
   expect(meters / metersPerPixel).toBeCloseTo(22, 5);
+});
+
+test('wraps Android true headings just west of true north instead of hiding them', () => {
+  const os = Platform.OS;
+  try {
+    Platform.OS = 'android';
+    // Observed on an Android 16 emulator in Atlanta: magnetic 0 with -5.63 degrees declination.
+    expect(headingDegrees({ trueHeading: -5.63, magHeading: 0, accuracy: 3 })).toBeCloseTo(354.37);
+    expect(headingDegrees({ trueHeading: -1, magHeading: 4, accuracy: 3 })).toBeUndefined();
+    expect(headingDegrees({ trueHeading: 20.96, magHeading: 26.59, accuracy: 3 })).toBeCloseTo(
+      20.96,
+    );
+    Platform.OS = 'ios';
+    expect(headingDegrees({ trueHeading: -5.63, magHeading: 0, accuracy: 3 })).toBeUndefined();
+  } finally {
+    Platform.OS = os;
+  }
 });
