@@ -41,6 +41,18 @@ const secureOptions = { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVIC
 const LIMIT = 22 * 1024 * 1024;
 let queue: Promise<unknown> = Promise.resolve();
 const folder = () => new Directory(Paths.document, 'private-report-draft-v1');
+const TEMPORARY_PHOTO = /^report-[0-9a-f-]{36}\.jpg$/;
+
+/**
+ * Restored photos are written as new plaintext cache copies. Remove copies left by an
+ * earlier process before materializing this generation, so a restart or force-quit
+ * cannot leave decrypted report photos behind after acceptance or deletion.
+ */
+function removeStalePhotoCopies() {
+  for (const entry of new Directory(Paths.cache).list()) {
+    if (entry instanceof File && TEMPORARY_PHOTO.test(entry.name)) entry.delete();
+  }
+}
 const slots = () => [new File(folder(), 'a.bin'), new File(folder(), 'b.bin')];
 
 function storageFailure(): ReportFailure {
@@ -142,6 +154,11 @@ export function saveReportDraft(draft: SavedReportDraft): Promise<void> {
 
 export function restoreReportDraft(apiUrl: string): Promise<SavedReportDraft | undefined> {
   return serialized(async () => {
+    try {
+      removeStalePhotoCopies();
+    } catch {
+      // Cache cleanup must not block recovery of the encrypted draft.
+    }
     if (!slots().some((file) => file.exists)) return;
     try {
       const key = await encryptionKey(false);
