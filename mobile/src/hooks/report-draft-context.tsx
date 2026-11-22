@@ -168,7 +168,7 @@ function useDraft() {
       recoveryBlocked.current ||
       operation.current ||
       outcome.current ||
-      (!fields.categoryId && !fields.photos.length && !fields.note && !options)
+      (!fields.categoryId && !fields.photos.length && !fields.note)
     )
       return;
     setStorageState('saving');
