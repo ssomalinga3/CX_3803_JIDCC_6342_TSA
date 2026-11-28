@@ -38,6 +38,25 @@ offline restart/retry remains separate; API tests do not establish device paths.
 
 For release verification, exercise the normal and exception paths on iOS, then the supported Android targets. Cover permissions, poor/no connectivity, app restart with queued photos, duplicate retries, restricted records/media, and overlapping map layers. Use approved client GIS/content fixtures and simulated GPS positions; validate geographic alignment during field testing. The exact device matrix and numeric tolerances are D-05/D-10 decisions.
 
+### Collapsible map panel acceptance (J6-73)
+
+1. Open Map with location off or denied. Drag the panel header down to reveal
+   more map, then up through details and full content. Also use the explicit
+   Expand/More, Show less and Collapse buttons. No search input is added.
+2. Pan/zoom the map, choose layers/basemap and repeat the panel gestures. Camera,
+   mounted renderer, selections and GIS requests must remain unchanged by the
+   panel. Repeat while following fresh GPS; no new permission/watch or camera
+   command should be caused by the panel itself.
+3. Scroll expanded content and the horizontal trail legend. Neither gesture
+   should drag the panel or pan the map. Access the original retry/settings and
+   reporting/layer actions after expanding; hidden collapsed controls must not
+   receive touches or screen-reader focus. Map controls/attribution remain usable.
+4. Interrupt a drag, background/resume, revisit Map, change text size and enable
+   Reduce Motion. Check predictable settling, retained session state, scrollable
+   content and non-gesture accessibility actions. Repeat in 3D without restarting
+   its WebView because of panel movement. iOS 26 is the primary native target;
+   Android native acceptance is deferred under the current owner direction.
+
 ### Public feature detail acceptance (J6-20)
 
 1. With public GIS loaded and location off or denied, tap a landmark, trail and

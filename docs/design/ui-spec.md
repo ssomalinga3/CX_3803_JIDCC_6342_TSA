@@ -152,6 +152,60 @@ exact visual alignment remains unverified because the live Figma frame could
 not be retrieved for this implementation. See [verification and screenshots](../development/layer-selection.md)
 and [acceptance paths](user-flows.md#public-layer-selection-acceptance-j6-19).
 
+## Collapsible map panel (J6-73)
+
+The existing map dock retains its content, white surface, 20-point upper corners
+and 18-point horizontal padding from the active-navigation Figma frame (17:26).
+The November 28 owner request adds an Apple Maps-style vertical interaction;
+the owner explicitly excluded a search bar or additional panel content.
+
+Start at a details stop (42% of available height, capped at 340 points). Drag
+the visible grabber/header downward for a compact header, upward for details
+and then more of the same content. The full stop leaves space above for map
+controls; short content stops at its natural height. These are responsive
+implementation defaults, not new production performance budgets. The measured
+header grows with text size. Its Expand/More, Show less and Collapse actions and
+accessibility expand/collapse/escape provide alternatives to dragging.
+
+Only a single-finger predominantly vertical header drag controls the panel.
+Content scrolls vertically and the trail key scrolls horizontally independently.
+The installed Gesture Handler/Reanimated modules track the header and animate
+the panel/controls on the UI thread, using a translated fixed outer surface.
+React receives only settled-state updates, not every drag frame. Small slow
+drags return to the nearest stop; bounded velocity projection prevents noisy
+releases from jumping unpredictably. An interrupted spring starts its next
+gesture from the current displayed position.
+Drag cancellation/backgrounding returns to the last settled position; Reduce
+Motion disables spring settling, including a preference change during animation.
+Collapsed content remains mounted but is excluded from touches and accessibility.
+
+The native map/WebView is not resized or replaced by panel movement. Camera
+fitting and location-follow padding reserve the initial details height and do
+not change during a drag; explicit recenter and later GPS fixes retain that
+padding. Controls and attribution move with the panel, with scrollable controls
+when vertical room is limited. Panel state is session-only and shared by the
+current 2D/3D map screen; GIS/reporting/permission state is unchanged.
+
+Verification: 305 mobile tests across 41 suites, mobile lint/types, repository
+formatting and iOS JavaScript export pass. Tests include native gesture-event
+streams, short/long drags, cancellation, content scrolling, resize/text geometry,
+live Reduce Motion changes and camera/GPS preservation. Jest uses the installed
+Gesture Handler adapter and retains shared-value identity across rerenders,
+matching native Reanimated behavior.
+
+The refreshed [EAS simulator client](https://expo.dev/accounts/cx3803jidcc6342tsa/projects/cascade-springs/builds/3e079f0e-8fc4-4059-beb5-e5927c9bd266)
+compiled and was installed on iPhone 16e / iOS 26.3; Metro served the final panel
+code. This refresh includes the previously merged native modules; the panel adds
+no dependencies or native configuration. Compact/expanded rendering and tap
+alternatives were observed. The owner manually exercised slow/quick swipes and
+confirmed the revised UI-thread version is smoother and accurate. Automation
+translated drags into taps even on the pre-existing map, so native swipe evidence
+is the owner's manual check. [Compact](../images/j6-73-panel-collapsed-ios26.png)
+and [expanded](../images/j6-73-panel-expanded-ios26.png) captures use public/demo
+GIS with location off. Android, physical-device performance and a full native
+VoiceOver/large-text pass remain unverified; native 3D panel gestures were not
+rerun separately from the automated 2D/3D regression suite.
+
 ## Foreground GPS progress — November 4, 2026
 
 J6-14 now adds an explicit Follow my location action, foreground permission, a moving

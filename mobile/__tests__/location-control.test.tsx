@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import * as Location from 'expo-location';
-import { AppState, Linking, type AppStateStatus } from 'react-native';
+import { AccessibilityInfo, AppState, Linking, type AppStateStatus } from 'react-native';
 
 import PreserveMap from '@/components/preserve-map';
 import { MapGisProvider } from '@/hooks/map-gis-context';
@@ -100,6 +100,24 @@ test('one location control requests permission only on tap and follows the first
       zoom: 15.5,
     }),
   );
+});
+
+test('collapsing and expanding the HUD preserves live following without a camera command or permission request', async () => {
+  jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true);
+  await readyMap();
+  await userEvent.setup().press(follow());
+  await waitFor(() => expect(watch).toHaveBeenCalledTimes(1));
+  await publishFix();
+  await waitFor(() => expect(follow()).toBeSelected());
+  const calls = mockEaseTo.mock.calls.length;
+  const permissionCalls = permission.mock.calls.length;
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Collapse map details' }));
+  await userEvent.setup().press(screen.getByRole('button', { name: 'Show all map information' }));
+  expect(follow()).toBeSelected();
+  expect(watch).toHaveBeenCalledTimes(1);
+  expect(permission).toHaveBeenCalledTimes(permissionCalls);
+  expect(request).not.toHaveBeenCalled();
+  expect(mockEaseTo).toHaveBeenCalledTimes(calls);
 });
 
 test('denial preserves browsing and cancels pending follow even if permission later recovers', async () => {

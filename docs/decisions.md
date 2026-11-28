@@ -63,6 +63,13 @@ The sources settle the main stack and feature direction, but do not settle the c
 
 ## Resolved direction and documentation cautions
 
+- **November 28, 2026 — J6-73 map panel:** The owner requested Apple Maps-style
+  swipe-up expansion for information and swipe-down collapse for a clearer map,
+  then explicitly confirmed keeping the current panel content with no search bar.
+  Apply this to the existing main-map dock, preserving the dedicated GIS chooser,
+  report flow, map/GPS state and iOS-first verification. Responsive snap heights
+  and spring thresholds are implementation defaults documented in the UI spec.
+
 - **November 18, 2026 — J6-54 3D scope:** The owner requested work from main,
   confirmed a separate renderer showing terrain and trails with user location,
   and selected the existing USGS elevation subset. The owner then specified a

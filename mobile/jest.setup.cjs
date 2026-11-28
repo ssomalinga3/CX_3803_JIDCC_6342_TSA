@@ -1,5 +1,16 @@
+require('react-native-gesture-handler/jestSetup');
+
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('react-native-reanimated', () => {
+  const mock = require('react-native-reanimated/mock');
+  const React = require('react');
+  return {
+    ...mock,
+    // The stock adapter recreates shared values on rerender. Native shared
+    // values retain identity, including across a gesture's React state update.
+    useSharedValue: (initial) => React.useState(() => mock.useSharedValue(initial))[0],
+  };
+});
 
 jest.mock('react-native-webview', () => {
   const React = require('react');
