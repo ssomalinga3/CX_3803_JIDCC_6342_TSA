@@ -1,5 +1,9 @@
 # Cascade Springs mobile
 
+For J6-54's **GIS Layers → Map view → 3D terrain** mode, WebView requires fresh iOS
+and Android development builds. See [3D setup and acceptance](../docs/development/terrain-3d.md)
+for bundled asset generation, offline behavior, rebuilds and verification.
+
 The [J6-31 guest report form](../docs/development/mobile-reporting.md) is entered
 from **Report an Issue** on Map. It uses the custom-only development API and a
 rebuilt native client for camera/library capture, image conversion and secure

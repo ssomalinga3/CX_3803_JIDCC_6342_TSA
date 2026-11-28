@@ -1,5 +1,13 @@
 # GIS data and offline operation
 
+The [3D map mode](development/terrain-3d.md) bundles its renderer and bounded USGS
+terrain. It uses covered public trails from the existing validated snapshot/
+cache, supporting offline reopen after a successful GIS load. No saved trails
+produces explicit retry/return. Selected 3D basemap tiles require network access;
+failure falls back to bundled terrain/trails with explicit retry. The WebView
+does not read native offline tile packs or add report queues. First-use GIS
+loading and durable 2D basemap coverage remain separate.
+
 Baseline: S1 pp. 10–12; S2 R-02, R-06, R-07; S3 stories 1–5 and 9. Offline functionality is planned, while its coverage and storage budget remain subject to field measurements.
 
 Use the existing [offline-availability screen](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-245) and [queued-report screen](https://www.figma.com/design/zotPKNdYIDv72Bc1mc57CQ/mid-fidelity-prototype?node-id=66-249) for presentation: waiting-to-send status, retained report/photos, automatic-send explanation, Check connection, and Edit draft. Trail behavior is tracked in [J6-23](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-23), [J6-24](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-24), and [J6-25](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-25), with geometry verification in [J6-26](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-26).

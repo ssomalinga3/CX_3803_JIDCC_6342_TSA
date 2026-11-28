@@ -87,7 +87,7 @@ test.each(['unconfigured', 'loading', 'error', 'empty'] as const)(
     }
     await userEvent.setup().press(screen.getByRole('button', { name: 'Choose base map' }));
     expect(screen.getByRole('button', { name: 'Choose base map' })).toBeCollapsed();
-    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+    expect(screen.queryAllByRole('radio', { name: /base map$/ })).toHaveLength(0);
     await userEvent.setup().press(screen.getByRole('button', { name: 'Choose base map' }));
     expect(screen.getByRole('radio', { name: 'Use USGS Shaded Relief base map' })).toBeChecked();
     await view.rerender(tree(false));

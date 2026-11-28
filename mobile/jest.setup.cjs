@@ -1,6 +1,19 @@
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const mockInjectJavaScript = jest.fn();
+  return {
+    mockInjectJavaScript,
+    WebView: ({ ref, ...props }) => {
+      React.useImperativeHandle(ref, () => ({ injectJavaScript: mockInjectJavaScript }));
+      return React.createElement(View, props);
+    },
+  };
+});
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 59, bottom: 34, left: 0, right: 0 }),
 }));
@@ -50,11 +63,13 @@ jest.mock('@maplibre/maplibre-react-native', () => {
   const mockEaseTo = jest.fn();
   const mockGetZoom = jest.fn().mockResolvedValue(16);
   const mockFitBounds = jest.fn();
+  const mockInitialView = jest.fn();
   return {
     mockZoomTo,
     mockEaseTo,
     mockGetZoom,
     mockFitBounds,
+    mockInitialView,
     GeoJSONSource: ({ children, ...props }) => React.createElement(View, props, children),
     ImageSource: ({ children, ...props }) => React.createElement(View, props, children),
     Layer: (props) => React.createElement(View, props),
@@ -62,7 +77,8 @@ jest.mock('@maplibre/maplibre-react-native', () => {
       React.useImperativeHandle(ref, () => ({ getZoom: mockGetZoom }));
       return React.createElement(View, props);
     },
-    Camera: ({ ref }) => {
+    Camera: ({ ref, initialViewState }) => {
+      mockInitialView(initialViewState);
       React.useImperativeHandle(ref, () => ({
         zoomTo: mockZoomTo,
         easeTo: mockEaseTo,

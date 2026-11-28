@@ -85,7 +85,7 @@ test('Visitor is the initial view; preset changes apply immediately and survive 
   const view = await render(tree());
   await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
   const fits = mockFitBounds.mock.calls.length;
-  expect(screen.getAllByRole('radio')).toHaveLength(3);
+  expect(screen.getAllByRole('radio', { name: /preset$/ })).toHaveLength(3);
   expect(screen.getByRole('radio', { name: 'Use Visitor preset' })).toBeChecked();
   expect(screen.getByText('Public GIS · 3 layers · 59 features')).toBeOnTheScreen();
   await preset('Researcher');
@@ -124,7 +124,9 @@ test('manual switches customize any preset, can hide everything, and preset sele
   );
   expect(screen.getByText('Customized from Visitor')).toBeOnTheScreen();
   expect(
-    screen.getAllByRole('radio').every((r) => r.props.accessibilityState.checked === false),
+    screen
+      .getAllByRole('radio', { name: /preset$/ })
+      .every((r) => r.props.accessibilityState.checked === false),
   ).toBe(true);
   expect(screen.getByText('Public GIS · 4 layers · 736 features')).toBeOnTheScreen();
   for (const toggle of screen.getAllByRole('switch')) await fireEvent(toggle, 'valueChange', false);
@@ -146,7 +148,7 @@ test('applied presets survive unavailable and replaced catalogs', async () => {
   await preset('Researcher');
   state.mockReturnValue({ status: 'error', retry: jest.fn() });
   await view.rerender(tree());
-  expect(screen.queryByRole('radio')).not.toBeOnTheScreen();
+  expect(screen.queryByRole('radio', { name: /preset$/ })).not.toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Done choosing GIS layers' })).toBeEnabled();
   state.mockReturnValue({ status: 'ready', snapshot: { ...snapshot }, retry: jest.fn() });
   await view.rerender(tree());
