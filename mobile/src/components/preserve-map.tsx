@@ -9,6 +9,8 @@ import {
   type ViewState,
 } from '@maplibre/maplibre-react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useMapHeading } from '@/hooks/use-map-heading';
+import { headingCone } from '@/data/heading';
 import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
@@ -27,6 +29,7 @@ import { SignalLegend } from '@/components/signal-legend';
 import { hasSignal, signalClasses } from '@/data/signal';
 import { gisLayerProps, terrainLayerProps, deviceLocationLayerProps } from '@/data/map-layer-order';
 import { FeatureDetailSheet } from '@/components/feature-detail-sheet';
+import { OffTrailWarning } from '@/components/off-trail-warning';
 import { featureDetails, pressedFeatureId } from '@/data/feature-details';
 import type { GisSnapshot } from '@/data/gis';
 import { DEFAULT_BASEMAP } from '@/data/basemaps';
@@ -38,6 +41,7 @@ import { useMapLocation } from '@/hooks/use-map-location';
 import { useLocationFollow } from '@/hooks/use-location-follow';
 import { TerrainMap, type TerrainHandle, type TerrainStatus } from '@/components/terrain-map';
 import { elevation, initialTerrainView, insideTerrain, terrainTrails } from '@/data/terrain-3d';
+import { useOffTrail } from '@/hooks/use-off-trail';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -76,6 +80,7 @@ export default function PreserveMap() {
       return terrainTrails(undefined);
     }
   }, [gis.snapshot, is3d]);
+  const [headingZoom, setHeadingZoom] = useState(INITIAL_ZOOM);
   const viewport = useRef<ViewState>({
     center: PRESERVE_CENTER,
     zoom: INITIAL_ZOOM,
@@ -90,6 +95,9 @@ export default function PreserveMap() {
     is3d &&
     location.fix &&
     !insideTerrain([location.fix.coords.longitude, location.fix.coords.latitude]);
+  const heading = useMapHeading(!is3d && location.status === 'ready' && !!location.fix);
+  // Evaluate against all published trails, independent of which layers are displayed.
+  const offTrail = useOffTrail(location.fix, location.status, gis.snapshot?.collection);
   const [settingsFailed, setSettingsFailed] = useState(false);
   const [dockHeight, setDockHeight] = useState(160);
   const [selection, setSelection] = useState<{ snapshot: GisSnapshot; id: string }>();
@@ -252,10 +260,12 @@ export default function PreserveMap() {
             }
           }}
           onRegionIsChanging={(event) => {
+            if (!is3d) setHeadingZoom(event.nativeEvent.zoom);
             if (event.nativeEvent.userInteraction) locationFollow.stop();
           }}
           onRegionDidChange={(event) => {
             if (is3d) return;
+            setHeadingZoom(event.nativeEvent.zoom);
             viewport.current = event.nativeEvent;
             if (event.nativeEvent.userInteraction) visibilityChanged.current = true;
           }}
@@ -603,6 +613,29 @@ export default function PreserveMap() {
               />
             </GeoJSONSource>
           )}
+          {location.fix && heading !== undefined && (
+            <GeoJSONSource
+              id="device-heading"
+              testID="device-heading-source"
+              data={headingCone(
+                location.fix.coords.longitude,
+                location.fix.coords.latitude,
+                heading,
+                headingZoom,
+              )}
+            >
+              <Layer
+                id="device-heading-cone"
+                beforeId="device-location-dot"
+                type="fill"
+                paint={{
+                  'fill-color': '#007aff',
+                  'fill-opacity': 0.35,
+                  'fill-outline-color': '#fff',
+                }}
+              />
+            </GeoJSONSource>
+          )}
         </Map>
       </View>
       {is3d && (
@@ -635,6 +668,9 @@ export default function PreserveMap() {
             {is3d ? '3D terrain and trails · True scale' : 'Explore trails and boundaries'}
           </Text>
         </View>
+        {offTrail.showWarning && !details && (
+          <OffTrailWarning onClose={offTrail.dismiss} onNeverShow={offTrail.hideForever} />
+        )}
       </View>
 
       <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
@@ -762,6 +798,14 @@ export default function PreserveMap() {
         <View accessibilityLiveRegion="polite" style={styles.gisStatus}>
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="Report an issue"
+            onPress={() => router.push('/report')}
+            style={styles.retry}
+          >
+            <Text style={styles.retryText}>Report an Issue</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Choose GIS layers"
             onPress={() => router.push('/layers')}
             style={styles.secondaryAction}
@@ -773,6 +817,11 @@ export default function PreserveMap() {
               ? 'Your location is outside the 3D elevation coverage. You can still browse the preserve.'
               : locationMessage}
           </Text>
+          {offTrail.status === 'off-trail' && (
+            <Text testID="off-trail-status" style={styles.offTrail}>
+              Off trail · Please return to a marked path when it&apos;s safe
+            </Text>
+          )}
           {location.fix?.coords.accuracy != null && (
             <Text style={styles.note}>
               Reported accuracy: about {Math.ceil(location.fix.coords.accuracy)} m
@@ -961,7 +1010,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#242424',
   },
-  overlay: { position: 'absolute', left: 16, right: 16, alignItems: 'flex-start' },
+  overlay: { position: 'absolute', left: 16, right: 16, alignItems: 'flex-start', gap: 10 },
   header: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -1012,6 +1061,7 @@ const styles = StyleSheet.create({
   status: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   note: { fontSize: 13, lineHeight: 19, color: '#60646c' },
   gisStatus: { gap: 4 },
+  offTrail: { fontSize: 14, lineHeight: 19, fontWeight: '600', color: '#2f6b2f' },
   gisTitle: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
   retry: {
     minHeight: 44,

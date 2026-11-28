@@ -1,5 +1,19 @@
 # Backend: local Workers + PostGIS
 
+For the custom-recipient reporting API with private S3 photos, use
+`pnpm --dir backend reports:dev`. See [startup, verification and current limits](../docs/development/custom-reports.md).
+It queues notification work; SMTP delivery and mobile capture remain pending.
+
+For report-photo validation, sanitization and private local storage without S3,
+see [local report-photo processing](../docs/development/report-photos.md).
+Run `pnpm --dir backend photos:check /absolute/path/to/photo.jpg` from the root.
+This development check does not submit a report or upload to the cloud.
+
+The [S3 adapter guide](../docs/development/s3-report-photos.md) covers private AWS
+SDK storage, server configuration and `photos:s3:check` (`--write` for a synthetic
+cloud object check with cleanup). Email uses separate SMTP credentials; neither
+photo check sends a notification.
+
 Current GIS selection: `pnpm --dir backend db:import:source` atomically imports
 36 supplied trails, 33 PDF/context features, 62 terrain features and 677 approximate
 signal samples across ten layers. `db:import:trails`, `db:import:pdf`,

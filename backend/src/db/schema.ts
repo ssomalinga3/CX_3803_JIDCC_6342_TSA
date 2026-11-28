@@ -11,6 +11,7 @@ import {
   text,
   timestamp,
   uuid,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 // Generic geometry preserves flexibility across points, lines, polygons and multi-geometries.
@@ -115,5 +116,81 @@ export const observationImage = pgTable(
     primaryKey({ columns: [table.observationId, table.position] }),
     check('observation_image_position_check', sql`${table.position} >= 0`),
     check('observation_image_object_key_check', sql`length(trim(${table.objectKey})) > 0`),
+  ],
+);
+
+export const reportSubmission = pgTable(
+  'report_submission',
+  {
+    clientSubmissionId: uuid('client_submission_id').primaryKey(),
+    guestSecretDigest: text('guest_secret_digest').notNull(),
+    payloadDigest: text('payload_digest').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check('report_submission_guest_digest', sql`${table.guestSecretDigest} ~ '^[0-9a-f]{64}$'`),
+    check('report_submission_payload_digest', sql`${table.payloadDigest} ~ '^[0-9a-f]{64}$'`),
+  ],
+);
+
+export const reportUploadAttempt = pgTable(
+  'report_upload_attempt',
+  {
+    attemptId: uuid('attempt_id').primaryKey().defaultRandom(),
+    clientSubmissionId: uuid('client_submission_id')
+      .notNull()
+      .references(() => reportSubmission.clientSubmissionId, { onDelete: 'cascade' }),
+    state: text('state').notNull().default('uploading'),
+    objectKeys: uuid('object_keys')
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::uuid[]`),
+    leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check(
+      'report_upload_attempt_state',
+      sql`${table.state} IN ('uploading','abandoned','accepted')`,
+    ),
+    check(
+      'report_upload_attempt_keys',
+      sql`cardinality(${table.objectKeys}) <= 3 AND array_position(${table.objectKeys}, NULL) IS NULL`,
+    ),
+    uniqueIndex('report_upload_attempt_one_active')
+      .on(table.clientSubmissionId)
+      .where(sql`${table.state} = 'uploading'`),
+    index('report_upload_attempt_submission_idx').on(table.clientSubmissionId),
+  ],
+);
+
+/** Durable work only: no email is sent inside report acceptance. */
+export const reportNotification = pgTable(
+  'report_notification',
+  {
+    notificationId: uuid('notification_id').primaryKey().defaultRandom(),
+    observationId: uuid('observation_id')
+      .notNull()
+      .references(() => observation.observationId, { onDelete: 'cascade' }),
+    recipient: text('recipient').notNull(),
+    state: text('state').notNull().default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    attemptId: uuid('attempt_id'),
+    leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('report_notification_observation_recipient').on(
+      table.observationId,
+      table.recipient,
+    ),
+    check(
+      'report_notification_state',
+      sql`${table.state} IN ('pending','sending','delivered','uncertain','failed')`,
+    ),
+    check('report_notification_attempts', sql`${table.attempts} >= 0`),
+    check('report_notification_recipient', sql`length(trim(${table.recipient})) > 0`),
   ],
 );

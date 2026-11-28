@@ -220,3 +220,26 @@ See the [Android Standard tiles and simulated GPS](../images/terrain-3d-android.
 and [Android offline restart](../images/terrain-3d-android-offline.png) screenshots.
 Native two-finger gestures and physical-device performance remain unverified;
 the emulator smoke used the single Tilt control, zoom buttons and drag gestures.
+
+## Integration with current main — November 28, 2026
+
+Resolved PR #54's conflicts against main after the reporting, compass and
+off-trail work merged. Both sets of decision/setup notes are retained. The map
+keeps its reporting shortcut and off-trail warning/status in either mode;
+off-trail detection still uses the complete public snapshot. The 2D heading cone
+updates with native zoom, stops its heading subscription while 3D is active and
+returns when switching back to 2D. This does not add a heading cone to 3D.
+
+Regenerated the combined dependency lock from main plus the pinned WebView and
+renderer dependencies; Git's automatic lockfile merge had missing peer entries.
+A component regression exercises the combined controls, zoom-dependent compass
+and 2D/3D transitions. Terrain and renderer reproducibility checks also pass.
+The native evidence above belongs to the original feature branch; this merge
+resolution does not claim a fresh native build or simulator smoke test.
+
+The merged-tree `pnpm verify` gate passed: formatting, workspace lint/types,
+11 walking-tool tests, 185 backend unit tests, 298 mobile tests across 40 suites,
+and iOS/Android JavaScript exports. The unit gate skipped 68 database integration
+tests; it does not establish database migration or live SMTP/S3 acceptance.
+Frozen-lockfile installation, the terrain generator's two regression tests,
+terrain/renderer reproducibility and `git diff --check` also passed.

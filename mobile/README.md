@@ -4,6 +4,12 @@ For J6-54's **GIS Layers → Map view → 3D terrain** mode, WebView requires fr
 and Android development builds. See [3D setup and acceptance](../docs/development/terrain-3d.md)
 for bundled asset generation, offline behavior, rebuilds and verification.
 
+The [J6-31 guest report form](../docs/development/mobile-reporting.md) is entered
+from **Report an Issue** on Map. It uses the custom-only development API and a
+rebuilt native client for camera/library capture, image conversion and secure
+guest ownership. Acceptance confirms storage; SMTP and durable offline drafts
+remain separate work.
+
 Expo SDK 57 / React Native 0.86 / TypeScript starter application. The Map tab renders an initial native basemap preview; follow the team's Figma prototype and [project specifications](../docs/README.md) when feature work begins.
 
 For EAS cloud compilation, the Android Emulator, Metro and the local GIS Worker

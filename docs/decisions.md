@@ -1,5 +1,49 @@
 # Open decisions and source reconciliation
 
+## Report navigation (J6-72, November 19, 2026)
+
+The project owner requested a bottom navigation Report tab. Place it between Map
+and Explore and retain the map shortcut to the same route and shared draft.
+This updates the prototype's map-only entry point. My Reports remains J6-42.
+
+## Offline reports and delivery (November 19, 2026)
+
+The project owner selected custom-recipient email delivery first under J6-32.
+Park routing awaits approved category-to-recipient mappings. For J6-33/J6-34,
+retain local drafts/photos until an authorized receipt or explicit deletion,
+and automatically retry only reports the visitor has explicitly submitted.
+Keep ownership and private recipients unchanged across retries and restart.
+
+## November 19, 2026 — light appearance only
+
+The owner chose to keep the app in light mode at all times. With a dark-mode device, some screens had followed the system setting while others kept the Figma light palette. Native UI is pinned with `userInterfaceStyle: "light"` and the shared color-scheme hook always returns light. See [UI specification](design/ui-spec.md#design-direction-and-references).
+
+## November 19, 2026 — hosted reporting
+
+Hosted custom-recipient submissions are enabled with labeled development categories;
+see [configuration and grants](development/cloudflare-backend-runbook.md#hosted-reporting-november-19-2026).
+SMTP delivery, park routing and production category mapping remain pending.
+
+## November 18, 2026 — J6-31 mobile development flow
+
+The owner confirmed Figma route-first reporting and documenting actual taps from
+Report an Issue through submit, counting permission/camera interactions separately.
+Do not claim three taps or remove consent/review to meet older source wording.
+Custom-only development routing continues. The owner subsequently deferred
+Android and selected iOS verification for this task. See [flow and evidence](development/mobile-reporting.md).
+
+## November 18, 2026 — initial custom-recipient submission
+
+The owner selected custom recipients first and explicitly confirmed a
+**custom-only development release** as the current scope. Implement the local guest API with
+explicitly labeled development categories, private S3 images and durable pending
+notification work. Email transport uses separate SMTP credentials. This enables
+development submission/replay testing without inventing park destinations or
+production category mappings. SMTP sending, mobile capture/offline restart,
+production operational bounds, retention and scheduled abandoned-upload cleanup
+remain separate; production setup is not a completion gate for this development
+slice. See [implementation and limits](development/custom-reports.md).
+
 The sources settle the main stack and feature direction, but do not settle the choices below. This register prevents implementation guesses from being mistaken for client decisions. Suggested decision participants are responsibilities, not assignments to named people.
 
 | ID | Decision to record | Evidence / conflict and implementation impact | Participants |
@@ -36,6 +80,20 @@ The sources settle the main stack and feature direction, but do not settle the c
   memory, field and performance acceptance under J6-53 remains open;
   implementation limits are engineering guards, not approved product budgets.
 
+- **November 16, 2026 — J6-27 guest access and capture policy:** The owner selected
+  the recommended first-release approach: a separate cryptographically random
+  256-bit secret per report in platform secure storage, with only its digest on
+  the server and access from the originating installation. Cross-device recovery
+  is deferred to [J6-71](https://gatech-team-f1s41wh9.atlassian.net/browse/J6-71),
+  coordinated with J6-41. The owner also approved 1–3 JPEG/PNG photos, 5 MiB each,
+  16 MiB total request, 4,096 pixels per edge and 12 million decoded pixels;
+  require a photo, convert unsupported formats on device where possible, strip
+  metadata before storage and allow missing GPS with an explicit reason.
+  See the [reporting contract](reporting-contract.md). This partially resolves
+  D-01/D-04; account/session implementation, park category/destination values,
+  recipient/media authorization, numerical retry/lease bounds and retention
+  periods remain open. It does not provision S3 or implement uploads.
+
 - **November 16, 2026 — J6-14 location follow:** The owner requested that the
   location button only zoom inward (default level 15.5; preserve closer zoom) and
   follow the user's location until the viewport is dragged. Recenter explicitly
@@ -65,6 +123,16 @@ The sources settle the main stack and feature direction, but do not settle the c
   eligibility, account evidence and offline coverage remain separate. See the
   [activation rules](security.md#zero-charge-rule-for-app-visible-keys) and
   [J6-68 provider research](development/basemap-options.md#disabled-provider-research).
+
+- **November 19, 2026 — D-05 off-trail tolerance (Proposed, not approved):**
+  J6-25 implements a friendly, non-blocking off-trail reminder using
+  engineering defaults: off-trail beyond 20 m of a trail centerline, back on
+  within 12 m, fixes worse than 25 m accuracy ignored, three consecutive fixes
+  to change state, evaluated only inside the published boundary. The owner
+  requested an erosion-focused message with a primary close action and a
+  secondary "don't show again" choice. Numeric tolerances, protective geometry
+  and safety wording remain open under D-05; see
+  [off-trail indicator](development/off-trail-indicator.md).
 
 - **November 12, 2026 — D-08 grouped elevation sources:** The owner requested
   the source-similarity explanation inside the dropdown and suggested grouping

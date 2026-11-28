@@ -34,6 +34,18 @@ bridge coordinates enter logs.
 
 The backend is one server application with separate responsibilities, not a microservice deployment. The mobile application accesses server data through the API. Database, S3, and SES credentials belong on the server. The [supplied component diagram](diagrams/architecture.puml) uses arrows from a dependent to its dependency.
 
+The [local J6-29 photo service](development/report-photos.md) separates image
+validation/sanitization and ownership from private storage. Node development
+tooling can use a private disk adapter; an isolated Worker test uses memory.
+Neither is production photo storage. The follow-up
+[AWS SDK S3 adapter](development/s3-report-photos.md) supplies encrypted conditional
+writes and owner-authorized presigned reads; a live synthetic check verified
+bucket privacy, access expiry and cleanup. The development-only
+[J6-30 custom submission API](development/custom-reports.md) connects multipart
+validation, a durable upload journal and atomic report/image/outbox persistence.
+Production secret/write-permission setup remains pending. Notifications use a
+separate SMTP adapter and credential set; the outbox is queued, not sent.
+
 ## Main interactions
 
 1. **Map:** UI requests layers through the API client. REST API → GIS module → data access → PostGIS. Results become GeoJSON or vector tiles, are cached where supported, and are rendered by the native map.

@@ -1,17 +1,22 @@
 import { renderHook } from '@testing-library/react-native';
+import { Appearance } from 'react-native';
+
+import appConfig from '../app.json';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
-jest.mock('@/hooks/use-color-scheme');
-
-test.each([
-  ['light', Colors.light],
-  ['dark', Colors.dark],
-  ['unspecified', Colors.light],
-] as const)('uses the expected theme when the device scheme is %s', async (scheme, colors) => {
-  jest.mocked(useColorScheme).mockReturnValue(scheme);
-  const { result } = await renderHook(() => useTheme());
-  expect(result.current).toEqual(colors);
+test('pins the native interface style to light mode', () => {
+  expect(appConfig.expo.userInterfaceStyle).toBe('light');
 });
+
+test.each(['light', 'dark', null] as const)(
+  'uses the light palette when the device appearance is %s',
+  async (deviceScheme) => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue(deviceScheme);
+    const { result } = await renderHook(() => ({ scheme: useColorScheme(), colors: useTheme() }));
+    expect(result.current.scheme).toBe('light');
+    expect(result.current.colors).toEqual(Colors.light);
+  },
+);

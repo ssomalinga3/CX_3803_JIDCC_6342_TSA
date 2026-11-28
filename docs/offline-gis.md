@@ -20,9 +20,13 @@ S2 explicitly names Trails ATL, sewer, and stream-buffer layers with 25 ft and 7
 
 Serve GeoJSON for layer features and vector tiles for larger datasets. Render public layers on one native map with trails remaining legible when layers overlap. Keep historical points in the normal layer system. In the optional 3D view, display trails and terrain only, per S1; historical-temperature time selection is a separate stretch feature dependent on the Georgia Tech study dataset.
 
-Off-trail indication must work with trail boundaries and a buffer against GPS jitter/flickering, as J6-24 specifies. The numeric tolerance and where that calculation runs are open. Any chosen approach must preserve planned offline navigation and location privacy.
+Off-trail indication must work with trail boundaries and a buffer against GPS jitter/flickering, as J6-24 specifies. The calculation runs on the device against the cached public trail/boundary geometry, so it works offline and never transmits coordinates. The numeric tolerances in the [off-trail indicator notes](development/off-trail-indicator.md) are Proposed engineering defaults; client approval remains open under D-05.
 
 ## Minimum planned offline behavior
+
+The report flow now has [encrypted draft recovery](development/offline-report-drafts.md)
+and [foreground reconnect sync](development/report-reconnect.md). Native cold-start
+and real-backend reconnection acceptance remain separate from automated checks.
 
 | Data/action | Expected behavior |
 | --- | --- |
@@ -37,6 +41,13 @@ Off-trail indication must work with trail boundaries and a buffer against GPS ji
 Do not imply that a first launch without downloaded data has a complete map. Proposed UX: show which content is available offline and preserve the last complete cache if a refresh fails. Offline 3D terrain and full historical-image downloads are not established requirements.
 
 ## Proposed queue contract
+
+The [custom-only development API](development/custom-reports.md) now preserves
+submission UUID/owner/payload identity across retries and returns an accepted
+receipt without duplicate photos or logical notifications. It does not implement
+the device queue or offline restart; those remain J6-33. The mobile form now
+stores report-scoped secrets in SecureStore and retains reviewed requests for
+session retries; that alone is not durable metadata/photo recovery.
 
 The queue needs persistent submission identity, account/guest ownership context, metadata, delivery mode and explicit custom recipients, local photo references, attempt state, and the accepted server ID. Proposed states are `draft`, `pending`, `uploading`, `accepted`, and `needs_attention`; these are local delivery states, separate from administrative statuses such as Submitted or Resolved.
 

@@ -19,6 +19,9 @@ import {
 } from '@/data/terrain-3d';
 import { MapGisProvider } from '@/hooks/map-gis-context';
 import * as PublicGis from '@/hooks/use-public-gis';
+import * as MapHeading from '@/hooks/use-map-heading';
+import * as MapLocation from '@/hooks/use-map-location';
+import * as OffTrail from '@/hooks/use-off-trail';
 import { collection, layer } from './fixtures/gis';
 import { suppliedSnapshot } from './fixtures/supplied-gis';
 
@@ -298,6 +301,65 @@ test('repeated 2D/3D transitions retain hidden layers, basemap and camera withou
     expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
   } finally {
     gis.mockRestore();
+  }
+});
+
+test('3D transitions retain reporting and off-trail controls and restore the 2D compass', async () => {
+  const gis = jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({
+    status: 'ready',
+    snapshot: snapshot(),
+    retry: jest.fn(),
+  });
+  const location = jest.spyOn(MapLocation, 'useMapLocation').mockReturnValue({
+    status: 'ready',
+    fix,
+    enable: jest.fn(),
+    disable: jest.fn(),
+  });
+  const heading = jest
+    .spyOn(MapHeading, 'useMapHeading')
+    .mockImplementation((enabled) => (enabled ? 45 : undefined));
+  const offTrail = jest.spyOn(OffTrail, 'useOffTrail').mockReturnValue({
+    status: 'off-trail',
+    showWarning: true,
+    dismiss: jest.fn(),
+    hideForever: jest.fn(),
+  });
+  try {
+    await render(
+      <MapGisProvider>
+        <PreserveMap />
+        <LayerSelectionScreen />
+      </MapGisProvider>,
+    );
+    const compass = () => screen.getByTestId('device-heading-source');
+    expect(compass()).toBeVisible();
+    const firstCone = compass().props.data;
+    await fireEvent(screen.getByTestId('preserve-map'), 'regionDidChange', {
+      nativeEvent: {
+        center: initialTerrainView.center,
+        zoom: 18,
+        bearing: 0,
+        pitch: 0,
+        bounds: [0, 0, 0, 0],
+      },
+    });
+    expect(compass().props.data).not.toEqual(firstCone);
+    await userEvent.setup().press(screen.getByRole('radio', { name: 'Use 3D terrain map' }));
+    await ready();
+    expect(heading).toHaveBeenLastCalledWith(false);
+    expect(screen.getByRole('button', { name: 'Report an issue' })).toBeEnabled();
+    expect(screen.getByTestId('off-trail-status')).toBeOnTheScreen();
+    expect(screen.getByTestId('off-trail-warning')).toBeOnTheScreen();
+    await userEvent.setup().press(screen.getByRole('radio', { name: 'Use 2D map' }));
+    expect(heading).toHaveBeenLastCalledWith(true);
+    expect(compass()).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Report an issue' })).toBeEnabled();
+  } finally {
+    gis.mockRestore();
+    location.mockRestore();
+    heading.mockRestore();
+    offTrail.mockRestore();
   }
 });
 

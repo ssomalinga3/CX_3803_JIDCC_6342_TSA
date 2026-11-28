@@ -22,6 +22,20 @@
       "when": 1794512388048,
       "tag": "0002_report-persistence",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795039108948,
+      "tag": "0003_custom-report-submission",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795124169752,
+      "tag": "0004_notification-delivery",
+      "breakpoints": true
     }
   ]
 }

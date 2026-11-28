@@ -1,4 +1,4 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { FeatureDetails } from '@/data/feature-details';
@@ -27,7 +27,10 @@ export function FeatureDetailSheet({
         accessibilityViewIsModal
         onAccessibilityEscape={onClose}
       >
-        <View style={styles.header}>
+        <View
+          // Android modals draw edge-to-edge; iOS page sheets already inset the header.
+          style={[styles.header, { paddingTop: 20 + (Platform.OS === 'android' ? insets.top : 0) }]}
+        >
           <Text accessibilityRole="header" style={[styles.heading, { color: theme.text }]}>
             Feature details
           </Text>
