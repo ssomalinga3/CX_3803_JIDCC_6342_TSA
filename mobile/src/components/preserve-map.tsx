@@ -21,6 +21,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -42,6 +43,8 @@ import { useLocationFollow } from '@/hooks/use-location-follow';
 import { TerrainMap, type TerrainHandle, type TerrainStatus } from '@/components/terrain-map';
 import { elevation, initialTerrainView, insideTerrain, terrainTrails } from '@/data/terrain-3d';
 import { useOffTrail } from '@/hooks/use-off-trail';
+import { MapPanel } from '@/components/map-panel';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 // Initial browsing viewport only; not a survey point, GPS fix, or preserve boundary.
 const PRESERVE_CENTER: [number, number] = [-84.4792, 33.7176];
@@ -55,6 +58,17 @@ export default function PreserveMap() {
   const insets = useSafeAreaInsets();
   // Native tabs already account for their height in the screen safe area.
   const dockBottom = insets.bottom;
+  const { height: windowHeight } = useWindowDimensions();
+  const previewHeight = Math.min(340, (windowHeight - insets.top - dockBottom) * 0.42);
+  const panelMaxHeight = Math.max(previewHeight, windowHeight - insets.top - dockBottom - 230);
+  const dockHeight = useSharedValue(previewHeight);
+  const dockAttributionStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: panelMaxHeight - dockHeight.get() }],
+  }));
+  const dockControlsStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: panelMaxHeight - dockHeight.get() }],
+    maxHeight: Math.max(52, windowHeight - insets.top - dockBottom - 155 - dockHeight.get()),
+  }));
   const camera = useRef<CameraRef>(null);
   const map = useRef<MapRef>(null);
   const { gis, visibleSnapshot, hidden, basemap, chooseBasemap, mapMode, chooseMapMode } =
@@ -99,14 +113,15 @@ export default function PreserveMap() {
   // Evaluate against all published trails, independent of which layers are displayed.
   const offTrail = useOffTrail(location.fix, location.status, gis.snapshot?.collection);
   const [settingsFailed, setSettingsFailed] = useState(false);
-  const [dockHeight, setDockHeight] = useState(160);
   const [selection, setSelection] = useState<{ snapshot: GisSnapshot; id: string }>();
   useFocusEffect(useCallback(() => () => setSelection(undefined), []));
 
   const ready = loadState === 'ready';
   const locationPadding = useMemo(
-    () => ({ top: insets.top + 110, bottom: dockBottom + dockHeight + 20, left: 24, right: 84 }),
-    [insets.top, dockBottom, dockHeight],
+    // Keep camera padding stable while dragging the HUD. Reserve the initial
+    // details stop; opening more information intentionally covers more map.
+    () => ({ top: insets.top + 110, bottom: dockBottom + previewHeight + 20, left: 24, right: 84 }),
+    [insets.top, dockBottom, previewHeight],
   );
   const locationFollow = useLocationFollow(
     is3d ? terrain : camera,
@@ -127,7 +142,7 @@ export default function PreserveMap() {
     [snapshot],
   );
   const fittedSnapshot = useRef<typeof snapshot>(undefined);
-  const fittedDockHeight = useRef<number | undefined>(undefined);
+  const fittedPreviewHeight = useRef<number | undefined>(undefined);
   // Visibility changes must not refit the visitor's camera when the key shrinks.
   const originalSnapshot = gis.snapshot;
   const bounds = originalSnapshot?.bounds;
@@ -162,10 +177,10 @@ export default function PreserveMap() {
       ready &&
       bounds &&
       (fittedSnapshot.current !== originalSnapshot ||
-        (!visibilityChanged.current && fittedDockHeight.current !== dockHeight))
+        (!visibilityChanged.current && fittedPreviewHeight.current !== previewHeight))
     ) {
       fittedSnapshot.current = originalSnapshot;
-      fittedDockHeight.current = dockHeight;
+      fittedPreviewHeight.current = previewHeight;
       if (location.fix) return;
       const [west, south, east, north] = bounds;
       if (west === east || south === north) {
@@ -178,7 +193,7 @@ export default function PreserveMap() {
         camera.current?.fitBounds(bounds, {
           padding: {
             top: insets.top + 110,
-            bottom: dockBottom + dockHeight + 20,
+            bottom: dockBottom + previewHeight + 20,
             left: 24,
             right: 84,
           },
@@ -191,7 +206,7 @@ export default function PreserveMap() {
     bounds,
     originalSnapshot,
     dockBottom,
-    dockHeight,
+    previewHeight,
     insets.top,
     location.fix,
     hidden,
@@ -249,7 +264,7 @@ export default function PreserveMap() {
           style={styles.map}
           mapStyle={basemapLoad.style}
           attribution
-          attributionPosition={{ bottom: dockBottom + dockHeight + 8, left: 12 }}
+          attributionPosition={{ bottom: dockBottom + previewHeight + 8, left: 12 }}
           compassPosition={{ top: insets.top + 108, right: 24 }}
           onDidFinishRenderingMapFully={basemapLoad.rendered}
           onDidFailLoadingMap={basemapLoad.failed}
@@ -653,12 +668,16 @@ export default function PreserveMap() {
         />
       )}
 
-      <Text
+      <Animated.Text
         accessibilityLabel={`Base map attribution: ${is3d ? `${elevation.attribution} · ${basemap.attribution}` : basemap.attribution}`}
-        style={[styles.attribution, { bottom: dockBottom + dockHeight + 36 }]}
+        style={[
+          styles.attribution,
+          { bottom: dockBottom + panelMaxHeight + 36 },
+          dockAttributionStyle,
+        ]}
       >
         {is3d ? `${elevation.attribution} · ${basemap.attribution}` : basemap.attribution}
-      </Text>
+      </Animated.Text>
       <View pointerEvents="none" style={[styles.tabBackdrop, { height: dockBottom }]} />
 
       <View pointerEvents="box-none" style={[styles.overlay, { top: insets.top + 12 }]}>
@@ -673,7 +692,17 @@ export default function PreserveMap() {
         )}
       </View>
 
-      <View style={[styles.controls, { bottom: dockBottom + dockHeight + 20 }]}>
+      <Animated.ScrollView
+        style={[
+          styles.controls,
+          {
+            bottom: dockBottom + panelMaxHeight + 20,
+          },
+          dockControlsStyle,
+        ]}
+        contentContainerStyle={styles.controlContent}
+        bounces={false}
+      >
         {is3d && (
           <MapButton label="Tilt 3D view" disabled={!ready} onPress={() => terrain.current?.tilt()}>
             <Text style={styles.secondaryText}>Tilt</Text>
@@ -751,11 +780,22 @@ export default function PreserveMap() {
             aria-hidden
           />
         </MapButton>
-      </View>
+      </Animated.ScrollView>
 
-      <View
-        style={[styles.dock, { bottom: dockBottom }]}
-        onLayout={(event) => setDockHeight(event.nativeEvent.layout.height)}
+      <MapPanel
+        height={dockHeight}
+        maxHeight={panelMaxHeight}
+        previewHeight={previewHeight}
+        bottom={dockBottom}
+        summary={
+          offTrail.status === 'off-trail'
+            ? 'Off trail'
+            : loadState === 'unavailable'
+              ? 'Map unavailable'
+              : location.fix
+                ? 'Location on'
+                : 'Location off'
+        }
       >
         {!is3d && loadState === 'loading' && (
           <View style={styles.status}>
@@ -950,7 +990,7 @@ export default function PreserveMap() {
             </>
           )}
         </View>
-      </View>
+      </MapPanel>
       {!is3d && details && (
         <FeatureDetailSheet details={details} onClose={() => setSelection(undefined)} />
       )}
@@ -995,7 +1035,7 @@ function MapButton({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f2f2f7' },
+  container: { flex: 1, backgroundColor: '#f2f2f7', overflow: 'hidden' },
   map: { flex: 1 },
   // Keep the native viewport intact while the WebView covers it. A zero-sized
   // native surface invalidates tile loading and can lose the restored basemap.
@@ -1021,7 +1061,8 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: '700', color: '#000' },
   subtitle: { fontSize: 16, color: '#3a3a3c', flexShrink: 1 },
-  controls: { position: 'absolute', right: 16, bottom: 188, gap: 8 },
+  controls: { position: 'absolute', right: 12, width: 60 },
+  controlContent: { gap: 8, padding: 4 },
   button: {
     width: 52,
     height: 52,
@@ -1046,17 +1087,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#fff',
-  },
-  dock: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 18,
-    gap: 8,
   },
   status: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   note: { fontSize: 13, lineHeight: 19, color: '#60646c' },

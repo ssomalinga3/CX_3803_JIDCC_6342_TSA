@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, userEvent, waitFor } from '@testing-library/react-native';
-import { AppState } from 'react-native';
+import { AccessibilityInfo, AppState } from 'react-native';
 
 import NativePreserveMap from '@/components/preserve-map';
 import { MapGisProvider } from '@/hooks/map-gis-context';
@@ -22,6 +22,7 @@ function PreserveMap() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true);
   Object.defineProperty(AppState, 'currentState', { configurable: true, value: 'active' });
 });
 
@@ -144,7 +145,7 @@ test('selection preserves a live GPS watcher and camera position', async () => {
   }
 });
 
-test('refits the loaded route after measuring the legend panel without refitting unchanged layouts', async () => {
+test('panel movement and content measurement preserve the native map and browsing camera', async () => {
   const gis = jest.spyOn(PublicGis, 'usePublicGis').mockReturnValue({
     status: 'ready',
     retry: jest.fn(),
@@ -159,16 +160,23 @@ test('refits the loaded route after measuring the legend panel without refitting
   try {
     await render(<PreserveMap />);
     await fireEvent(screen.getByTestId('preserve-map'), 'didFinishRenderingMapFully');
-    const previousPadding = mockFitBounds.mock.calls.at(-1)[1].padding.bottom;
-    await fireEvent(screen.getByText('Pan or pinch to explore').parent!, 'layout', {
-      nativeEvent: { layout: { height: 380 } },
-    });
-    expect(mockFitBounds.mock.calls.at(-1)[1].padding.bottom).toBeGreaterThan(previousPadding);
+    const map = screen.getByTestId('preserve-map');
     const count = mockFitBounds.mock.calls.length;
-    await fireEvent(screen.getByText('Pan or pinch to explore').parent!, 'layout', {
-      nativeEvent: { layout: { height: 380 } },
+    const cameraCalls = mockEaseTo.mock.calls.length;
+    await fireEvent(screen.getByTestId('map-panel-header'), 'layout', {
+      nativeEvent: { layout: { height: 90 } },
     });
+    await fireEvent(screen.getByTestId('map-panel-content'), 'contentSizeChange', 390, 800);
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Collapse map details' }));
+    expect(screen.getByRole('button', { name: 'Expand map details' })).toBeCollapsed();
+    expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Choose GIS layers' })).not.toBeOnTheScreen();
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Show all map information' }));
+    expect(screen.getByRole('button', { name: 'Choose GIS layers' })).toBeEnabled();
+    expect(screen.getByTestId('preserve-map')).toBe(map);
     expect(mockFitBounds).toHaveBeenCalledTimes(count);
+    expect(mockEaseTo).toHaveBeenCalledTimes(cameraCalls);
+    expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
   } finally {
     gis.mockRestore();
   }
